@@ -1,18 +1,18 @@
 # -*- coding: utf-8 -*-
-"""ice_gui.py — ANSYS Icepak 项目文件/目录查看器.
+"""ice_gui.py — ANSYS Icepak 2019 R3 同构主界面 (icedecoding).
 
-技术路线参照 D:/training/cgns/cabdecoding:
-  * GUI:   PyQt5 (QMainWindow + QSplitter 左右布局 + 菜单/工具栏/状态栏)
-  * 3D:    VTK QVTKRenderWindowInteractor, 每对象一个 vtkActor
-  * 几何:  由 model 文件的 shape/setval 解析出包围盒/圆柱/多边形,
-           numpy 生成顶点+单元, vtkPolyData 送入渲染器
-  * 交互:  TrackballCamera 旋转缩放, 鼠标拾取对象高亮, Fit/重置相机
-  * 渲染:  Shading / Line(线框) / Translucent(半透明) 三种模式, 按对象类型分层开关
+布局对齐 ICE_GUI_DESIGN.md / menus_icepak.tcl:
+  Menu: File Edit View Orient Macros Model Solve Post Report Windows Help
+  Toolbars: File | Edit | Viewing | Orientation || Model and solve | Postprocessing
+            || Object creation | Object modification | Alignment
+  Left: Project / Library tree + TDV strip
+  Center: Graphics (gradient, triad, ANSYS 2019 R3 watermark)
+  Bottom: Message (Verbose / Log / Save)
 
 用法:
-    python ice_gui.py                    # 启动后 File->Open Directory / Open .tzr
-    python ice_gui.py D:/training/icepak                 # 直接打开项目目录
-    python ice_gui.py D:/training/icepak/avonics.tzr     # 直接打开归档
+    python ice_gui.py
+    python ice_gui.py D:/training/icepak
+    python ice_gui.py D:/training/icepak/avonics.tzr
 """
 
 from __future__ import annotations
@@ -37,20 +37,29 @@ from icepak_parser.cli import find_projects  # noqa: E402
 # GUI / VTK 依赖
 # ---------------------------------------------------------------------------
 try:  # pragma: no cover - 运行环境判断
-    from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-    from PyQt5.QtGui import QColor, QFont
+    from PyQt5.QtCore import Qt, QTimer, QSize, QUrl
+    from PyQt5.QtGui import QColor, QDesktopServices, QFont, QKeySequence
     from PyQt5.QtWidgets import (
-        QAction, QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel,
-        QMainWindow, QMessageBox, QPlainTextEdit, QPushButton, QSplitter,
-        QTableWidget, QTableWidgetItem, QToolBar, QTreeWidget, QTreeWidgetItem,
-        QComboBox, QCheckBox, QVBoxLayout, QWidget,
+        QAction, QActionGroup, QApplication, QDialog, QFileDialog, QHBoxLayout,
+        QLabel, QMainWindow, QMessageBox, QPlainTextEdit, QPushButton, QSplitter,
+        QTabWidget, QToolBar, QVBoxLayout, QWidget,
     )
     import vtk
     from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
     from vtk.util import numpy_support
+    from ice_icons import IceIcons
+    from ice_panes import (
+        DetailsDialog, LibraryTree, MessageWindow, PROJECT_NODES, ProjectTree,
+        TdvStrip, WelcomeDialog,
+    )
     HAS_GUI = True
 except Exception:  # pragma: no cover
     HAS_GUI = False
+    IceIcons = None  # type: ignore
+    PROJECT_NODES = (
+        "Problem setup", "Solution settings", "Groups", "Post-processing",
+        "Points", "Surfaces", "Trash", "Inactive", "Model",
+    )
 
 # ===========================================================================
 # 1. 3D 几何构建 (numpy -> vtkPolyData)
@@ -373,216 +382,690 @@ def build_scene(model, layer_on, wireframe=False):
 
 
 # ===========================================================================
-# 4. GUI
+# 4. Icepak 2019 R3 同构 GUI
 # ===========================================================================
 
-class MessageLog(QPlainTextEdit):
-    """底部消息日志."""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setReadOnly(True)
-        self.setMaximumBlockCount(2000)
-        f = QFont("Consolas", 9)
-        self.setFont(f)
+ICEPAK_VERSION = "2019 R3"
+ICEPAK_TITLE = "ANSYS Icepak %s" % ICEPAK_VERSION
+HELP_DIR = os.path.normpath(os.path.join(
+    r"C:\Program Files\ANSYS Inc\v195", "commonfiles", "help", "en-us",
+    "help", "ice_ug"))
+WEB_ICEPAK = "https://www.ansys.com/Products/Electronics/ANSYS-Icepak"
+WEB_PORTAL = "https://support.ansys.com/portal/site/AnsysCustomerPortal"
 
-    def log(self, msg, level="INFO"):
-        self.appendPlainText("[%s] %s" % (level, msg))
+CREATE_OBJECT_TYPES = (
+    ("block", "Blocks", "Create blocks"),
+    ("blower", "Blowers", "Create blowers"),
+    ("enclosure", "Enclosures", "Create enclosures"),
+    ("fan", "Fans", "Create fans"),
+    ("heat_exchanger", "Heat exchangers", "Create heat exchangers"),
+    ("heatsink", "Heat sinks", "Create heat sinks"),
+    ("material", "Materials", "Create materials"),
+    ("network", "Networks", "Create networks"),
+    ("opening", "Openings", "Create openings"),
+    ("package", "Packages", "Create packages"),
+    ("assembly", "Assemblies", "Create assemblies"),
+    ("pcb", "Printed circuit boards", "Create printed circuit boards"),
+    ("periodic", "Periodic boundaries", "Create periodic boundaries"),
+    ("plate", "Plates", "Create plates"),
+    ("resistance", "Resistances", "Create resistances"),
+    ("source", "Sources", "Create sources"),
+    ("ventres", "Grille", "Create grille"),
+    ("wall", "Walls", "Create walls"),
+)
 
+VISIBLE_KINDS = ALL_KINDS + [
+    "blower", "network", "heat_exchanger", "periodic",
+]
+SHADING_MODES = (
+    "wire", "solid", "solid/wire", "hidden line", "selected_solid",
+)
 
-class DetailsTable(QTableWidget):
-    """属性键值表."""
-    def __init__(self, parent=None):
-        super().__init__(0, 2, parent)
-        self.setHorizontalHeaderLabels(["属性", "值"])
-        self.horizontalHeader().setStretchLastSection(True)
-        self.verticalHeader().setVisible(False)
-        self.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.setAlternatingRowColors(True)
-
-    def fill(self, rows):
-        self.setRowCount(len(rows))
-        for r, (k, v) in enumerate(rows):
-            self.setItem(r, 0, QTableWidgetItem(str(k)))
-            self.setItem(r, 1, QTableWidgetItem(str(v)))
-        self.resizeRowsToContents()
-        self.resizeColumnToContents(0)
+STYLE = """
+QMainWindow, QDialog { background: #e8e8e8; }
+QMenuBar { background: #e8e8e8; }
+QToolBar { background: #e8e8e8; border: 0; spacing: 1px; padding: 1px; }
+QToolBar::separator { width: 6px; }
+QTreeWidget { background: #ffffff; alternate-background-color: #f4f7fb; }
+QTabWidget::pane { border: 1px solid #b0b0b0; }
+QSplitter::handle { background: #c0c0c0; }
+#TdvStrip { background: #d4d0c8; border-right: 1px solid #a0a0a0; }
+"""
 
 
 class IceGui(QMainWindow):
-    """主窗口."""
+    """Icepak 2019 R3 layout: menus, toolbars, Project tree, Graphics, Message."""
 
-    def __init__(self, path=None, enable_3d: bool = True):
+    def __init__(self, path=None, enable_3d=True, show_welcome=None):
         if not HAS_GUI:
             raise RuntimeError(
                 "PyQt5 / vtk 未安装: python -m pip install PyQt5 vtk numpy")
         super().__init__()
         self._enable_3d = enable_3d
-        self.setWindowTitle("ice_gui — ANSYS Icepak 项目查看器")
-        self.resize(1500, 880)
+        self.setWindowTitle(ICEPAK_TITLE)
+        self.resize(1600, 900)
 
         self.root_path = None
-        self.projects = []           # [(name, kind, source)]
-        self.project = None          # 当前 IcepakProject
-        self.scene_objs = []         # SceneObject 列表
-        self.actors = []             # [(vtkActor, SceneObject)]
-        self._actor_map = {}         # id(actor) -> SceneObject
-        self.selected = None         # 当前选中 SceneObject 名
-        self._wireframe = False
-        self._translucent = False
+        self.projects = []
+        self.project = None
+        self.scene_objs = []
+        self.actors = []
+        self._actor_map = {}
+        self.selected = None
+        self._shading = "solid/wire"
         self._show_axes = True
+        self._show_logo = True
+        self._show_names = 0
         self._fit_pending = False
-        self._rendering = False
+        self._orient_widget = None
+        self._logo_actor = None
+        self._hidden = set()
+        self._toolbars = {}
+        self._tb_row = -1
+        if show_welcome is None:
+            show_welcome = bool(enable_3d and not path)
+        self._pending_welcome = bool(show_welcome)
 
         self._build_ui()
-        self._build_axes()
+        self._apply_style()
+        self._setup_3d_overlays()
         if path:
             self.open_path(path)
+        else:
+            self.project_tree.reset_empty("untitled")
+            self.log("This is the 64-bit version")
+            self.log("ANSYS Icepak %s. Use File to open a project or .tzr."
+                     % ICEPAK_VERSION)
 
-    # ------------------------------------------------------------- UI 构建
+    def log(self, msg, level="INFO"):
+        if hasattr(self, "message_win"):
+            self.message_win.log(msg, level)
+        self.statusBar().showMessage(msg, 8000)
+
+    def _nyi(self, name):
+        self.log("[%s] not available in ice viewer "
+                 "(Icepak-only / not yet mapped)." % name, "WARN")
+
+    def _apply_style(self):
+        self.setStyleSheet(STYLE)
+
+    # ------------------------------------------------------------- UI
     def _build_ui(self):
         self._build_menus()
-        self._build_toolbar()
+        self._build_toolbars()
 
-        # 左侧: 项目树
-        self.tree = QTreeWidget(self)
-        self.tree.setHeaderLabels(["Icepak 项目 / 对象"])
-        self.tree.itemSelectionChanged.connect(self._on_tree_selected)
-        self.tree.itemDoubleClicked.connect(self._on_tree_double)
+        self.project_tree = ProjectTree(self)
+        self.project_tree.object_selected.connect(self._on_object_selected)
+        self.project_tree.object_activated.connect(self._on_object_activated)
+        self.project_tree.node_selected.connect(self._on_node_selected)
+        self.library_tree = LibraryTree(self)
+        self.nav_tabs = QTabWidget(self)
+        self.nav_tabs.addTab(self.project_tree, "Project")
+        self.nav_tabs.addTab(self.library_tree, "Library")
+        self.nav_tabs.setMinimumWidth(220)
+        self.tree = self.project_tree  # compat alias
 
-        # 右侧: 3D + 属性 + 日志
+        self.tdv_strip = TdvStrip(self)
+        self.tdv_strip.mode_changed.connect(self._on_tdv_mode)
+        self.tdv_strip.hide_requested.connect(self._toggle_selected_visible)
+
         if self._enable_3d:
             self.vtk_widget = QVTKRenderWindowInteractor(self)
             self.renderer = vtk.vtkRenderer()
-            self.renderer.SetBackground(0.93, 0.93, 0.94)
-            self.renderer.SetBackground2(0.78, 0.82, 0.90)
+            # bottom #f4f7fb, top #9ec8e8 (Icepak screenshot gradient)
+            self.renderer.SetBackground(0.957, 0.969, 0.984)
+            self.renderer.SetBackground2(0.620, 0.784, 0.910)
             self.renderer.GradientBackgroundOn()
             self.renderer.GetActiveCamera().ParallelProjectionOn()
             self.vtk_widget.GetRenderWindow().AddRenderer(self.renderer)
-            self.vtk_widget.GetRenderWindow().GetInteractor().SetInteractorStyle(
-                vtk.vtkInteractorStyleTrackballCamera())
-            self.vtk_widget.GetRenderWindow().GetInteractor().AddObserver(
-                "LeftButtonPressEvent", self._on_pick)
-            self.vtk_widget.GetRenderWindow().GetInteractor().AddObserver(
-                "RightButtonPressEvent", self._on_right_press)
+            iren = self.vtk_widget.GetRenderWindow().GetInteractor()
+            iren.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
+            iren.AddObserver("LeftButtonPressEvent", self._on_pick)
+            draw_body = self.vtk_widget
         else:
             self.vtk_widget = None
             self.renderer = None
-            self._label_3d = QLabel("3D 视图已禁用（headless 测试模式）", self)
-            self._label_3d.setAlignment(Qt.AlignCenter)
+            draw_body = QLabel("3D 视图已禁用（headless 测试模式）", self)
+            draw_body.setAlignment(Qt.AlignCenter)
 
-        self.details = DetailsTable(self)
-        self.logger = MessageLog(self)
-        self.logger.log("ice_gui 就绪。File->Open Directory 打开项目目录。")
+        graphics = QWidget(self)
+        gh = QHBoxLayout(graphics)
+        gh.setContentsMargins(0, 0, 0, 0)
+        gh.setSpacing(0)
+        gh.addWidget(self.tdv_strip, 0)
+        gh.addWidget(draw_body, 1)
+        self.graphics = graphics
 
-        right_top = QWidget(self)
-        lt = QVBoxLayout(right_top)
-        lt.setContentsMargins(0, 0, 0, 0)
-        lt.addWidget(self.vtk_widget if self._enable_3d else self._label_3d, 1)
-        lt.addWidget(QLabel("属性", self))
-        lt.addWidget(self.details, 1)
+        self.message_win = MessageWindow(self)
+        self.logger = self.message_win  # compat
 
         right = QSplitter(Qt.Vertical, self)
-        right.addWidget(right_top)
-        right.addWidget(self.logger)
-        right.setStretchFactor(0, 4)
+        right.addWidget(graphics)
+        right.addWidget(self.message_win)
+        right.setStretchFactor(0, 5)
         right.setStretchFactor(1, 1)
-        right.setSizes([620, 150])
+        right.setSizes([640, 140])
+        self._right_split = right
 
         main = QSplitter(Qt.Horizontal, self)
-        main.addWidget(self.tree)
+        main.addWidget(self.nav_tabs)
         main.addWidget(right)
         main.setStretchFactor(0, 0)
         main.setStretchFactor(1, 1)
-        main.setSizes([330, 1100])
+        main.setSizes([260, 1340])
         self.setCentralWidget(main)
 
-        self.statusBar().showMessage("未打开项目")
+        self.statusBar().showMessage("No project")
+
+    def _act(self, menu, text, slot=None, shortcut=None, checkable=False,
+             icon=None, checked=False):
+        a = QAction(text, self)
+        if shortcut:
+            a.setShortcut(shortcut)
+            a.setShortcutContext(Qt.WindowShortcut)
+        if icon:
+            a.setIcon(IceIcons.get(icon, 24))
+        a.setCheckable(checkable)
+        if checkable:
+            a.setChecked(checked)
+        if slot:
+            if checkable:
+                a.toggled.connect(slot)
+            else:
+                a.triggered.connect(slot)
+        else:
+            a.triggered.connect(lambda _=False, t=text: self._nyi(t))
+        if menu is self:
+            self.addAction(a)
+        else:
+            menu.addAction(a)
+        return a
 
     def _build_menus(self):
         mb = self.menuBar()
+        add = self._act
 
-        def add(menu, text, slot=None, shortcut=None):
-            a = QAction(text, self)
-            if shortcut:
-                a.setShortcut(shortcut)
-            if slot:
-                a.triggered.connect(slot)
-            menu.addAction(a)
-            return a
-
-        m = mb.addMenu("文件(&F)")
-        add(m, "打开项目目录…", self._open_dir, "Ctrl+O")
-        add(m, "打开 .tzr 归档…", self._open_tzr, "Ctrl+T")
-        add(m, "重新载入", self._reload, "F5")
+        # File
+        m = mb.addMenu("File")
+        add(m, "New project", self._new_project, "Ctrl+N", icon="new")
+        add(m, "Open project", self._open_dir, "Ctrl+O", icon="open")
+        add(m, "Merge project")
+        add(m, "Reload main version", self._reload, "Ctrl+L")
         m.addSeparator()
-        add(m, "退出", self.close, "Ctrl+Q")
-
-        m = mb.addMenu("视图(&V)")
-        self._act_fit = add(m, "适应窗口", self._fit, "F")
-        add(m, "重置相机", self._reset_camera)
+        add(m, "Save project", self._save, "Ctrl+S", icon="save")
+        add(m, "Save project as", self._save_as)
         m.addSeparator()
-        self._act_axes = QAction("显示坐标轴", self)
-        self._act_axes.setCheckable(True)
-        self._act_axes.setChecked(self._show_axes)
-        self._act_axes.toggled.connect(self._toggle_axes)
-        m.addAction(self._act_axes)
+        imp = m.addMenu("Import")
+        add(imp, "Import CSV/Excel")
+        idf = imp.addMenu("IDF file")
+        add(idf, "New board")
+        add(idf, "Update board")
+        add(imp, "Import IDX file")
+        add(imp, "Import Electronics Cooling XML")
+        imp.addSeparator()
+        pmap = imp.addMenu("Powermaps")
+        for t in ("Apache Sentinel TI profile", "Cadence tab file",
+                  "Cadence Stacked Die tab files",
+                  "Gradient Firebolt i2p file", "RedHawk CTM profile"):
+            add(pmap, t)
+        add(imp, "Import Networks")
+        add(imp, "Import JEDEC PTD/JEP30 file")
+        exp = m.addMenu("Export")
+        add(exp, "ANSYS Electronics Desktop script")
+        exp.addSeparator()
+        add(exp, "Export CSV/Excel", self._export_csv)
+        add(exp, "Export IDF file")
+        add(exp, "Export Electronics Cooling XML")
+        exp.addSeparator()
+        add(exp, "Export Networks")
+        add(exp, "Export JEDEC PTD/JEP30 file")
+        em = m.addMenu("EM Mapping")
+        add(em, "Volumetric heat losses")
+        add(em, "Surface heat losses")
         m.addSeparator()
+        add(m, "Unpack project", self._open_tzr)
+        add(m, "Pack project")
+        m.addSeparator()
+        add(m, "Cleanup")
+        add(m, "Print screen", self._print_screen, "Ctrl+P", icon="print")
+        add(m, "Create image file", self._create_image, icon="image")
+        add(m, "Command prompt", self._command_prompt)
+        add(m, "Quit", self.close)
 
-        # 图层开关
-        m2 = m.addMenu("对象图层")
+        # Edit
+        m = mb.addMenu("Edit")
+        add(m, "Undo", shortcut="Ctrl+Z", icon="undo")
+        add(m, "Redo", shortcut="Ctrl+R", icon="redo")
+        m.addSeparator()
+        add(m, "Find", shortcut="Ctrl+F")
+        add(m, "Show clipboard")
+        add(m, "Clear clipboard")
+        m.addSeparator()
+        add(m, "Snap to grid")
+        add(m, "Preferences")
+        add(m, "Annotations")
+
+        # View
+        m = mb.addMenu("View")
+        add(m, "Summary (HTML)")
+        m.addSeparator()
+        add(m, "Location")
+        add(m, "Distance")
+        add(m, "Angle")
+        add(m, "Unit vector")
+        add(m, "Unit normal")
+        add(m, "Bounding box", self._show_bbox)
+        m.addSeparator()
+        tr = m.addMenu("Traces")
+        add(tr, "Net info")
+        add(tr, "Trace info")
+        m.addSeparator()
+        mk = m.addMenu("Markers")
+        add(mk, "Add marker")
+        add(mk, "Clear markers")
+        rb = m.addMenu("Rubber bands")
+        add(rb, "Add rubber band")
+        add(rb, "Clear rubber bands")
+        m.addSeparator()
+        tbmenu = m.addMenu("Edit toolbars")
+        self._tb_menu = tbmenu
+        sh = m.addMenu("Default shading")
+        self._shading_group = QActionGroup(self)
+        self._shading_group.setExclusive(True)
+        self._shading_actions = {}
+        labels = {
+            "wire": "Wireframe shading",
+            "solid": "Solid shading",
+            "solid/wire": "Solid/Wire shading",
+            "hidden line": "Hidden line shading",
+            "selected_solid": "Selected solid shading",
+        }
+        for i, mode in enumerate(SHADING_MODES):
+            if mode == "selected_solid":
+                sh.addSeparator()
+            a = QAction(labels[mode], self)
+            a.setCheckable(True)
+            a.setChecked(mode == self._shading)
+            a.triggered.connect(lambda _=False, md=mode: self._set_shading(md))
+            self._shading_group.addAction(a)
+            sh.addAction(a)
+            self._shading_actions[mode] = a
+        disp = m.addMenu("Display")
+        names = disp.addMenu("Object names")
+        self._names_group = QActionGroup(self)
+        for label, val in (("Current assembly object names", 1),
+                           ("No object names", 0),
+                           ("Selected object names", 2)):
+            a = QAction(label, self)
+            a.setCheckable(True)
+            a.setChecked(val == 0)
+            a.triggered.connect(lambda _=False, v=val: self._set_names(v))
+            self._names_group.addAction(a)
+            names.addAction(a)
+        disp.addSeparator()
+        self._act_axes = add(disp, "Coord axes", self._toggle_axes,
+                             checkable=True, checked=True)
+        add(disp, "Visible grid", checkable=True)
+        add(disp, "Origin marker", checkable=True)
+        add(disp, "Display rulers", checkable=True)
+        add(disp, "Display project title", checkable=True)
+        self._act_logo = add(disp, "Display ANSYS logo", self._toggle_logo,
+                             checkable=True, checked=True)
+        add(disp, "Display current date", checkable=True)
+        add(disp, "Display construction lines", checkable=True)
+        add(disp, "Display construction points", checkable=True)
+        add(disp, "Display mesh", checkable=True)
+        add(disp, "Mouse position", checkable=True)
+        add(disp, "Depthcue", checkable=True)
+        add(disp, "Tcl console", checkable=True)
+        vis = m.addMenu("Visible")
         self._layer_actions = {}
-        for k in ALL_KINDS:
-            a = QAction(k, self)
+        seen = set()
+        for kind in VISIBLE_KINDS:
+            if kind in seen:
+                continue
+            seen.add(kind)
+            title = kind if kind != "ventres" else "grille"
+            a = QAction("%s visible" % title, self)
             a.setCheckable(True)
             a.setChecked(True)
-            a.toggled.connect(
-                lambda on, kk=k: self._on_layer_toggle(kk, on))
-            m2.addAction(a)
-            self._layer_actions[k] = a
-
+            a.toggled.connect(lambda on, kk=kind: self._on_layer_toggle(kk, on))
+            vis.addAction(a)
+            self._layer_actions[kind] = a
         m.addSeparator()
-        self._act_wire = QAction("线框模式", self)
-        self._act_wire.setCheckable(True)
-        self._act_wire.toggled.connect(self._on_wire_toggle)
-        m.addAction(self._act_wire)
-        self._act_trans = QAction("半透明模式", self)
-        self._act_trans.setCheckable(True)
-        self._act_trans.toggled.connect(self._on_trans_toggle)
-        m.addAction(self._act_trans)
+        add(m, "Lights")
 
-    def _build_toolbar(self):
-        tb = QToolBar("主工具栏", self)
+        # Orient
+        m = mb.addMenu("Orient")
+        add(m, "Home position", self._home, "H", icon="home")
+        add(m, "Isometric view", lambda: self._orient("iso"), icon="iso")
+        add(m, "Orient positive X", lambda: self._orient("+x"))
+        add(m, "Orient negative X", lambda: self._orient("-x"), icon="axis_x")
+        add(m, "Orient positive Y", lambda: self._orient("+y"), icon="axis_y")
+        add(m, "Orient negative Y", lambda: self._orient("-y"))
+        add(m, "Orient positive Z", lambda: self._orient("+z"))
+        add(m, "Orient negative Z", lambda: self._orient("-z"), icon="axis_z")
+        add(m, "Zoom in", self._zoom_in, "Z", icon="zoom")
+        add(m, "Scale to fit", self._fit, "S", icon="fit")
+        add(m, "Reverse orientation", self._reverse_orient, icon="reverse")
+        add(m, "Nearest axis", self._nearest_axis)
+        add(m, "Save user view")
+        add(m, "Clear user views")
+        add(m, "Write user views to file")
+        add(m, "Read user views from file")
+
+        # Macros (dynamic in Icepak; skeleton + documented entries)
+        m = mb.addMenu("Macros")
+        for t in ("ATX / Micro-ATX chassis", "Angled Fin Heat Sink",
+                  "PCB", "Polygonal ducts", "Heat sink creation",
+                  "Detailed heat sink creation", "Heat Pipe"):
+            add(m, t)
+
+        # Model
+        m = mb.addMenu("Model")
+        cr = m.addMenu("Create object")
+        for kind, title, cmd in CREATE_OBJECT_TYPES:
+            add(cr, title, lambda _=False, k=kind, c=cmd: self._nyi(c),
+                icon=kind)
+        m.addSeparator()
+        add(m, "Radiation form factors")
+        m.addSeparator()
+        add(m, "Generate mesh", icon="mesh")
+        m.addSeparator()
+        add(m, "Edit priorities")
+        add(m, "Edit cutouts")
+        add(m, "Create material library")
+        add(m, "Power and temperature limits", icon="limits")
+        m.addSeparator()
+        add(m, "Check model", self._check_model, icon="check")
+        add(m, "Show objects by material")
+        add(m, "Show objects by property")
+        add(m, "Show objects by type")
+        add(m, "Show metal fractions")
+
+        # Solve
+        m = mb.addMenu("Solve")
+        st = m.addMenu("Settings")
+        add(st, "Basic settings", self._show_basic_settings)
+        add(st, "Advanced settings")
+        add(st, "Parallel settings")
+        add(m, "Patch temperatures")
+        m.addSeparator()
+        add(m, "Run solution", icon="solve")
+        add(m, "Run optimization", icon="optim")
+        add(m, "Create Krylov ROM")
+        m.addSeparator()
+        add(m, "Solution monitor")
+        m.addSeparator()
+        add(m, "Define trials")
+        add(m, "Define report")
+        m.addSeparator()
+        diag = m.addMenu("Diagnostics")
+        add(diag, "Edit .cas file")
+        add(diag, "Edit .diag file")
+        add(diag, "Edit .uns_out file")
+        add(diag, "Edit optimization log")
+
+        # Post
+        m = mb.addMenu("Post")
+        add(m, "Object face (node)", icon="face")
+        add(m, "Object face (facet)", icon="face")
+        add(m, "Plane cut", icon="plane")
+        add(m, "Isosurface", icon="iso_surf")
+        add(m, "Point", icon="point")
+        add(m, "Surface probe", icon="probe")
+        add(m, "Min/max locations")
+        m.addSeparator()
+        add(m, "Convergence plot")
+        add(m, "Variation plot", icon="plot")
+        add(m, "3D Variation plot")
+        add(m, "History plot", icon="history")
+        add(m, "Trials plot", icon="trials")
+        add(m, "Network temperature plot")
+        m.addSeparator()
+        add(m, "Transient settings", icon="transient")
+        add(m, "Load solution ID", icon="sol_id")
+        add(m, "Postprocessing units")
+        add(m, "Load post objects from file")
+        add(m, "Save post objects to file")
+        add(m, "Rescale vectors")
+        m.addSeparator()
+        add(m, "Create zoom-in model")
+        add(m, "Power and temperature values")
+        wf = m.addMenu("Workflow data")
+        add(wf, "CFD Post/Mechanical")
+        add(m, "Display powermap property")
+
+        # Report
+        m = mb.addMenu("Report")
+        add(m, "HTML report", icon="report")
+        ov = m.addMenu("Solution overview")
+        add(ov, "View solution overview")
+        add(ov, "Create solution overview")
+        add(m, "Show optimization/param results")
+        m.addSeparator()
+        add(m, "Summary report", icon="report")
+        add(m, "Point report")
+        add(m, "Full report")
+        m.addSeparator()
+        add(m, "Network block values")
+        add(m, "Fan operating points")
+        add(m, "EM heat losses")
+        add(m, "Solar loads")
+        m.addSeparator()
+        add(m, "Write Autotherm file")
+        m.addSeparator()
+        rexp = m.addMenu("Export")
+        for t in ("Gradient Firebolt p2i file", "Cadence TPKG file",
+                  "SIwave temp data", "Sentinel TI HTC file",
+                  "RedHawk Back Annotation"):
+            add(rexp, t)
+
+        # Windows
+        m = mb.addMenu("Windows")
+        self._act_show_msg = add(m, "Message", self._toggle_message,
+                                 checkable=True, checked=True)
+        self._act_show_nav = add(m, "Project", self._toggle_nav,
+                                 checkable=True, checked=True)
+
+        # Help
+        m = mb.addMenu("Help")
+        add(m, "Help", self._help, "F1")
+        add(m, "Icepak on the Web", self._web_icepak)
+        add(m, "Customer Portal", self._web_portal)
+        add(m, "List shortcuts", self._list_shortcuts)
+        m.addSeparator()
+        add(m, "About Icepak", self._about)
+
+        # Extra hotkeys (Icepak command_set_hotkeys) — window actions, not menus
+        add(self, "Edit object or postprocessing object",
+            self._edit_current, "Ctrl+E")
+        for text, sc, slot in (
+            ("Delete object", "Delete", self._delete_current),
+            ("Toggle object active", "Ctrl+A", None),
+            ("Toggle object visible", "Ctrl+V", self._toggle_selected_visible),
+            ("Toggle object shading", "Ctrl+H", None),
+            ("Open/close tree node", "Ctrl+T", None),
+            ("Open/close model subtree", "Ctrl+M", None),
+            ("Move object", "Ctrl+X", None),
+            ("Copy object", "Ctrl+C", None),
+            ("Toggle shading type", "Ctrl+W", self._cycle_shading),
+        ):
+            add(self, text, slot, sc)
+
+    def _tb(self, name, row=0):
+        tb = QToolBar(name, self)
         tb.setMovable(False)
-        self.addToolBar(tb)
-        tb.addAction(QAction("打开目录", self, triggered=self._open_dir))
-        tb.addAction(QAction("打开 .tzr", self, triggered=self._open_tzr))
-        tb.addAction(QAction("适应", self, triggered=self._fit))
-        tb.addSeparator()
-        self._mode_combo = QComboBox(self)
-        self._mode_combo.addItems(["Shading", "Line", "Translucent"])
-        self._mode_combo.currentTextChanged.connect(self._on_mode_change)
-        tb.addWidget(QLabel(" 渲染:", self))
-        tb.addWidget(self._mode_combo)
+        tb.setIconSize(QSize(24, 24))
+        tb.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        if row != self._tb_row and self._tb_row >= 0:
+            self.addToolBarBreak(Qt.TopToolBarArea)
+        self._tb_row = row
+        self.addToolBar(Qt.TopToolBarArea, tb)
+        self._toolbars[name] = tb
+        a = QAction(name, self)
+        a.setCheckable(True)
+        a.setChecked(True)
+        a.toggled.connect(tb.setVisible)
+        self._tb_menu.addAction(a)
+        return tb
 
-    # ------------------------------------------------------------- 打开
+    def _tb_act(self, tb, text, slot=None, icon=None, shortcut=None):
+        a = QAction(text, self)
+        if icon:
+            a.setIcon(IceIcons.get(icon, 24))
+        if shortcut:
+            a.setShortcut(shortcut)
+        if slot:
+            a.triggered.connect(slot)
+        else:
+            a.triggered.connect(lambda _=False, t=text: self._nyi(t))
+        tb.addAction(a)
+        return a
+
+    def _build_toolbars(self):
+        # Row 1
+        tb = self._tb("File commands", 0)
+        self._tb_act(tb, "New project", self._new_project, "new")
+        self._tb_act(tb, "Open project", self._open_dir, "open")
+        self._tb_act(tb, "Save project", self._save, "save")
+        self._tb_act(tb, "Print screen", self._print_screen, "print")
+        self._tb_act(tb, "Create image file", self._create_image, "image")
+
+        tb = self._tb("Edit commands", 0)
+        self._tb_act(tb, "Undo", icon="undo")
+        self._tb_act(tb, "Redo", icon="redo")
+
+        tb = self._tb("Viewing options", 0)
+        self._tb_act(tb, "Home position", self._home, "home")
+        self._tb_act(tb, "Zoom in", self._zoom_in, "zoom")
+        self._tb_act(tb, "Scale to fit", self._fit, "fit")
+        self._tb_act(tb, "Rotate about screen normal", self._rotate_normal,
+                     "rotate")
+        self._tb_act(tb, "One viewing window", icon="win1")
+        self._tb_act(tb, "Four viewing windows", icon="win4")
+        self._tb_act(tb, "Display object names", icon="names")
+
+        tb = self._tb("Orientation commands", 0)
+        self._tb_act(tb, "Orient negative X", lambda: self._orient("-x"),
+                     "axis_x")
+        self._tb_act(tb, "Orient positive Y", lambda: self._orient("+y"),
+                     "axis_y")
+        self._tb_act(tb, "Orient negative Z", lambda: self._orient("-z"),
+                     "axis_z")
+        self._tb_act(tb, "Isometric view", lambda: self._orient("iso"), "iso")
+        self._tb_act(tb, "Reverse orientation", self._reverse_orient, "reverse")
+
+        # Row 2
+        tb = self._tb("Model and solve", 1)
+        self._tb_act(tb, "Power and temperature limits", icon="limits")
+        self._tb_act(tb, "Generate mesh", icon="mesh")
+        self._tb_act(tb, "Radiation", icon="radiation")
+        self._tb_act(tb, "Check model", self._check_model, "check")
+        self._tb_act(tb, "Run solution", icon="solve")
+        self._tb_act(tb, "Run optimization", icon="optim")
+
+        tb = self._tb("Postprocessing", 1)
+        self._tb_act(tb, "Object face", icon="face")
+        self._tb_act(tb, "Plane cut", icon="plane")
+        self._tb_act(tb, "Isosurface", icon="iso_surf")
+        self._tb_act(tb, "Point", icon="point")
+        self._tb_act(tb, "Surface probe", icon="probe")
+        self._tb_act(tb, "Variation plot", icon="plot")
+        self._tb_act(tb, "History plot", icon="history")
+        self._tb_act(tb, "Trials plot", icon="trials")
+        self._tb_act(tb, "Transient settings", icon="transient")
+        self._tb_act(tb, "Load solution ID", icon="sol_id")
+        self._tb_act(tb, "Summary report", icon="report")
+        self._tb_act(tb, "Power and temperature values", icon="limits")
+
+        # Row 3 object_tools
+        tb = self._tb("Object creation", 2)
+        for kind, title, cmd in CREATE_OBJECT_TYPES:
+            self._tb_act(tb, title, lambda _=False, c=cmd: self._nyi(c), kind)
+
+        tb = self._tb("Object modification", 2)
+        self._tb_act(tb, "Edit object", self._edit_current, "edit")
+        self._tb_act(tb, "Delete object", self._delete_current, "delete")
+        self._tb_act(tb, "Move object", icon="move")
+        self._tb_act(tb, "Copy object", icon="copy")
+
+        tb = self._tb("Alignment", 2)
+        for t in ("Align and morph faces", "Align and morph edges",
+                  "Align and morph vertices", "Align object centers",
+                  "Align face centers", "Morph faces", "Morph edges"):
+            self._tb_act(tb, t, icon="align")
+
+    # ------------------------------------------------------------- 3D overlays
+    def _setup_3d_overlays(self):
+        if not self._enable_3d or self.renderer is None:
+            return
+        axes = vtk.vtkAxesActor()
+        axes.SetShaftTypeToCylinder()
+        axes.SetTotalLength(1.0, 1.0, 1.0)
+        try:
+            axes.GetXAxisCaptionActor2D().GetCaptionTextProperty().SetColor(0.8, 0, 0)
+            axes.GetYAxisCaptionActor2D().GetCaptionTextProperty().SetColor(0, 0.55, 0)
+            axes.GetZAxisCaptionActor2D().GetCaptionTextProperty().SetColor(0.13, 0.27, 0.8)
+        except Exception:
+            pass
+        w = vtk.vtkOrientationMarkerWidget()
+        w.SetOrientationMarker(axes)
+        w.SetInteractor(self.vtk_widget.GetRenderWindow().GetInteractor())
+        w.SetViewport(0.0, 0.0, 0.18, 0.18)
+        w.SetEnabled(1)
+        w.InteractiveOff()
+        self._orient_widget = w
+        self._axes_actor = axes
+
+        txt = vtk.vtkTextActor()
+        txt.SetInput("ANSYS %s" % ICEPAK_VERSION)
+        prop = txt.GetTextProperty()
+        prop.SetFontSize(16)
+        prop.SetColor(0.92, 0.95, 0.98)
+        prop.SetOpacity(0.55)
+        prop.SetBold(1)
+        txt.GetPositionCoordinate().SetCoordinateSystemToNormalizedViewport()
+        txt.SetPosition(0.72, 0.94)
+        self._logo_actor = txt
+        self.renderer.AddActor2D(txt)
+
+    # ------------------------------------------------------------- file
     def open_path(self, path):
         if os.path.isdir(path):
             self._load_directory(path)
-        elif path.lower().endswith(".tzr") or path.lower().endswith(".tar"):
+        elif path.lower().endswith((".tzr", ".tar", ".tgz", ".gz")):
             self._load_archive(path)
         elif os.path.isfile(path):
-            self.logger.log("仅支持目录或 .tzr 归档: %s" % path, "WARN")
+            self.log("Only a project directory or .tzr archive is supported: %s"
+                     % path, "WARN")
+
+    def _new_project(self):
+        self.project = None
+        self.root_path = None
+        self.project_tree.reset_empty("untitled")
+        self.setWindowTitle(ICEPAK_TITLE + " — untitled")
+        self.scene_objs = []
+        self.actors = []
+        self._actor_map = {}
+        if self._enable_3d and self.renderer is not None:
+            self.renderer.RemoveAllViewProps()
+            if self._logo_actor is not None and self._show_logo:
+                self.renderer.AddActor2D(self._logo_actor)
+            self._render()
+        self.log("New project")
+        self.statusBar().showMessage("untitled")
 
     def _open_dir(self):
-        d = QFileDialog.getExistingDirectory(self, "选择 Icepak 项目目录",
-                                             self.root_path or os.getcwd())
+        d = QFileDialog.getExistingDirectory(
+            self, "Open project", self.root_path or os.getcwd())
         if d:
             self._load_directory(d)
 
     def _open_tzr(self):
-        f, _ = QFileDialog.getOpenFileName(self, "选择 .tzr 归档",
-                                           self.root_path or os.getcwd(),
-                                           "Icepak 归档 (*.tzr *.tar)")
+        f, _ = QFileDialog.getOpenFileName(
+            self, "Unpack project", self.root_path or os.getcwd(),
+            "Icepak archive (*.tzr *.tar *.tgz *.gz)")
         if f:
             self._load_archive(f)
 
@@ -590,35 +1073,87 @@ class IceGui(QMainWindow):
         if self.project is not None:
             self.open_path(getattr(self.project, "path", None) or "")
 
+    def _save(self):
+        self._nyi("Save project")
+
+    def _save_as(self):
+        self._nyi("Save project as")
+
+    def _export_csv(self):
+        if self.project is None:
+            self.log("No project loaded", "WARN")
+            return
+        d = QFileDialog.getExistingDirectory(
+            self, "Export CSV/Excel", self.root_path or os.getcwd())
+        if not d:
+            return
+        try:
+            paths = export.export_all(self.project, d)
+            self.log("Exported: %s" % ", ".join(paths.values()))
+        except Exception as e:
+            self.log("Export failed: %r" % e, "ERROR")
+
+    def _print_screen(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Print screen", "icepak_view.png", "PNG (*.png)")
+        if path:
+            self._grab_view(path)
+
+    def _create_image(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Create image file", "icepak_view.png",
+            "PNG (*.png);;JPEG (*.jpg)")
+        if path:
+            self._grab_view(path)
+
+    def _grab_view(self, path):
+        if self._enable_3d and self.vtk_widget is not None:
+            try:
+                w2i = vtk.vtkWindowToImageFilter()
+                w2i.SetInput(self.vtk_widget.GetRenderWindow())
+                w2i.Update()
+                w = vtk.vtkPNGWriter() if path.lower().endswith(".png") \
+                    else vtk.vtkJPEGWriter()
+                w.SetFileName(path)
+                w.SetInputConnection(w2i.GetOutputPort())
+                w.Write()
+                self.log("Saved image %s" % path)
+                return
+            except Exception as e:
+                self.log("vtk grab failed: %r" % e, "WARN")
+        pix = self.graphics.grab()
+        pix.save(path)
+        self.log("Saved image %s" % path)
+
+    def _command_prompt(self):
+        cwd = self.root_path or os.getcwd()
+        try:
+            if sys.platform == "win32":
+                os.startfile("cmd.exe")
+            else:
+                os.system("x-terminal-emulator &")
+            self.log("Opened command prompt (cwd hint: %s)" % cwd)
+        except Exception as e:
+            self.log("Command prompt failed: %r" % e, "ERROR")
+
     def _load_directory(self, root):
+        from icepak_parser.cli import is_project_dir
         self.root_path = root
+        if is_project_dir(root):
+            self._load_project((os.path.basename(root), "dir", root))
+            return
         entries = find_projects(root)
         self.projects = entries
-        self.tree.clear()
-        root_item = QTreeWidgetItem(["%s (%d 个项目)" % (os.path.basename(
-            os.path.normpath(root)), len(entries))])
-        self.tree.addTopLevelItem(root_item)
-        for name, kind, source in entries:
-            item = QTreeWidgetItem(root_item)
-            item.setText(0, ("[tzr] " if kind == "tzr" else "") + name)
-            item.setData(0, Qt.UserRole, ("project", source))
-            item.setToolTip(0, source)
-        root_item.setExpanded(True)
-        self.logger.log("已扫描 %d 个项目: %s" % (len(entries), root))
-        self.statusBar().showMessage("打开目录: %s" % root)
+        self.log("Scanned %d project(s) in %s" % (len(entries), root))
         if entries:
-            # 自动载入第一个项目
             self._load_project(entries[0])
+        else:
+            self.log("No Icepak project found in %s" % root, "WARN")
 
     def _load_archive(self, path):
         self.root_path = os.path.dirname(path)
-        self.tree.clear()
-        item = QTreeWidgetItem(["[tzr] " + os.path.basename(path)])
-        item.setData(0, Qt.UserRole, ("project", path))
-        self.tree.addTopLevelItem(item)
         self._load_project((os.path.basename(path), "tzr", path))
 
-    # ------------------------------------------------------------- 项目载入
     def _load_project(self, entry):
         name, kind, source = entry
         from icepak_parser import project as projmod
@@ -628,244 +1163,159 @@ class IceGui(QMainWindow):
             else:
                 proj = projmod.IcepakProject(source)
         except Exception as e:
-            self.logger.log("载入失败 %s: %r" % (source, e), "ERROR")
+            self.log("Load failed %s: %r" % (source, e), "ERROR")
             return
         self.project = proj
-        self.logger.log("载入项目: %s (%d 对象, %d setters)" % (
+        self.setWindowTitle("%s — %s" % (ICEPAK_TITLE, proj.name))
+        self.log("Loaded project: %s (%s objects, %s setters)" % (
             proj.name, proj.summary().get("objects", 0),
             proj.summary().get("setters", 0)))
-        self._populate_project_tree(proj)
+        if getattr(self, "message_win", None) is not None:
+            logp = os.path.join(
+                source if os.path.isdir(str(source)) else self.root_path or ".",
+                ".ice_gui.log")
+            self.message_win.set_log_file(logp)
+        self.project_tree.populate(proj)
         if self._enable_3d:
             self._rebuild_scene()
             self._fit()
+        self.statusBar().showMessage(proj.name)
 
-    def _populate_project_tree(self, proj):
-        """把已打开的项目挂到树根部(替换原扫描列表为项目详情)."""
-        top = self.tree.topLevelItem(0)
-        if top is None:
-            top = QTreeWidgetItem([proj.name])
-            self.tree.addTopLevelItem(top)
-        else:
-            top.setText(0, proj.name)
-            while top.childCount():
-                top.removeChild(top.child(0))
-        self.tree.setHeaderLabels(["%s — 对象与设置" % proj.name])
+    # ------------------------------------------------------------- tree
+    def _on_object_selected(self, o):
+        self._highlight_object(o.name)
+        self.log("Selected: %s (%s)" % (o.name, o.kind))
 
-        # 对象(按类型分组)
-        if proj.model is not None:
-            obj_node = QTreeWidgetItem(top, ["对象 (%d)" % (
-                proj.model.count_all())])
-            obj_node.setData(0, Qt.UserRole, ("node", "objects"))
-            counts = proj.model.kind_counts()
-            for kind in sorted(counts, key=lambda k: -counts[k]):
-                grp = QTreeWidgetItem(obj_node, ["%s (%d)" % (
-                    kind, counts[kind])])
-                grp.setData(0, Qt.UserRole, ("group", kind))
-                for o in proj.model._all_objects():
-                    if o.kind != kind:
-                        continue
-                    it = QTreeWidgetItem(grp, [o.name])
-                    it.setData(0, Qt.UserRole, ("object", o))
-                    tip = "shape=%s" % (o.shape.type if o.shape else "-")
-                    it.setToolTip(0, tip)
-                grp.setExpanded(True)
-            obj_node.setExpanded(True)
+    def _on_object_activated(self, o):
+        self._show_object_dialog(o)
+        self._focus_object(o.name)
 
-        # problem 变量
-        if proj.problem is not None:
-            prb = proj.problem
-            p_node = QTreeWidgetItem(top, ["问题设置 (%d)" % len(prb.setters)])
-            p_node.setData(0, Qt.UserRole, ("node", "problem"))
-            for k, v in sorted(prb.setters.items()):
-                it = QTreeWidgetItem(p_node, ["%s = %s" % (k, v)])
-                it.setData(0, Qt.UserRole, ("setter", (k, v)))
-                if len(it.text(0)) > 100:
-                    it.setText(0, it.text(0)[:100] + "…")
-            p_node.setExpanded(False)
-
-        # 文件
-        files = []
-        if kind_from := getattr(self.project, "path", None):
-            if os.path.isdir(kind_from):
-                try:
-                    files = sorted(os.listdir(kind_from))
-                except OSError:
-                    pass
-            else:
-                files = []
-        f_node = QTreeWidgetItem(top, ["文件 (%d)" % len(files)])
-        f_node.setData(0, Qt.UserRole, ("node", "files"))
-        for fname in files:
-            it = QTreeWidgetItem(f_node, [fname])
-            it.setData(0, Qt.UserRole, ("file", fname))
-        f_node.setExpanded(False)
-
-    # ------------------------------------------------------------- 树交互
-    def _on_tree_selected(self):
-        items = self.tree.selectedItems()
-        if not items:
-            return
-        item = items[0]
-        role = item.data(0, Qt.UserRole)
-        if not role:
-            return
-        tag = role[0]
-        if tag == "object":
-            self._show_object(role[1])
-        elif tag == "setter":
-            self._show_setter(role[1])
-        elif tag == "project":
-            self._load_project(("dir" if os.path.isdir(role[1])
-                                else "tzr", role[1]))
+    def _on_node_selected(self, tag, payload):
+        if tag == "setter" and payload:
+            self.log("Parameter %s" % payload[0])
         elif tag == "group":
-            self._show_group(role[1])
+            self.log("Type %s" % payload)
         elif tag == "node":
-            self._show_node(role[1])
-        elif tag == "file":
-            self._show_file(role[1])
+            self.log(str(payload or tag))
 
-    def _on_tree_double(self, item, _col):
-        role = item.data(0, Qt.UserRole)
-        if role and role[0] == "object":
-            self._focus_object(role[1].name)
-        elif role and role[0] == "project":
-            self._load_project(("dir" if os.path.isdir(role[1])
-                                else "tzr", role[1]))
-
-    def _show_object(self, o):
-        rows = [("类型", o.kind), ("名称", o.name), ("创建顺序",
-                o.properties.get("creation_order", [""])[0])]
+    def _object_rows(self, o):
+        rows = [("Type", o.kind), ("Name", o.name),
+                ("creation_order",
+                 o.properties.get("creation_order", [""])[0])]
         for k in ("current_stype", "grid_priority", "block_type",
                   "plate_type", "temp", "current_genus"):
             if k in o.properties:
                 rows.append((k, " ".join(o.properties[k])))
         if o.shape:
-            rows.append(("形状", o.shape.type))
+            rows.append(("Shape", o.shape.type))
             for k, v in o.shape.setvals.items():
                 rows.append(("setval " + k, " ".join(v)))
-        self.details.fill(rows)
-        self._highlight_object(o.name)
+        return rows
 
-    def _show_setter(self, kv):
-        self.details.fill([("变量", kv[0]), ("值", kv[1])])
+    def _show_object_dialog(self, o):
+        dlg = DetailsDialog("Edit object — %s" % o.name,
+                            self._object_rows(o), self)
+        dlg.exec_()
 
-    def _show_group(self, kind):
-        self.details.fill([("对象类型", kind),
-                           ("颜色", str(kind_color(kind)))])
-
-    def _show_node(self, tag):
-        if tag == "objects" and self.project is not None:
-            rows = [("对象总数", self.project.summary().get("objects", 0))]
-            for k, v in sorted(self.project.model.kind_counts().items()):
-                rows.append(("  " + k, v))
-            self.details.fill(rows)
-        elif tag == "problem" and self.project is not None:
-            p = self.project.problem
-            rows = [("setters", len(p.setters)), ("arrays", len(p.arrays))]
-            for k in ("problem_time", "problem_nsteps", "problem_temp",
-                      "problem_opressure", "problem_turbmodel"):
-                if p.value(k) is not None:
-                    rows.append((k, p.value(k)))
-            self.details.fill(rows)
-        elif tag == "files":
-            if getattr(self.project, "files", None):
-                rows = [("文件数", len(self.project.files))]
-                for f in sorted(self.project.files)[:40]:
-                    rows.append(("  " + f, "%d B" % len(
-                        self.project.files[f])))
-                if len(self.project.files) > 40:
-                    rows.append(("  …", "…"))
-                self.details.fill(rows)
-            elif self.project is not None and os.path.isdir(
-                    getattr(self.project, "path", "") or ""):
-                try:
-                    fl = sorted(os.listdir(self.project.path))
-                except OSError:
-                    fl = []
-                self.details.fill([("文件数", len(fl))] +
-                                  [("  " + f, "") for f in fl[:60]])
-
-    def _show_file(self, fname):
-        files = getattr(self.project, "files", None)
-        if files and fname in files:
-            self.details.fill([("文件", fname),
-                               ("大小", "%d 字节" % len(files[fname])),
-                               ("来源", "归档 %s" % self.project.name)])
+    def _edit_current(self):
+        items = self.project_tree.selectedItems()
+        if not items:
             return
-        base = getattr(self.project, "path", None)
-        if not base:
+        role = items[0].data(0, Qt.UserRole)
+        if role and role[0] == "object":
+            self._show_object_dialog(role[1])
+
+    def _delete_current(self):
+        self._nyi("Delete object")
+
+    def _toggle_selected_visible(self):
+        if not self.selected:
             return
-        p = os.path.join(base, fname)
-        try:
-            sz = os.path.getsize(p)
-        except OSError:
-            sz = 0
-        self.details.fill([("文件", fname), ("大小", "%d 字节" % sz)])
-
-    # ------------------------------------------------------------- 3D 渲染
-    def _on_wire_toggle(self, on):
-        if on:
-            self._act_trans.setChecked(False)
-        self._rebuild_scene()
-
-    def _on_trans_toggle(self, on):
-        if on:
-            self._act_wire.setChecked(False)
-        self._rebuild_scene()
-
-    def _on_mode_change(self, text):
-        if text == "Line":
-            self._act_wire.setChecked(True)
-        elif text == "Translucent":
-            self._act_trans.setChecked(True)
+        if self.selected in self._hidden:
+            self._hidden.discard(self.selected)
         else:
-            self._act_wire.setChecked(False)
-            self._act_trans.setChecked(False)
+            self._hidden.add(self.selected)
         self._rebuild_scene()
+
+    def _on_tdv_mode(self, mode):
+        self.log("Interaction: %s" % mode, "DEBUG")
+        self.statusBar().showMessage("Mode: %s" % mode)
+
+    # ------------------------------------------------------------- shading / view
+    def _set_shading(self, mode):
+        self._shading = mode
+        if mode in self._shading_actions:
+            self._shading_actions[mode].setChecked(True)
+        self._rebuild_scene()
+
+    def _cycle_shading(self):
+        i = SHADING_MODES.index(self._shading)
+        self._set_shading(SHADING_MODES[(i + 1) % len(SHADING_MODES)])
 
     def _on_layer_toggle(self, kind, on):
         self._rebuild_scene()
 
     def _toggle_axes(self, on):
         self._show_axes = on
-        if self._enable_3d and hasattr(self, "_axes_actor"):
-            self._axes_actor.SetVisibility(1 if on else 0)
+        if self._orient_widget is not None:
+            self._orient_widget.SetEnabled(1 if on else 0)
             self._render()
 
-    def _build_axes(self):
-        self._axes_actor = None
-        if not self._enable_3d:
+    def _toggle_logo(self, on):
+        self._show_logo = on
+        if self._logo_actor is not None:
+            self._logo_actor.SetVisibility(1 if on else 0)
+            self._render()
+
+    def _set_names(self, val):
+        self._show_names = val
+        self.log("Object names display = %s" % val, "DEBUG")
+
+    def _toggle_message(self, on):
+        self.message_win.setVisible(on)
+
+    def _toggle_nav(self, on):
+        self.nav_tabs.setVisible(on)
+
+    def _show_bbox(self):
+        b = self._scene_bounds()
+        if b is None:
+            self.log("No geometry", "WARN")
             return
-        pd = self._axes_polydata()
-        mapper = vtk.vtkPolyDataMapper()
-        mapper.SetInputData(pd)
-        self._axes_actor = vtk.vtkActor()
-        self._axes_actor.SetMapper(mapper)
-        self._axes_actor.SetVisibility(0)
-        self.renderer.AddActor(self._axes_actor)
+        self.log("Bounding box: [%g %g %g] — [%g %g %g]" % tuple(b))
 
-    @staticmethod
-    def _axes_polydata():
-        pts = np.array([
-            [0, 0, 0], [1, 0, 0], [0, 0, 0], [0, 1, 0],
-            [0, 0, 0], [0, 0, 1],
-        ], dtype=float)
-        cells = np.array([[0, 1], [2, 3], [4, 5]], dtype=np.int64)
-        return _polydata(pts, cells, "lines")
+    def _check_model(self):
+        if self.project is None or self.project.model is None:
+            self.log("No model", "WARN")
+            return
+        n = self.project.model.count_all()
+        kinds = dict(self.project.model.kind_counts())
+        self.log("Check model: %d objects, types=%s" % (n, kinds))
 
+    def _show_basic_settings(self):
+        if self.project is None or self.project.problem is None:
+            self._nyi("Basic settings")
+            return
+        p = self.project.problem
+        rows = [(k, v) for k, v in sorted(p.setters.items())]
+        dlg = DetailsDialog("Basic settings", rows[:80], self)
+        dlg.exec_()
+
+    # ------------------------------------------------------------- 3D scene
     def _rebuild_scene(self):
         if (not self._enable_3d or self.project is None
                 or self.project.model is None):
             return
-        self._wireframe = self._act_wire.isChecked()
-        self._translucent = self._act_trans.isChecked()
-        layer_on = {k: self._layer_actions[k].isChecked()
-                    for k in ALL_KINDS}
-        self.scene_objs = build_scene(self.project.model, layer_on,
-                                      self._wireframe)
+        layer_on = {k: True for k in VISIBLE_KINDS}
+        for k, a in self._layer_actions.items():
+            layer_on[k] = a.isChecked()
+        wire = self._shading == "wire"
+        self.scene_objs = build_scene(self.project.model, layer_on, wire)
+        self.scene_objs = [so for so in self.scene_objs
+                           if so.name not in self._hidden]
         self.renderer.RemoveAllViewProps()
-        if self._show_axes and self._axes_actor is not None:
-            self.renderer.AddActor(self._axes_actor)
+        if self._logo_actor is not None and self._show_logo:
+            self.renderer.AddActor2D(self._logo_actor)
         self.actors = []
         self._actor_map = {}
         for so in self.scene_objs:
@@ -875,7 +1325,7 @@ class IceGui(QMainWindow):
             self._actor_map[actor] = so
         self._apply_highlight()
         self._render()
-        self.logger.log("3D 场景: %d 个对象" % len(self.scene_objs))
+        self.log("3D scene: %d objects" % len(self.scene_objs), "DEBUG")
 
     def _make_actor(self, so):
         mapper = vtk.vtkPolyDataMapper()
@@ -885,33 +1335,64 @@ class IceGui(QMainWindow):
         actor.SetMapper(mapper)
         prop = actor.GetProperty()
         prop.SetColor(*so.color)
-        if self._translucent and not self._wireframe:
-            prop.SetOpacity(0.45)
         prop.SetAmbient(0.25)
         prop.SetDiffuse(0.85)
         prop.SetSpecular(0.25)
         prop.SetSpecularPower(18)
-        if self._wireframe:
+        mode = self._shading
+        selected = self.selected == so.name
+        if mode == "wire":
             prop.SetRepresentationToWireframe()
             prop.SetLineWidth(1.1)
             prop.LightingOff()
             prop.SetAmbient(1.0)
-        actor.SetVisibility(1)
+        elif mode == "solid":
+            prop.SetRepresentationToSurface()
+            prop.EdgeVisibilityOff()
+        elif mode == "solid/wire":
+            prop.SetRepresentationToSurface()
+            prop.EdgeVisibilityOn()
+            prop.SetEdgeColor(0.15, 0.15, 0.15)
+            prop.SetLineWidth(1.0)
+        elif mode == "hidden line":
+            prop.SetRepresentationToSurface()
+            prop.SetColor(0.96, 0.97, 0.98)
+            prop.EdgeVisibilityOn()
+            prop.SetEdgeColor(*so.color)
+            prop.LightingOff()
+        elif mode == "selected_solid":
+            if selected:
+                prop.SetRepresentationToSurface()
+                prop.EdgeVisibilityOff()
+            else:
+                prop.SetRepresentationToWireframe()
+                prop.LightingOff()
+                prop.SetAmbient(1.0)
+        if so.kind == "domain":
+            prop.SetRepresentationToWireframe()
+            prop.SetLineWidth(1.4)
+            prop.LightingOff()
         return actor
 
     def _apply_highlight(self):
-        if not self._enable_3d or self.selected is None:
+        if not self._enable_3d:
             return
         for actor, so in self.actors:
-            if so.name == self.selected:
+            if so.name == self.selected and self._shading != "selected_solid":
                 actor.GetProperty().SetColor(1.0, 0.25, 0.1)
-            elif self._translucent and not self._wireframe:
-                actor.GetProperty().SetOpacity(0.45)
 
     def _highlight_object(self, name):
         self.selected = name
+        if self._shading == "selected_solid":
+            self._rebuild_scene()
+            return
         self._apply_highlight()
         self._render()
+        it = self.project_tree.find_object_item(name)
+        if it is not None:
+            self.project_tree.blockSignals(True)
+            self.project_tree.setCurrentItem(it)
+            self.project_tree.blockSignals(False)
 
     def _focus_object(self, name):
         for so in self.scene_objs:
@@ -919,7 +1400,6 @@ class IceGui(QMainWindow):
                 self._camera_to_bounds(so.bounds)
                 return
 
-    # ------------------------------------------------------------- 相机
     def _scene_bounds(self):
         if not self.scene_objs:
             return None
@@ -929,6 +1409,8 @@ class IceGui(QMainWindow):
         return np.concatenate([lo, hi])
 
     def _camera_to_bounds(self, b):
+        if not self._enable_3d:
+            return
         cam = self.renderer.GetActiveCamera()
         cx = (b[0] + b[3]) / 2.0
         cy = (b[1] + b[4]) / 2.0
@@ -944,82 +1426,175 @@ class IceGui(QMainWindow):
         self._render()
 
     def _fit(self):
-        if not self._enable_3d:
-            return
         b = self._scene_bounds()
         if b is not None:
             self._camera_to_bounds(b)
+        elif self._enable_3d:
+            self.renderer.ResetCamera()
+            self._render()
 
-    def _reset_camera(self):
+    def _home(self):
+        self._orient("iso")
+        self._fit()
+
+    def _zoom_in(self):
         if not self._enable_3d:
             return
-        self.renderer.GetActiveCamera().SetPosition(1, 1, 1)
-        self.renderer.GetActiveCamera().SetViewUp(0, 0, 1)
-        self.renderer.ResetCamera()
+        cam = self.renderer.GetActiveCamera()
+        cam.SetParallelScale(cam.GetParallelScale() * 0.7)
         self._render()
 
-    # ------------------------------------------------------------- 交互
+    def _rotate_normal(self):
+        if not self._enable_3d:
+            return
+        cam = self.renderer.GetActiveCamera()
+        cam.Roll(90)
+        self._render()
+
+    def _reverse_orient(self):
+        if not self._enable_3d:
+            return
+        cam = self.renderer.GetActiveCamera()
+        fp = cam.GetFocalPoint()
+        pos = cam.GetPosition()
+        cam.SetPosition(2 * fp[0] - pos[0], 2 * fp[1] - pos[1],
+                        2 * fp[2] - pos[2])
+        self.renderer.ResetCameraClippingRange()
+        self._render()
+
+    def _nearest_axis(self):
+        if not self._enable_3d:
+            return
+        cam = self.renderer.GetActiveCamera()
+        d = list(cam.GetDirectionOfProjection())
+        ax = max(range(3), key=lambda i: abs(d[i]))
+        sign = "+" if d[ax] < 0 else "-"
+        self._orient("%s%s" % (sign, "xyz"[ax]))
+
+    def _orient(self, which):
+        if not self._enable_3d:
+            return
+        b = self._scene_bounds()
+        if b is None:
+            cx = cy = cz = 0.0
+            span = 1.0
+        else:
+            cx = (b[0] + b[3]) / 2.0
+            cy = (b[1] + b[4]) / 2.0
+            cz = (b[2] + b[5]) / 2.0
+            span = max(b[3] - b[0], b[4] - b[1], b[5] - b[2], 1e-6)
+        cam = self.renderer.GetActiveCamera()
+        cam.SetFocalPoint(cx, cy, cz)
+        dist = span * 3.0
+        views = {
+            "+x": ((cx + dist, cy, cz), (0, 0, 1)),
+            "-x": ((cx - dist, cy, cz), (0, 0, 1)),
+            "+y": ((cx, cy + dist, cz), (0, 0, 1)),
+            "-y": ((cx, cy - dist, cz), (0, 0, 1)),
+            "+z": ((cx, cy, cz + dist), (0, 1, 0)),
+            "-z": ((cx, cy, cz - dist), (0, 1, 0)),
+            "iso": ((cx + dist * 0.6, cy - dist * 0.6, cz + dist), (0, 0, 1)),
+        }
+        pos, up = views.get(which, views["iso"])
+        cam.SetPosition(*pos)
+        cam.SetViewUp(*up)
+        cam.ParallelProjectionOn()
+        cam.SetParallelScale(span * 0.75)
+        self.renderer.ResetCameraClippingRange()
+        self._render()
+
     def _render(self):
-        if self._enable_3d:
+        if self._enable_3d and self.vtk_widget is not None:
             self.vtk_widget.GetRenderWindow().Render()
-
-    def _on_right_press(self, obj, ev):
-        if not self._enable_3d:
-            return
-        self.renderer.GetActiveCamera().SetViewUp(0, 0, 1)
-        self._render()
 
     def _on_pick(self, obj, ev):
         if not self._enable_3d:
             return
-        iren = obj
-        x, y = iren.GetEventPosition()
+        if self.tdv_strip.mode() not in ("pick", "boxpick"):
+            return
+        x, y = obj.GetEventPosition()
         picker = vtk.vtkPropPicker()
         if picker.Pick(x, y, 0, self.renderer):
             actor = picker.GetActor()
             so = self._actor_map.get(actor)
             if so is not None:
-                self.selected = so.name
-                self._apply_highlight()
-                self._render()
-                # 同步树选中
-                self._select_in_tree(so.name)
-                self.logger.log("选中: %s (%s)" % (so.name, so.kind))
+                self._highlight_object(so.name)
+                self.log("Selected: %s (%s)" % (so.name, so.kind))
 
-    def _select_in_tree(self, name):
-        def walk(item):
-            role = item.data(0, Qt.UserRole)
-            if role and role[0] == "object" and role[1].name == name:
-                self.tree.setCurrentItem(item)
-                return True
-            for i in range(item.childCount()):
-                if walk(item.child(i)):
-                    return True
-            return False
-        for i in range(self.tree.topLevelItemCount()):
-            if walk(self.tree.topLevelItem(i)):
-                break
+    # ------------------------------------------------------------- help / welcome
+    def _help(self):
+        index = os.path.join(HELP_DIR, "index.html")
+        if os.path.isfile(index):
+            QDesktopServices.openUrl(QUrl.fromLocalFile(index))
+        else:
+            self._web_icepak()
 
-    # ------------------------------------------------------------- 事件
+    def _web_icepak(self):
+        QDesktopServices.openUrl(QUrl(WEB_ICEPAK))
+
+    def _web_portal(self):
+        QDesktopServices.openUrl(QUrl(WEB_PORTAL))
+
+    def _list_shortcuts(self):
+        text = (
+            "F1  Help\n"
+            "Ctrl+N  New project\nCtrl+O  Open project\nCtrl+S  Save\n"
+            "Ctrl+L  Reload\nCtrl+P  Print screen\n"
+            "Ctrl+Z / Ctrl+R  Undo / Redo\nCtrl+F  Find\n"
+            "Ctrl+E  Edit object\nDelete  Delete object\n"
+            "Ctrl+A  Toggle active\nCtrl+V  Toggle visible\n"
+            "Ctrl+H  Toggle shading\nCtrl+W  Cycle shading type\n"
+            "h  Home   z  Zoom in   s  Scale to fit\n"
+            "Shift+X/Y/Z  Orient -X / +Y / -Z\nShift+I  Isometric\n"
+            "Shift+R  Reverse orientation\n"
+        )
+        QMessageBox.information(self, "Shortcuts", text)
+
+    def _about(self):
+        QMessageBox.about(
+            self, "About Icepak",
+            "ANSYS®  Icepak® Version %s\n\n"
+            "icedecoding viewer — layout mapped from Icepak 19.5 Tcl menus.\n"
+            "© ANSYS Inc. All rights reserved.\n"
+            "Unauthorized use, distribution or duplication is prohibited."
+            % ICEPAK_VERSION)
+
+    def _show_welcome(self):
+        dlg = WelcomeDialog(self)
+        rc = dlg.exec_()
+        ch = dlg.choice()
+        if rc == QDialog.Rejected or ch == WelcomeDialog.quit:
+            self.close()
+            return
+        if ch == WelcomeDialog.existing:
+            self._open_dir()
+        elif ch == WelcomeDialog.new:
+            self._new_project()
+        elif ch == WelcomeDialog.unpack:
+            self._open_tzr()
+
     def showEvent(self, ev):
         super().showEvent(ev)
         QTimer.singleShot(0, self._start_interactor)
+        if self._pending_welcome:
+            self._pending_welcome = False
+            QTimer.singleShot(50, self._show_welcome)
 
     def _start_interactor(self):
+        if not self._enable_3d or self.vtk_widget is None:
+            return
         try:
             iren = self.vtk_widget.GetRenderWindow().GetInteractor()
             if not iren.GetInitialized():
                 iren.Initialize()
+            if self._orient_widget is not None:
+                self._orient_widget.SetEnabled(1 if self._show_axes else 0)
         except Exception:
             pass
         if self._fit_pending:
             self._fit()
             self._fit_pending = False
 
-
-# ===========================================================================
-# 5. 入口
-# ===========================================================================
 
 def main(argv=None):
     if not HAS_GUI:
@@ -1030,7 +1605,7 @@ def main(argv=None):
     args = argv if argv is not None else sys.argv
     if len(args) > 1:
         p = args[1]
-        if os.path.isdir(p) or p.lower().endswith((".tzr", ".tar")):
+        if os.path.isdir(p) or p.lower().endswith((".tzr", ".tar", ".tgz", ".gz")):
             path = p
     win = IceGui(path)
     win.show()
