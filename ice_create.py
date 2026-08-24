@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import copy
 import os
 
 from icepak_parser.model_parser import ModelObject, Shape
@@ -149,3 +150,79 @@ def remove_object(model, name):
         return False
 
     return drop(model.objects)
+
+
+def take_object(model, name):
+    """Remove and return the named object, or None."""
+    if model is None:
+        return None
+
+    def take(lst):
+        for i, o in enumerate(lst):
+            if o.name == name:
+                return lst.pop(i)
+            if o.children:
+                hit = take(o.children)
+                if hit is not None:
+                    return hit
+        return None
+
+    return take(model.objects)
+
+
+def clone_object(obj, new_name):
+    clone = copy.deepcopy(obj)
+    clone.name = new_name
+    return clone
+
+
+def _shift_xyz(vals, dx, dy, dz):
+    nums = []
+    for i, raw in enumerate(list(vals)[:3]):
+        try:
+            nums.append(float(raw))
+        except (TypeError, ValueError):
+            nums.append(0.0)
+    while len(nums) < 3:
+        nums.append(0.0)
+    nums[0] += dx
+    nums[1] += dy
+    nums[2] += dz
+    return ["%.6g" % v for v in nums]
+
+
+def translate_shape(shape, dx, dy, dz):
+    if shape is None or not shape.setvals:
+        return
+    for key in ("point1", "point2", "point3", "center", "center2", "pos",
+                "position"):
+        if key in shape.setvals and shape.setvals[key]:
+            shape.setvals[key] = _shift_xyz(shape.setvals[key], dx, dy, dz)
+
+
+def translate_object(obj, dx, dy, dz, recursive=True):
+    if obj is None:
+        return
+    translate_shape(obj.shape, dx, dy, dz)
+    if recursive:
+        for ch in obj.children or []:
+            translate_object(ch, dx, dy, dz, True)
+
+
+def object_active(obj):
+    props = getattr(obj, "properties", None) or {}
+    if "active" in props and props["active"]:
+        s = str(props["active"][0]).lower()
+        return s not in ("0", "off", "false", "no")
+    if "inactive" in props and props["inactive"]:
+        s = str(props["inactive"][0]).lower()
+        return s in ("0", "off", "false", "no")
+    return True
+
+
+def set_object_active(obj, on):
+    if obj is None:
+        return
+    if obj.properties is None:
+        obj.properties = {}
+    obj.properties["active"] = ["1" if on else "0"]

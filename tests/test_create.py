@@ -2,8 +2,9 @@
 """In-memory object factory / model serialize tests (no GUI)."""
 
 from ice_create import (
-    default_cabinet, default_object, next_object_name, project_files_for_pack,
-    remove_object, serialize_model,
+    clone_object, default_cabinet, default_object, next_object_name,
+    object_active, project_files_for_pack, remove_object, serialize_model,
+    set_object_active, take_object, translate_object,
 )
 from icepak_parser.model_parser import ModelFile, parse_text
 from icepak_parser.project import IcepakProject
@@ -67,3 +68,26 @@ def test_pack_in_memory_project():
     assert loaded.model is not None
     assert loaded.model.object_by_name("cabinet") is not None
     assert loaded.model.object_by_name("cabinet").kind == "domain"
+
+
+def test_translate_clone_take_and_active():
+    blk = default_object("block", "block.1")
+    p1 = [float(x) for x in blk.shape.setvals["point1"]]
+    translate_object(blk, 0.1, 0.2, 0.3)
+    p1b = [float(x) for x in blk.shape.setvals["point1"]]
+    assert abs(p1b[0] - p1[0] - 0.1) < 1e-9
+    assert abs(p1b[1] - p1[1] - 0.2) < 1e-9
+    assert abs(p1b[2] - p1[2] - 0.3) < 1e-9
+    copy = clone_object(blk, "block.2")
+    assert copy.name == "block.2"
+    assert copy is not blk
+    assert copy.shape.setvals["point1"] == blk.shape.setvals["point1"]
+    assert object_active(blk)
+    set_object_active(blk, False)
+    assert not object_active(blk)
+    model = ModelFile()
+    model.objects = [default_cabinet(), blk, copy]
+    taken = take_object(model, "block.1")
+    assert taken is blk
+    assert model.object_by_name("block.1") is None
+    assert model.object_by_name("block.2") is not None
