@@ -202,3 +202,108 @@ def test_user_views_save_write_read(win):
         win._read_user_views(path)
         assert win._user_views[0]["name"] == "view.1"
 
+
+def test_undo_redo_create(win):
+    win._new_project()
+    win._create_object("block")
+    assert win.project.model.object_by_name("block.1") is not None
+    win._undo()
+    assert win.project.model.object_by_name("block.1") is None
+    win._redo()
+    assert win.project.model.object_by_name("block.1") is not None
+
+
+def test_move_copy_and_trash(win):
+    win._new_project()
+    blk = win._create_object("block")
+    p1 = [float(x) for x in blk.shape.setvals["point1"]]
+    win.selected = "block.1"
+    win._move_current(0.1, 0, 0)
+    p1b = [float(x) for x in
+           win.project.model.object_by_name("block.1").shape.setvals["point1"]]
+    assert abs(p1b[0] - p1[0] - 0.1) < 1e-6
+    copy = win._copy_current(0, 0.05, 0)
+    assert copy.name == "block.2"
+    assert win.project.model.object_by_name("block.2") is not None
+    win.selected = "block.1"
+    win._delete_current()
+    assert win.project.model.object_by_name("block.1") is None
+    assert any(o.name == "block.1" for o in win._trash)
+    win.restore_from_trash("block.1")
+    assert win.project.model.object_by_name("block.1") is not None
+    assert not any(o.name == "block.1" for o in win._trash)
+
+
+def test_inactive_and_groups(win):
+    win._new_project()
+    win._create_object("fan")
+    win.selected = "fan.1"
+    win._toggle_selected_active()
+    assert "fan.1" in win._inactive
+    assert win.project_tree.find_object_item("fan.1") is not None
+    root = win.project_tree.topLevelItem(0)
+    labels = [root.child(i).text(0) for i in range(root.childCount())]
+    assert any(t.startswith("Inactive") for t in labels)
+    win.selected = "fan.1"
+    win._toggle_selected_active()
+    assert "fan.1" not in win._inactive
+    win.create_group("hot", ["fan.1"])
+    assert win._groups["hot"] == ["fan.1"]
+    g = win.project_tree._items["Groups"]
+    assert g.childCount() == 1
+
+
+def test_four_viewing_windows(win):
+    win._set_view_panes(4)
+    assert win._view_panes == 4
+    assert win._view_stack.currentIndex() == 1
+    win._set_view_panes(1)
+    assert win._view_panes == 1
+    assert win._view_stack.currentIndex() == 0
+
+
+def test_problem_solution_and_post_nodes(win):
+    from icepak_parser.problem_parser import ProblemFile
+    from icepak_parser.project import IcepakProject, format_post_objects, parse_post_objects
+    win._new_project()
+    prb = ProblemFile()
+    prb.setters = {
+        "title": "demo job",
+        "niterations": "100",
+        "radiation": "off",
+        "nproc": "4",
+    }
+    win.project.problem = prb
+    win.project.post = parse_post_objects(
+        "post_load_object {plane_cut -name cut.1 -x 0}")
+    win._refresh()
+    post = win.project_tree._items["Post-processing"]
+    assert post.childCount() == 1
+    assert "cut.1" in post.child(0).text(0)
+    sol = win.project_tree._items["Solution settings"]
+    found = [sol.child(i).text(0) for i in range(sol.childCount())]
+    assert any("Basic settings" in t for t in found)
+    import tempfile, os
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, "post_objects")
+        assert win._save_post_objects(path) == path
+        win.project.post = []
+        win._load_post_objects(path)
+        assert win.project.post and win.project.post[0]["type"] == "plane_cut"
+    text = format_post_objects(win.project.post)
+    assert "post_load_object" in text
+
+
+def test_library_scan(win, tmp_path=None):
+    import os, tempfile
+    from ice_panes import LibraryTree
+    with tempfile.TemporaryDirectory() as d:
+        os.mkdir(os.path.join(d, "browsers"))
+        open(os.path.join(d, "browsers", "fan.tcl"), "w").close()
+        open(os.path.join(d, "materials"), "w").close()
+        assert win.library_tree.populate_from_path(d)
+        root = win.library_tree.topLevelItem(0)
+        kids = [root.child(i).text(0) for i in range(root.childCount())]
+        assert "browsers" in kids
+        assert "materials" in kids
+

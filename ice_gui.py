@@ -21,6 +21,7 @@ import os
 import sys
 import math
 import json
+import copy
 
 import numpy as np
 
@@ -34,8 +35,9 @@ if _HERE not in sys.path:
 from icepak_parser import model_parser, export, tzr  # noqa: E402
 from icepak_parser.cli import find_projects  # noqa: E402
 from ice_create import (  # noqa: E402
-    default_cabinet, default_object, next_object_name, project_files_for_pack,
-    remove_object,
+    clone_object, default_cabinet, default_object, next_object_name,
+    object_active, project_files_for_pack, serialize_model,
+    set_object_active, take_object, translate_object,
 )
 
 # ---------------------------------------------------------------------------
@@ -45,9 +47,10 @@ try:  # pragma: no cover - 运行环境判断
     from PyQt5.QtCore import Qt, QTimer, QSize, QUrl, QSettings
     from PyQt5.QtGui import QColor, QDesktopServices, QFont, QKeySequence
     from PyQt5.QtWidgets import (
-        QAction, QActionGroup, QApplication, QDialog, QFileDialog, QHBoxLayout,
-        QInputDialog, QLabel, QMainWindow, QMessageBox, QPlainTextEdit,
-        QPushButton, QSplitter, QTabWidget, QToolBar, QVBoxLayout, QWidget,
+        QAction, QActionGroup, QApplication, QDialog, QFileDialog, QGridLayout,
+        QHBoxLayout, QInputDialog, QLabel, QMainWindow, QMenu, QMessageBox,
+        QPlainTextEdit, QPushButton, QSplitter, QStackedWidget, QTabWidget,
+        QToolBar, QVBoxLayout, QWidget,
     )
     import vtk
     from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
@@ -55,7 +58,7 @@ try:  # pragma: no cover - 运行环境判断
     from ice_icons import IceIcons
     from ice_panes import (
         DetailsDialog, LibraryTree, MessageWindow, PROJECT_NODES, ProjectTree,
-        TdvStrip, WelcomeDialog,
+        TdvStrip, TranslateDialog, WelcomeDialog, find_icepak_lib,
     )
     HAS_GUI = True
 except Exception:  # pragma: no cover
@@ -430,6 +433,7 @@ VISIBLE_KINDS = ALL_KINDS + [
 SHADING_MODES = (
     "wire", "solid", "solid/wire", "hidden line", "selected_solid",
 )
+UNDO_LIMIT = 50
 
 STYLE = """
 QMainWindow, QDialog { background: #e8e8e8; }
@@ -470,9 +474,16 @@ class IceGui(QMainWindow):
         self._orient_widget = None
         self._logo_actor = None
         self._hidden = set()
+        self._inactive = set()
+        self._trash = []
+        self._groups = {}
+        self._undo_stack = []
+        self._redo_stack = []
         self._user_views = []
         self._press_pos = None
         self._name_actors = []
+        self._extra_renderers = []
+        self._view_panes = 1
         self._toolbars = {}
         self._tb_row = -1
         if show_welcome is None:
@@ -491,6 +502,9 @@ class IceGui(QMainWindow):
             self.log("This is the 64-bit version")
             self.log("ANSYS Icepak %s. Use File to open a project or .tzr."
                      % ICEPAK_VERSION)
+            lib = find_icepak_lib()
+            if lib:
+                self.library_tree.populate_from_path(lib)
 
     def log(self, msg, level="INFO"):
         if hasattr(self, "message_win"):
@@ -513,8 +527,12 @@ class IceGui(QMainWindow):
         self.project_tree.object_selected.connect(self._on_object_selected)
         self.project_tree.object_activated.connect(self._on_object_activated)
         self.project_tree.node_selected.connect(self._on_node_selected)
+        self.project_tree.node_activated.connect(self._on_node_activated)
         self.project_tree.visibility_changed.connect(self._on_tree_visibility)
+        self.project_tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.project_tree.customContextMenuRequested.connect(self._tree_menu)
         self.library_tree = LibraryTree(self)
+        self.library_tree.item_activated.connect(self._on_lib_activated)
         self.nav_tabs = QTabWidget(self)
         self.nav_tabs.addTab(self.project_tree, "Project")
         self.nav_tabs.addTab(self.library_tree, "Library")
@@ -550,7 +568,22 @@ class IceGui(QMainWindow):
         gh.setContentsMargins(0, 0, 0, 0)
         gh.setSpacing(0)
         gh.addWidget(self.tdv_strip, 0)
-        gh.addWidget(draw_body, 1)
+        self._view_stack = QStackedWidget(self)
+        self._single_draw = draw_body
+        self._view_stack.addWidget(draw_body)
+        self._quad_widget = QWidget(self)
+        qg = QGridLayout(self._quad_widget)
+        qg.setContentsMargins(1, 1, 1, 1)
+        qg.setSpacing(1)
+        self._quad_labels = []
+        for i, name in enumerate(("-X", "+Y", "-Z", "Iso")):
+            lab = QLabel(name, self._quad_widget)
+            lab.setAlignment(Qt.AlignCenter)
+            lab.setStyleSheet("background:#9ec8e8; color:#234;")
+            qg.addWidget(lab, i // 2, i % 2)
+            self._quad_labels.append(lab)
+        self._view_stack.addWidget(self._quad_widget)
+        gh.addWidget(self._view_stack, 1)
         self.graphics = graphics
 
         self.message_win = MessageWindow(self)
@@ -651,8 +684,8 @@ class IceGui(QMainWindow):
 
         # Edit
         m = mb.addMenu("Edit")
-        add(m, "Undo", shortcut="Ctrl+Z", icon="undo")
-        add(m, "Redo", shortcut="Ctrl+R", icon="redo")
+        add(m, "Undo", self._undo, "Ctrl+Z", icon="undo")
+        add(m, "Redo", self._redo, "Ctrl+R", icon="redo")
         m.addSeparator()
         add(m, "Find", self._find_object, "Ctrl+F")
         add(m, "Show clipboard")
@@ -810,8 +843,8 @@ class IceGui(QMainWindow):
         m = mb.addMenu("Solve")
         st = m.addMenu("Settings")
         add(st, "Basic settings", self._show_basic_settings)
-        add(st, "Advanced settings")
-        add(st, "Parallel settings")
+        add(st, "Advanced settings", self._show_advanced_settings)
+        add(st, "Parallel settings", self._show_parallel_settings)
         add(m, "Patch temperatures")
         m.addSeparator()
         add(m, "Run solution", icon="solve")
@@ -849,8 +882,8 @@ class IceGui(QMainWindow):
         add(m, "Transient settings", icon="transient")
         add(m, "Load solution ID", icon="sol_id")
         add(m, "Postprocessing units")
-        add(m, "Load post objects from file")
-        add(m, "Save post objects to file")
+        add(m, "Load post objects from file", self._load_post_objects)
+        add(m, "Save post objects to file", self._save_post_objects)
         add(m, "Rescale vectors")
         m.addSeparator()
         add(m, "Create zoom-in model")
@@ -905,13 +938,13 @@ class IceGui(QMainWindow):
             self._edit_current, "Ctrl+E")
         for text, sc, slot in (
             ("Delete object", "Delete", self._delete_current),
-            ("Toggle object active", "Ctrl+A", None),
+            ("Toggle object active", "Ctrl+A", self._toggle_selected_active),
             ("Toggle object visible", "Ctrl+V", self._toggle_selected_visible),
             ("Toggle object shading", "Ctrl+H", None),
-            ("Open/close tree node", "Ctrl+T", None),
-            ("Open/close model subtree", "Ctrl+M", None),
-            ("Move object", "Ctrl+X", None),
-            ("Copy object", "Ctrl+C", None),
+            ("Open/close tree node", "Ctrl+T", self._toggle_tree_node),
+            ("Open/close model subtree", "Ctrl+M", self._toggle_model_subtree),
+            ("Move object", "Ctrl+X", self._move_current),
+            ("Copy object", "Ctrl+C", self._copy_current),
             ("Toggle shading type", "Ctrl+W", self._cycle_shading),
         ):
             add(self, text, slot, sc)
@@ -956,8 +989,8 @@ class IceGui(QMainWindow):
         self._tb_act(tb, "Create image file", self._create_image, "image")
 
         tb = self._tb("Edit commands", 0)
-        self._tb_act(tb, "Undo", icon="undo")
-        self._tb_act(tb, "Redo", icon="redo")
+        self._tb_act(tb, "Undo", self._undo, "undo")
+        self._tb_act(tb, "Redo", self._redo, "redo")
 
         tb = self._tb("Viewing options", 0)
         self._tb_act(tb, "Home position", self._home, "home")
@@ -965,8 +998,10 @@ class IceGui(QMainWindow):
         self._tb_act(tb, "Scale to fit", self._fit, "fit")
         self._tb_act(tb, "Rotate about screen normal", self._rotate_normal,
                      "rotate")
-        self._tb_act(tb, "One viewing window", icon="win1")
-        self._tb_act(tb, "Four viewing windows", icon="win4")
+        self._tb_act(tb, "One viewing window",
+                     lambda: self._set_view_panes(1), "win1")
+        self._tb_act(tb, "Four viewing windows",
+                     lambda: self._set_view_panes(4), "win4")
         self._tb_act(tb, "Display object names", self._cycle_names, "names")
 
         tb = self._tb("Orientation commands", 0)
@@ -1011,8 +1046,8 @@ class IceGui(QMainWindow):
         tb = self._tb("Object modification", 2)
         self._tb_act(tb, "Edit object", self._edit_current, "edit")
         self._tb_act(tb, "Delete object", self._delete_current, "delete")
-        self._tb_act(tb, "Move object", icon="move")
-        self._tb_act(tb, "Copy object", icon="copy")
+        self._tb_act(tb, "Move object", self._move_current, "move")
+        self._tb_act(tb, "Copy object", self._copy_current, "copy")
 
         tb = self._tb("Alignment", 2)
         for t in ("Align and morph faces", "Align and morph edges",
@@ -1069,9 +1104,35 @@ class IceGui(QMainWindow):
         proj = IcepakProject.empty("untitled")
         proj.model.objects.append(default_cabinet())
         self.root_path = None
-        self._hidden = set()
-        self.selected = None
+        self._reset_edit_state()
         self._apply_project(proj, "New project (default cabinet 0.5 x 0.4 x 0.3)")
+
+    def _reset_edit_state(self):
+        self._hidden = set()
+        self._inactive = set()
+        self._trash = []
+        self._groups = {}
+        self.selected = None
+        self._clear_undo()
+
+    def _scan_inactive(self):
+        self._inactive = set()
+        model = getattr(self.project, "model", None) if self.project else None
+        if model is None:
+            return
+        for o in model._all_objects():
+            if not object_active(o):
+                self._inactive.add(o.name)
+
+    def _refresh(self, fit=False):
+        if self.project is not None:
+            self.project_tree.populate(
+                self.project, hidden=self._hidden, inactive=self._inactive,
+                trash=self._trash, groups=self._groups)
+        if self._enable_3d:
+            self._rebuild_scene()
+            if fit:
+                self._fit()
 
     def _apply_project(self, proj, log_msg=None):
         self.project = proj
@@ -1079,10 +1140,11 @@ class IceGui(QMainWindow):
         self.setWindowTitle("%s — %s" % (ICEPAK_TITLE, name))
         if log_msg:
             self.log(log_msg)
-        self.project_tree.populate(proj, hidden=self._hidden)
-        if self._enable_3d:
-            self._rebuild_scene()
-            self._fit()
+        self._scan_inactive()
+        self._refresh(fit=True)
+        lib = find_icepak_lib()
+        if lib:
+            self.library_tree.populate_from_path(lib)
         self.statusBar().showMessage(name)
 
     def _open_dir(self):
@@ -1218,9 +1280,8 @@ class IceGui(QMainWindow):
         except Exception as e:
             self.log("Load failed %s: %r" % (source, e), "ERROR")
             return
+        self._reset_edit_state()
         self.project = proj
-        self._hidden = set()
-        self.selected = None
         self.setWindowTitle("%s — %s" % (ICEPAK_TITLE, proj.name))
         self.log("Loaded project: %s (%s objects, %s setters)" % (
             proj.name, proj.summary().get("objects", 0),
@@ -1230,10 +1291,11 @@ class IceGui(QMainWindow):
                 source if os.path.isdir(str(source)) else self.root_path or ".",
                 ".ice_gui.log")
             self.message_win.set_log_file(logp)
-        self.project_tree.populate(proj, hidden=self._hidden)
-        if self._enable_3d:
-            self._rebuild_scene()
-            self._fit()
+        self._scan_inactive()
+        self._refresh(fit=True)
+        lib = find_icepak_lib()
+        if lib:
+            self.library_tree.populate_from_path(lib)
         self.statusBar().showMessage(proj.name)
 
     # ------------------------------------------------------------- tree
@@ -1248,10 +1310,32 @@ class IceGui(QMainWindow):
     def _on_node_selected(self, tag, payload):
         if tag == "setter" and payload:
             self.log("Parameter %s" % payload[0])
-        elif tag == "group":
+        elif tag in ("group", "kindgroup"):
             self.log("Type %s" % payload)
+        elif tag == "usergroup":
+            self.log("Group %s" % payload)
+        elif tag == "post":
+            self.log("Post object")
+        elif tag == "trash":
+            self.log("Trash: %s" % getattr(payload, "name", payload))
         elif tag == "node":
             self.log(str(payload or tag))
+
+    def _on_node_activated(self, tag, payload):
+        if tag == "setter" and payload:
+            dlg = DetailsDialog("Parameter — %s" % payload[0],
+                                [(payload[0], payload[1])], self)
+            dlg.exec_()
+        elif tag == "post" and payload:
+            rows = [("type", payload.get("type"))]
+            for k, v in (payload.get("params") or {}).items():
+                rows.append((k, v))
+            dlg = DetailsDialog("Post object", rows, self)
+            dlg.exec_()
+        elif tag == "trash" and payload:
+            self.restore_from_trash(getattr(payload, "name", None))
+        elif tag in ("node", "kindgroup", "usergroup"):
+            self._show_named_settings(str(payload or tag))
 
     def _object_rows(self, o):
         rows = [("Type", o.kind), ("Name", o.name),
@@ -1273,49 +1357,368 @@ class IceGui(QMainWindow):
         dlg.exec_()
 
     def _edit_current(self):
+        obj = self._current_object()
+        if obj is not None:
+            self._show_object_dialog(obj)
+
+    def _current_object(self):
+        if self.project is not None and self.project.model is not None and self.selected:
+            o = self.project.model.object_by_name(self.selected)
+            if o is not None:
+                return o
         items = self.project_tree.selectedItems()
         if not items:
-            return
+            return None
         role = items[0].data(0, Qt.UserRole)
-        if role and role[0] == "object":
-            self._show_object_dialog(role[1])
+        if role and role[0] in ("object", "objectref"):
+            return role[1]
+        return None
 
     def _delete_current(self):
-        name = self.selected
-        if not name:
-            items = self.project_tree.selectedItems()
-            if items:
-                role = items[0].data(0, Qt.UserRole)
-                if role and role[0] == "object":
-                    name = role[1].name
-        if not name or self.project is None or self.project.model is None:
+        obj = self._current_object()
+        if obj is None or self.project is None or self.project.model is None:
             self.log("No object selected", "WARN")
             return
-        if not remove_object(self.project.model, name):
-            self.log("Could not delete %s" % name, "WARN")
+        if obj.kind == "domain" or obj.name == "cabinet":
+            self.log("Cannot delete cabinet", "WARN")
             return
-        self._hidden.discard(name)
-        if self.selected == name:
+        snap = self._snapshot()
+        taken = take_object(self.project.model, obj.name)
+        if taken is None:
+            self.log("Could not delete %s" % obj.name, "WARN")
+            return
+        self._push_undo(snap)
+        self._trash.append(taken)
+        self._hidden.discard(taken.name)
+        self._inactive.discard(taken.name)
+        for members in self._groups.values():
+            if taken.name in members:
+                members.remove(taken.name)
+        if self.selected == taken.name:
             self.selected = None
-        self.project_tree.populate(self.project, hidden=self._hidden)
-        if self._enable_3d:
-            self._rebuild_scene()
-        self.log("Deleted %s" % name)
+        self._refresh()
+        self.log("Moved %s to Trash" % taken.name)
 
     def _create_object(self, kind):
         if self.project is None or getattr(self.project, "model", None) is None:
             self._new_project()
+        snap = self._snapshot()
         model = self.project.model
         name = next_object_name(model, kind)
         idx = model.count_all()
         obj = default_object(kind, name, index=idx, creation_order=idx + 1)
         model.objects.append(obj)
-        self.project_tree.populate(self.project, hidden=self._hidden)
-        if self._enable_3d:
-            self._rebuild_scene()
+        self._push_undo(snap)
+        self._refresh()
         self._highlight_object(obj.name)
         self.log("Created %s %s" % (kind, name))
         return obj
+
+    def _snapshot(self):
+        model_text = ""
+        if self.project is not None and self.project.model is not None:
+            model_text = serialize_model(self.project.model)
+        return {
+            "model": model_text,
+            "hidden": set(self._hidden),
+            "inactive": set(self._inactive),
+            "trash": copy.deepcopy(self._trash),
+            "groups": copy.deepcopy(self._groups),
+            "selected": self.selected,
+            "post": copy.deepcopy(getattr(self.project, "post", []) or []),
+        }
+
+    def _restore_snapshot(self, snap):
+        from icepak_parser.model_parser import parse_text, ModelFile
+        from icepak_parser.project import IcepakProject
+        if self.project is None:
+            self.project = IcepakProject.empty("untitled")
+        self.project.model = parse_text(snap["model"]) if snap.get("model") else ModelFile()
+        self._hidden = set(snap.get("hidden") or ())
+        self._inactive = set(snap.get("inactive") or ())
+        self._trash = list(snap.get("trash") or [])
+        self._groups = dict(snap.get("groups") or {})
+        self.selected = snap.get("selected")
+        self.project.post = list(snap.get("post") or [])
+        self._refresh()
+
+    def _push_undo(self, snap):
+        self._undo_stack.append(snap)
+        if len(self._undo_stack) > UNDO_LIMIT:
+            self._undo_stack.pop(0)
+        self._redo_stack = []
+
+    def _clear_undo(self):
+        self._undo_stack = []
+        self._redo_stack = []
+
+    def _undo(self):
+        if not self._undo_stack:
+            self.log("Nothing to undo", "WARN")
+            return
+        self._redo_stack.append(self._snapshot())
+        self._restore_snapshot(self._undo_stack.pop())
+        self.log("Undo")
+
+    def _redo(self):
+        if not self._redo_stack:
+            self.log("Nothing to redo", "WARN")
+            return
+        self._undo_stack.append(self._snapshot())
+        self._restore_snapshot(self._redo_stack.pop())
+        self.log("Redo")
+
+    def _move_current(self, dx=None, dy=None, dz=None):
+        obj = self._current_object()
+        if obj is None:
+            self.log("No object selected", "WARN")
+            return None
+        if dx is None:
+            dlg = TranslateDialog("Move object", self)
+            if dlg.exec_() != QDialog.Accepted:
+                return None
+            dx, dy, dz = dlg.offset()
+        snap = self._snapshot()
+        translate_object(obj, float(dx), float(dy), float(dz))
+        self._push_undo(snap)
+        self._refresh()
+        self.log("Moved %s by (%g, %g, %g)" % (obj.name, dx, dy, dz))
+        return obj
+
+    def _copy_current(self, dx=None, dy=None, dz=None):
+        obj = self._current_object()
+        if obj is None:
+            self.log("No object selected", "WARN")
+            return None
+        if dx is None:
+            dlg = TranslateDialog("Copy object", self, dx=0.05, dy=0.0, dz=0.0)
+            if dlg.exec_() != QDialog.Accepted:
+                return None
+            dx, dy, dz = dlg.offset()
+        snap = self._snapshot()
+        name = next_object_name(self.project.model, obj.kind)
+        clone = clone_object(obj, name)
+        translate_object(clone, float(dx), float(dy), float(dz))
+        self.project.model.objects.append(clone)
+        self._push_undo(snap)
+        self._refresh()
+        self._highlight_object(clone.name)
+        self.log("Copied %s -> %s" % (obj.name, clone.name))
+        return clone
+
+    def _toggle_selected_active(self):
+        obj = self._current_object()
+        if obj is None or obj.kind == "domain":
+            self.log("No object selected", "WARN")
+            return
+        snap = self._snapshot()
+        if obj.name in self._inactive:
+            self._inactive.discard(obj.name)
+            set_object_active(obj, True)
+            self.log("Activated %s" % obj.name)
+        else:
+            self._inactive.add(obj.name)
+            set_object_active(obj, False)
+            self.log("Deactivated %s" % obj.name)
+        self._push_undo(snap)
+        self._refresh()
+
+    def restore_from_trash(self, name):
+        if not name:
+            return None
+        found = None
+        for o in self._trash:
+            if o.name == name:
+                found = o
+                break
+        if found is None:
+            self.log("Not in Trash: %s" % name, "WARN")
+            return None
+        snap = self._snapshot()
+        self._trash.remove(found)
+        if self.project is None or self.project.model is None:
+            from icepak_parser.project import IcepakProject
+            self.project = IcepakProject.empty("untitled")
+        self.project.model.objects.append(found)
+        self._push_undo(snap)
+        self._refresh()
+        self.log("Restored %s from Trash" % name)
+        return found
+
+    def create_group(self, name, members=None):
+        members = list(members or [])
+        if not members and self.selected:
+            members = [self.selected]
+        snap = self._snapshot()
+        self._groups[name] = members
+        self._push_undo(snap)
+        self._refresh()
+        self.log("Group %s (%d objects)" % (name, len(members)))
+        return name
+
+    def _show_named_settings(self, title):
+        from ice_panes import SOLUTION_ADV_KEYS, SOLUTION_BASIC_KEYS, SOLUTION_PAR_KEYS
+        mapping = {
+            "Basic settings": SOLUTION_BASIC_KEYS,
+            "Advanced settings": SOLUTION_ADV_KEYS,
+            "Parallel settings": SOLUTION_PAR_KEYS,
+        }
+        if title in mapping:
+            self._show_problem_keys(title, mapping[title])
+        elif title in ("Basic parameters", "Problem setup"):
+            self._show_basic_settings()
+
+    def _show_problem_keys(self, title, keys):
+        if self.project is None or self.project.problem is None:
+            self._nyi(title)
+            return
+        rows = []
+        for k in keys:
+            if k in self.project.problem.setters:
+                rows.append((k, self.project.problem.setters[k]))
+        if not rows:
+            rows = [(k, v) for k, v in sorted(self.project.problem.setters.items())[:20]]
+        if not rows:
+            self._nyi(title)
+            return
+        dlg = DetailsDialog(title, rows, self)
+        dlg.exec_()
+
+    def _show_advanced_settings(self):
+        from ice_panes import SOLUTION_ADV_KEYS
+        self._show_problem_keys("Advanced settings", SOLUTION_ADV_KEYS)
+
+    def _show_parallel_settings(self):
+        from ice_panes import SOLUTION_PAR_KEYS
+        self._show_problem_keys("Parallel settings", SOLUTION_PAR_KEYS)
+
+    def _load_post_objects(self, path=None):
+        from icepak_parser.project import parse_post_objects
+        if path is None:
+            path, _ = QFileDialog.getOpenFileName(
+                self, "Load post objects", "", "Post objects (*)")
+        if not path:
+            return
+        with open(path, "r", encoding="latin-1", errors="replace") as f:
+            text = f.read()
+        if self.project is None:
+            from icepak_parser.project import IcepakProject
+            self.project = IcepakProject.empty("untitled")
+        snap = self._snapshot()
+        self.project.post = parse_post_objects(text)
+        self._push_undo(snap)
+        self._refresh()
+        self.log("Loaded %d post objects" % len(self.project.post))
+
+    def _save_post_objects(self, path=None):
+        from icepak_parser.project import format_post_objects
+        posts = getattr(self.project, "post", None) if self.project else None
+        if not posts:
+            self.log("No post objects", "WARN")
+            return None
+        if path is None:
+            path, _ = QFileDialog.getSaveFileName(
+                self, "Save post objects", "post_objects", "Post objects (*)")
+        if not path:
+            return None
+        with open(path, "w", encoding="latin-1") as f:
+            f.write(format_post_objects(posts))
+        self.log("Saved %d post objects to %s" % (len(posts), path))
+        return path
+
+    def _on_lib_activated(self, name, payload):
+        self._nyi("Instantiate from library: %s" % name)
+
+    def _tree_menu(self, pos):
+        item = self.project_tree.itemAt(pos)
+        menu = QMenu(self)
+        if item is not None:
+            role = item.data(0, Qt.UserRole)
+            tag = role[0] if role else ""
+            if tag in ("object", "objectref"):
+                menu.addAction("Edit object", self._edit_current)
+                menu.addAction("Delete object", self._delete_current)
+                menu.addAction("Move object", self._move_current)
+                menu.addAction("Copy object", self._copy_current)
+                menu.addAction("Toggle visible", self._toggle_selected_visible)
+                menu.addAction("Toggle active", self._toggle_selected_active)
+                menu.addAction("Add to group...", self._group_selected)
+            elif tag == "trash":
+                menu.addAction("Restore from Trash",
+                               lambda: self.restore_from_trash(
+                                   getattr(role[1], "name", None)))
+            else:
+                menu.addAction("Find", self._find_object)
+        if not menu.actions():
+            return
+        menu.exec_(self.project_tree.viewport().mapToGlobal(pos))
+
+    def _group_selected(self):
+        name, ok = QInputDialog.getText(self, "Create group", "Group name:")
+        if ok and str(name).strip():
+            self.create_group(str(name).strip())
+
+    def _toggle_tree_node(self):
+        items = self.project_tree.selectedItems()
+        if items:
+            items[0].setExpanded(not items[0].isExpanded())
+
+    def _toggle_model_subtree(self):
+        m = self.project_tree._items.get("Model")
+        if m is not None:
+            m.setExpanded(not m.isExpanded())
+
+    def _set_view_panes(self, n):
+        self._view_panes = 4 if int(n) == 4 else 1
+        if self._enable_3d:
+            self._apply_viewports()
+            self._rebuild_scene()
+            if self._view_panes == 1:
+                self._fit()
+        elif hasattr(self, "_view_stack"):
+            self._view_stack.setCurrentIndex(1 if self._view_panes == 4 else 0)
+        self.log("Viewing windows: %d" % self._view_panes)
+
+    def _apply_viewports(self):
+        if not self._enable_3d or self.vtk_widget is None or self.renderer is None:
+            return
+        rw = self.vtk_widget.GetRenderWindow()
+        for r in self._extra_renderers:
+            rw.RemoveRenderer(r)
+        self._extra_renderers = []
+        if self._view_panes != 4:
+            self.renderer.SetViewport(0.0, 0.0, 1.0, 1.0)
+            return
+        self.renderer.SetViewport(0.5, 0.0, 1.0, 0.5)
+        for vp in ((0.0, 0.5, 0.5, 1.0), (0.5, 0.5, 1.0, 1.0),
+                   (0.0, 0.0, 0.5, 0.5)):
+            r = vtk.vtkRenderer()
+            r.SetViewport(*vp)
+            r.SetBackground(0.957, 0.969, 0.984)
+            r.SetBackground2(0.620, 0.784, 0.910)
+            r.GradientBackgroundOn()
+            r.GetActiveCamera().ParallelProjectionOn()
+            rw.AddRenderer(r)
+            self._extra_renderers.append(r)
+
+    def _iter_renderers(self):
+        if self.renderer is not None:
+            yield self.renderer
+        for r in self._extra_renderers:
+            yield r
+
+    def _renderer_at(self, x, y):
+        if not self._enable_3d or self.vtk_widget is None:
+            return self.renderer
+        sz = self.vtk_widget.GetRenderWindow().GetSize()
+        if not sz or sz[0] <= 0 or sz[1] <= 0:
+            return self.renderer
+        xn, yn = x / float(sz[0]), y / float(sz[1])
+        for r in self._iter_renderers():
+            v = r.GetViewport()
+            if v[0] <= xn <= v[2] and v[1] <= yn <= v[3]:
+                return r
+        return self.renderer
 
     def _find_object(self, text=None):
         if text is None:
@@ -1443,19 +1846,31 @@ class IceGui(QMainWindow):
         wire = self._shading == "wire"
         self.scene_objs = build_scene(self.project.model, layer_on, wire)
         self.scene_objs = [so for so in self.scene_objs
-                           if so.name not in self._hidden]
-        self.renderer.RemoveAllViewProps()
+                           if so.name not in self._hidden
+                           and so.name not in self._inactive]
+        for r in list(self._iter_renderers()):
+            r.RemoveAllViewProps()
         if self._logo_actor is not None and self._show_logo:
             self.renderer.AddActor2D(self._logo_actor)
         self.actors = []
         self._actor_map = {}
         for so in self.scene_objs:
-            actor = self._make_actor(so)
-            self.renderer.AddActor(actor)
-            self.actors.append((actor, so))
-            self._actor_map[actor] = so
+            for r in self._iter_renderers():
+                actor = self._make_actor(so)
+                r.AddActor(actor)
+                self._actor_map[actor] = so
+                if r is self.renderer:
+                    self.actors.append((actor, so))
         self._apply_highlight()
         self._add_name_labels()
+        if self._view_panes == 4:
+            b = self._scene_bounds()
+            for r, which in zip(self._extra_renderers, ("-x", "+y", "-z")):
+                self._apply_orient_to_camera(r.GetActiveCamera(), which, b)
+                r.ResetCameraClippingRange()
+            self._apply_orient_to_camera(
+                self.renderer.GetActiveCamera(), "iso", b)
+            self.renderer.ResetCameraClippingRange()
         self._render()
         self.log("3D scene: %d objects" % len(self.scene_objs), "DEBUG")
 
@@ -1603,10 +2018,7 @@ class IceGui(QMainWindow):
         sign = "+" if d[ax] < 0 else "-"
         self._orient("%s%s" % (sign, "xyz"[ax]))
 
-    def _orient(self, which):
-        if not self._enable_3d:
-            return
-        b = self._scene_bounds()
+    def _apply_orient_to_camera(self, cam, which, b):
         if b is None:
             cx = cy = cz = 0.0
             span = 1.0
@@ -1615,8 +2027,6 @@ class IceGui(QMainWindow):
             cy = (b[1] + b[4]) / 2.0
             cz = (b[2] + b[5]) / 2.0
             span = max(b[3] - b[0], b[4] - b[1], b[5] - b[2], 1e-6)
-        cam = self.renderer.GetActiveCamera()
-        cam.SetFocalPoint(cx, cy, cz)
         dist = span * 3.0
         views = {
             "+x": ((cx + dist, cy, cz), (0, 0, 1)),
@@ -1628,10 +2038,17 @@ class IceGui(QMainWindow):
             "iso": ((cx + dist * 0.6, cy - dist * 0.6, cz + dist), (0, 0, 1)),
         }
         pos, up = views.get(which, views["iso"])
+        cam.SetFocalPoint(cx, cy, cz)
         cam.SetPosition(*pos)
         cam.SetViewUp(*up)
         cam.ParallelProjectionOn()
         cam.SetParallelScale(span * 0.75)
+
+    def _orient(self, which):
+        if not self._enable_3d:
+            return
+        cam = self.renderer.GetActiveCamera()
+        self._apply_orient_to_camera(cam, which, self._scene_bounds())
         self.renderer.ResetCameraClippingRange()
         self._render()
 
@@ -1653,7 +2070,8 @@ class IceGui(QMainWindow):
         if abs(x - self._press_pos[0]) >= 4 or abs(y - self._press_pos[1]) >= 4:
             return
         picker = vtk.vtkPropPicker()
-        if picker.Pick(x, y, 0, self.renderer):
+        rend = self._renderer_at(x, y)
+        if picker.Pick(x, y, 0, rend):
             actor = picker.GetActor()
             so = self._actor_map.get(actor)
             if so is not None:
