@@ -32,6 +32,7 @@ class IcepakProject:
     def __init__(self, path: str):
         self.path = path
         self.name = os.path.basename(os.path.normpath(path)) or path
+        self.files = {}
         self.model = None
         self.problem = None
         self.xml = None
@@ -128,6 +129,22 @@ class IcepakProject:
         if pp is not None:
             obj.problem = problem_parser.parse_text(pp.decode("latin-1", "replace"))
         obj._load_generic(files)
+        return obj
+
+    @classmethod
+    def empty(cls, name="untitled"):
+        """In-memory project with an empty model (GUI New project)."""
+        from .model_parser import ModelFile
+        obj = cls.__new__(cls)
+        obj.path = None
+        obj.name = name
+        obj.files = {}
+        obj.model = ModelFile()
+        obj.problem = None
+        obj.xml = None
+        obj.grid = []
+        obj.materials = None
+        obj.post = []
         return obj
 
 
