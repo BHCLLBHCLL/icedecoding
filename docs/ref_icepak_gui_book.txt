@@ -1,0 +1,475 @@
+﻿P20 | 本章对电子热设计中涉及的相关基础理论、常用的变量概念做了详细的解释说明；列举了电子热设计的常规简则及注意事项，讲解了电子热设计常用散热方式的选择、经验公式的计算及准则方程；讲解了CFD热仿真的控制方程及CFD理论计算的过程，讲解了ANSYS Icepak软件中CFD计算的相关概念等。
+P21 | 【内容提要】
+P21 | 本章将重点讲解ANSYS Icepak的技术特点、ANSYS Icepak的启动方式、相应工作目录的设定；ANSYS Icepak软件界面主菜单栏、快捷工具栏、模型树、自建模工具栏、编辑命令、对齐匹配等的详细说明；常用鼠标、热键的操作，用户自定义模型库、材料库等的讲解说明。
+P21 | 【学习重点】
+P21 | · 理解ANSYS Icepak的各个技术特征；
+P21 | · 掌握ANSYS Icepak的启动方式及工作目录设定；
+P21 | · 掌握ANSYS Icepak界面的常用菜单说明；
+P21 | · 掌握用户自定义模型库、材料库的方法；
+P21 | · 掌握鼠标、热键的操作。
+P22 | 通过对本书第1章的学习，相信读者对ANSYS Icepak的功能有了大概的了解。下面编者将详细地向读者讲解ANSYS Icepak的详细功能及技术特征。
+P22 | ANSYS Icepak是ANSYS Workbench平台下的专业电子散热模块，属于ANSYS的流体产品体系，其通过建立电子产品的热模型、对模型进行网格处理、求解计算、后处理显示等完成热仿真模拟；ANSYS Icepak可以与SIwave协同实现PCB级的电—热双向耦合作用，真实反映PCB的热分布及电性能分布；Icepak可以与HFSS、Maxwell、Q3D实现电磁—热流的耦合模拟；Icepak可以与Mechanical协同耦合，将模型的温度分布传递给结构动力学软件，实现热流—结构的耦合模拟，得到电子产品的热变形、热应力分布等，多物理场的耦合必须在ANSYS Work-bench平台下实现数据的传递，如图3-1所示。
+P22 | 图3-1 ANSYS旗下与Icepak耦合的软件
+P22 | 如图3-2所示为ANSYS系列3大产品体系，通过ANSYS Workbench平台，可实现电子产品的多物理场耦合模拟计算。
+P22 | 图3-2 ANSYS系列3大产品体系
+P22 | ANSYS Icepak作为专业的电子散热分析软件，可以解决各种不同尺度级别的散热问题，如图3-3所示。
+P22 | 图3-3 ANSYS Icepak的求解尺度
+P22 | （1）环境级——数据中心、机房、外太空等环境级的热分析。
+P22 | （2）系统级——电子设备机箱、机柜以及方舱等系统级的热分析。
+P22 | （3）PCB级——PCB级的热分析。
+P22 | （4）元器件级——电子模块、芯片封装级的热分析。
+P22 | ANSYS Icepak具体的技术特征如下。
+P22 | 1．快速几何建模
+P22 | （1）友好的界面和操作：完全基于Windows风格的界面。依靠鼠标选取、定位及改变定义对象的大小，使用鼠标拖曳方式，因而建模过程非常方便快捷，如图3-4所示。
+P22 | 图3-4 方便快捷的自建模工具栏
+P22 | （2）基于对象建模：对于电子散热行业常用的机箱、块、风扇、PCB、通风口、自由开口、空调、板、壁面、管道、热源、阻尼、散热器、离心风机、各种封装件模型等，用户可以直接从ANSYS Icepak的建模工具栏中调用现成的预定义模型，而无须从点、线、面开始建模；使用快速的自建模工具，方便用户快速建立“简化干净”的电子散热模型，如图3-4所示。
+P22 | （3）丰富的几何模型：六面体、棱柱、圆柱、同心圆柱、椭圆柱、椭球体，斜板、多边形板、方形或圆形板，在这些基本模型的基础上，可以构造出各种复杂形状的几何模型，满足电子散热的建模需求。
+P22 | （4）大量的模型库和材料库：包括各种气体、液体、固体及金属与非金属材料库。风扇库包括Delta、Elina、NMB、Nidec、Papst、EBM、SanyoDenki等厂家的风扇模型。封装库包括各种BGA、QFP、FPBGA、TBGA封装模型。另外，读者可以很方便地创建自己的模型库和材料库，如图3-5所示。
+P22 | 图3-5 模型库和材料库
+P22 | （5）ANSYS Icepak可以导入各种主流CAD软件的几何模型文件（Igs、Stp、Asm等）；也支持导入Cadence、Mentor、Zuken、CR5000、Altium Designer等各种EDA软件输出的PCB模型和PCB布线过孔文件模型，如图3-6所示。
+P22 | 图3-6 CAD及EDA模型导入Icepak
+P22 | 2．优秀的网格技术
+P22 | ANSYS Icepak具有全自动的划分网格能力，对模型具有很好的自适应性，其网格类型是同类热分析软件中最丰富的，包括3种类型的网格，结构化网格（Hexa cartesian）、非结构化网格（Hexa unstructured）和六面体核心网格（Mesher-HD）。
+P22 | 另外，ANSYS Icepak提供两种网格处理方式，包括非连续性网格和Multi-level多级网格；针对模型中不同区域的几何特点，可以对其使用非连续性网格，在局部区域使用不同类型的网格（混合网格）; Multi-level多级网格可以在很大程度上减少网格的个数。
+P22 | ANSYS Icepak还具有强大的网格检查功能，可以检查并自动显示质量较差的网格。用户还可对某个区域或元件的网格进行自行控制，网格的局部控制不会影响其他区域和元件模型的网格。ANSYS Icepak不仅能生成高质量的计算网格，而且能保持元器件完整的几何形状，网格具有很好的贴体性。
+P22 | 网格类型及处理方式如下。
+P22 | 结构化网格（Hexa cartesian）：主要适用于规则几何的网格处理划分。
+P22 | 非结构化网格（Hexa unstructured）：对任何复杂形状的几何使用“O”型网格技术，保持模型本身的几何形状。
+P22 | 六面体核心网格（Mesher-HD）：对曲面边界使用四面体或棱柱网格，其他区域使用六面体网格，主要适用于CAD模型导入后的异形几何体。
+P22 | 混合网格：在不同区域根据其元器件几何特点使用不同类型网格，网格可相互混合。
+P22 | ANSYS Icepak提供两种不同的网格处理方法。
+P22 | 非连续性网格：针对几何尺寸不同的模型，在需要加密的区域设置非连续性网格，可以在保证计算精度的基础上，进一步减少网格数目，加快计算速度。
+P22 | 优秀的Multi-level网格：可以对任何导入的CAD不规则几何模型划分贴体网格，大大提高了网格划分的质量，在ANSYS Icepak中，只有对整体或者局部区域使用Mesher-HD六面体核心网格，才能够划分Multi-level多级网格，如图3-7所示。
+P22 | 图3-7 ANSYS Icepak的优秀网格技术
+P22 | 3．对网格质量的评价、建议工具
+P22 | ANSYS Icepak还具有网格检查功能，即在网格生成之后自动计算出网格的面对齐率、扭曲率、体积、网格的偏斜率等参数，而且还能在界面上显示出较差网格的位置，以便用户做进一步的改进，如图3-8所示。
+P22 | 图3-8 ANSYS Icepak网格质量检查
+P22 | 4．求解器的精度、速度和稳定性
+P22 | ANSYS Icepak软件的内核采用Fluent有限体积求解器，并采用多重网格加速收敛技术，能加快求解计算的收敛，同时保证高精度的计算结果。除此之外，ANSYS Icepak软件还允许用户调节松弛因子，从而使复杂工程问题的计算收敛速度更加容易控制。
+P22 | 与其他CFD求解器相比，Fluent求解器更加稳定，计算精度更高，鲁棒性强，计算速度快。经过全球CFD
+P22 | 用户多年的检验，Fluent求解器是目前CFD领域最为成熟、应用最为广泛的算法。因此，ANSYS Icepak可以很好地满足电子行业热仿真计算的需求，如图3-9所示。
+P22 | 图3-9 强大的Fluent求解器
+P22 | 5．求解器支持的物理模型
+P22 | ANSYS Icepak软件包含多种热分析所需要的物理模型：稳态热分析、瞬态热分析；层流、湍流；强迫对流、自然对流、混合对流、热辐射、固体传导；不同流体介质间的换热等。
+P22 | 在自然对流和空间热分析中，辐射换热占据了很大的比例。ANSYS Icepak软件提供了多种辐射换热模型来进行高精度的辐射换热计算，广泛应用在地面及太空环境的热分析中。由于实际物理问题中几何形状千差万别，辐射角系数的计算非常复杂。要想保证计算的精度，单一的角系数计算模型很难适用于各种情况。ANSYS Icepak软件提供了多种辐射换热模型，包括S2S、Do辐射模型、光线追踪法等，可以满足电子产品任何散热工况的计算需要。
+P22 | 图3-10中（a）、（b）分别为电子系统处于自然散热状态和太空环境下的温度分布，在这两种状态下，辐射换热的计算精度对仿真结果的准确性至关重要。目前同类软件中只有ANSYS Icepak支持如此丰富的辐射模型，在各种复杂的计算工况中都能获得很高的求解精度。
+P22 | 图3-10 丰富的辐射换热模型计算结果
+P22 | 6．后处理功能
+P22 | ANSYS Icepak软件是面向对象的、完全集成的后处理环境，可以输出速度矢量图、等值面图、云图迹线图。图片输出格式有Postscripts、PPM、TIFF、GIF、JPEG和RGB，动画输出格式有AVI、MPEG、GIF。
+P22 | 另外，ANSYS Workbench平台提供了专业的后处理软件CFD-Post，在ANSYS Workbench平台下，用户也可以将ANSYS Icepak的计算结果导入CFD-Post中，进行速度、温度等各变量多样化的后处理显示，如图3-11所示。
+P22 | 图3-11 丰富多样的后处理显示
+P22 | 7．EDA模型接口的支持
+P22 | ANSYS Icepak与EDA软件的接口主要支持IDF格式模型（Mentor Graphics、Cadence、Altium Designer都可以输出）的直接输入。另外，如果电路工程师建立了详细的器件库模型，输出的IDF模型将包含芯片的热耗和热阻参数，那么这些信息也都可以自动读入ANSYS Icepak，无须用户重新输入，非常便于电路工程师建立PCB热模型。
+P22 | 不同软件的IDF格式（包含两个文件）有所区别，Cadence输出的为“bdf/ldf”, Mentor输出的为“emn/emp”、Altium Designer输出的为“brd/pro”。尽管有所区别，但是都可以直接导入ANSYS Icepak，具体接口如图3-12所示。
+P22 | 图3-12 IDF模型导入接口
+P22 | 8．Gerber/Brd文件导入PCB
+P22 | 由于PCB的结构越来越复杂，其布线层（Trace Layers）越来越不均匀，因此，在进行热仿真时，PCB的导热率显的尤为重要。实验证明，PCB由于布线过孔布局的不均匀，其导热率是各向异性的，且局部区域均不同。在ANSYS Icepak软件中，能够通过布线层接口导入EDA软件输出的布线过孔文件，相应的具体接口如图3-6所示。ANSYS Icepak软件对不均匀的布线层过孔进行背景网格处理（其不参与CFD计算），然后通过相应的算法，计算出PCB局部区域各向异性的导热率，因此并没有增加整体CFD计算的网格数目，可以真实地反映PCB的各向异性导热系数（kx, ky, kz）, EDA布线过孔导入Icepak软件如图3-13所示。
+P22 | 图3-13 EDA布线过孔导入ANSYS Icepak软件
+P22 | 为了方便结构工程师使用ANSYS Icepak，用户可通过ANSYS Workbench平台下的Design-Modeler，将各种CAD几何模型导入ANSYS Icepak，如图3-14所示。
+P22 | 图3-14 Workbench平台下CAD模型导入ANSYS Icepak
+P22 | 另外，也可以通过ANSYS Icepak自带的CAD接口读入CAD几何模型，但是由于其不如DesignModeler导入方便，不推荐读者使用，如图3-15所示。
+P22 | 图3-15 ANSYS Icepak自带的CAD接口及计算结果
+P22 | 9．CAE的协同（热流与结构、热与电的协同耦合）
+P22 | （1）用户可以将相应的CAD几何模型直接读入ANSYS Workbench平台下的DesignModeler，然后将模型传递给ANSYS Icepak，在ANSYS Icepak中完成热仿真后，再将DM中的几何模型和ANSYS Icepak中的热仿真结果传递给ANSYS Mechanical，完成模型的热流、结构协同仿真，如图3-16所示。
+P22 | 图3-16 ANSYS Icepak与Mechanical的耦合
+P22 | 在ANSYS Workbench平台下，将相应的热流数据传递到ANSYS Mechanical，通过详细的参数设置，ANSYS Mechanical可以进行线性和非线性的结构应力分析。ANSYS Icepak和ANSYS Mechanical之间的数据传递接口，使得电子器件的温度场和由此导致的热应力变形分析协同模拟成为可能。
+P22 | （2）ANSYS Icepak可以在ANSYS Workbench平台下，与HFSS、Maxwell、Q3D进行电磁与热流的耦合分析，精确模拟产品在多物理场情况下，各种变量的分布特性，如图3-17所示。
+P22 | 图3-17 ANSYS Icepak与Maxwell的耦合
+P22 | （3）同时ANSYS Icepak可以与Ansoft SIwave进行PCB电与热流的双向耦合分析，将SI-wave计算的PCB不均匀焦耳热导入ANSYS Icepak，可以考虑电流、电压分布对PCB温度的影响，而将Icepak计算的温度分布导入SIwave，则可以考虑温度分布对电流、电压的影响，从而大大提高了PCB级或者系统级热仿真的计算精度，如图3-18所示。具体的模拟流程可参考第9章ANSYS Icepak热仿真专题。
+P22 | 图3-18 ANSYS Icepak与SIwave的耦合计算结果
+P23 | ANSYS Icepak进入ANSYS Workbench平台后，ANSYS公司针对ANSYS Icepak开发了CAD模型的导入接口DM。利用Workbench下的DM，用户可将CAD模型导入ANSYS Icepak，其过程如图1-1所示。
+P23 | 从1.2.3节中可以看到，ANSYS Icepak位于ANSYS Workbench左侧工具箱（Toolbox）的Component Systems下面。
+P23 | 安装于ANSYS Workbench平台下的Icepak，启动方法主要有以下几个。
+P23 | 1．通过程序→开始启动
+P23 | 通过单击开始→所有程序，找到ANSYS 18.1文件夹，其下包含ANSYS Icepak，单击Icepak图标，即可单独打开ANSYS Icepak软件，如图3-19所示。
+P23 | 图3-19 单独启动ANSYS Icepak软件
+P23 | 2．单击图标启动
+P23 | 可以右键单击ANSYS Icepak18.1图标→发送到→桌面快捷方式，在桌面上会出现AN-SYS Icepak 18.1的快捷方式图标，如图3-20所示，双击此图标，也可打开ANSYS Icepak软件。
+P23 | 图3-20 建立ANSYS Icepak桌面快捷方式图标
+P23 | 3．通过ANSYS Workbench启动ANSYS Icepak
+P23 | （1）通过单击开始→所有程序，单击ANSYS 18.1文件下的Workbench 18.1，即可启动Workbench；系统会自动打开ANSYS Workbench界面，如图3-21所示。
+P23 | 图3-21 启动ANSYS Workbench平台
+P23 | （2）双击工具箱的Icepak，项目视图区会出现Icepak的模块单元，双击Icepak单元中的Setup（第2项），即可启动Icepak，如图3-22所示。
+P23 | 图3-22 ANSYS Workbench下启动Icepak
+P23 | 通过不同方式打开ANSYS Icepak时，会出现不同的选项，具体如下。
+P23 | （1）单独打开ANSYS Icepak时，软件会出现如图3-23的界面，包含4个选项。
+P23 | 图3-23 打开ANSYS Icepak时的选项
+P23 | ①Existing：表示打开现有的ANSYS Icepak项目，如果目录下有ANSYS Icepak的相应项目，单击Existing，会出现Open project面板，相应的ANSYS Icepak项目前包含有Icepak特有的Logo“”，选择需要打开的项目，单击Open，即可打开ANSYS Icepak项目，如图3-24所示。
+P23 | 图3-24 ANSYS Icepak项目的打开
+P23 | ② New：表示新建一个ANSYS Icepak项目，选择New，软件会弹出New Project面板，在Project name中输入项目的名称，单击Create即可创建新的项目。注意：项目名称中不能包含中文字符；项目所处的工作目录也不允许包含中文字符，如图3-25所示。
+P23 | 图3-25 ANSYS Icepak新建项目
+P23 | ③Unpack：主要用于解压缩ANSYS Icepak生成的tzr文件。因为tzr文件特别小，仅几十千字节，但是它包含了ANSYS Icepak项目中所有的设置（几何参数设置、网格划分参数设置、求解的所有设置等），因此在网络上发送、共享非常方便，很受工程师的欢迎，如图3-26所示。
+P23 | 图3-26 ANSYS Icepak解压缩tzr文件
+P23 | 在ANSYS Icepak界面下，通过File→Pack，可将现有的ANSYS Icepak项目压缩，Icepak自动生成tzr文件。
+P23 | ④ Quit：表示退出ANSYS Icepak软件。
+P23 | （2）在ANSYS Workbench平台下启动Icepak，选择Workbench项目视图区的Icepak单元，右键单击Setup选项，出现如图3-27所示的面板。
+P23 | 图3-27 ANSYS Workbench平台下启动Icepak（单击右键）
+P23 | ① 单击右键，选择出现的Edit…，可启动ANSYS Icepak。
+P23 | ② 单击右键，选择出现的Import Icepak Project，可在ANSYS Workbench下加载ANSYS Icepak的现有模型，相当于Existing功能。
+P23 | ③ 单击右键，选择出现的Import Icepak Project From. tzr，可在ANSYS Workbench下直接Unpack（解压缩）Icepak生成的tzr模型，相当于Unpack功能。
+P23 | ④单击右键，选择Transfer Data From New，表示将其他CAE的计算结果或模型传递给ANSYS Icepak，如图3-28所示；可以将HFSS、Maxwell的计算结果导入ANSYS Icepak。
+P23 | 图3-28 CAE软件间的数据传递
+P24 | 给ANSYS Icepak设定相应的工作目录，可方便工程师对ANSYS Icepak的相关项目进行管理。由于ANSYS Icepak不识别中文字符，因此，在设定工作目录时，目录名称不能包含中文字符。通过3.2.1节，工程师可以在桌面上创建ANSYS Icepak的快捷启动方式。
+P24 | ANSYS Icepak工作目录的设定步骤如下。
+P24 | （1）建立目录文件夹，建议放置于硬盘的根目录下，文件夹的名字可以是字母或数字，如在E盘根目录下，建立工作目录的文件夹，如图3-29所示。
+P24 | 图3-29 建立工作目录文件夹
+P24 | （2）右键单击桌面上的ANSYS Icepak快捷方式，单击属性，打开如图3-30所示的属性面板，在起始位置栏里输入前一步建立的工作目录，这样无论是New（新建），还是Unpack（解压缩），所有的ANSYS Icepak项目都会自动保存在此目录里，便于工程师对ANSYS Icepak项目的管理。
+P24 | 图3-30 设定工作目录
+P25 | ANSYS Icepak具有类似Windows系统操作风格的界面，GUI界面主要包含项目名称（不允许包含中文字符）、主菜单栏、快捷命令工具栏、模型树管理、自建模模型工具栏、对齐匹配命令栏、图形显示区域、Message消息窗口和当前所选对象信息窗口，具体参考图3-31。
+P25 | 图3-31 ANSYS Icepak用户界面
+P25 | 图形显示区域包含了模型树下所有的模型对象、求解计算的后处理结果；Icepak里所有的操作均可以通过主菜单栏实现。
+P25 | 本部分主要介绍菜单栏的常用命令操作，主菜单可以实现ANSYS Icepak的所有命令操作，常用命令也可通过快捷工具栏的按钮实现，主菜单栏如图3-32所示。
+P25 | 图3-32 主菜单栏
+P25 | 1．File（文件，见图3-33）
+P25 | 图3-33 File界面
+P25 | （1）New project为新建项目；Open project为打开已有的项目；Merge project为合并项目，可以将两个或多个已有项目合并。
+P25 | （2）Save project为保存Icepak项目；Save project as为项目另存为。
+P25 | （3）Import为导入模型；IGES/Step surfaces+curves为导入外部的CAD模型，不推荐使用；IDF file为导入EDA软件输出的PCB几何模型文件；Powermaps为导入Ansoft SIwave输出的PCB不均匀的焦耳热Powermaps，如图3-34所示。
+P25 | 图3-34 IDF及导入热耗界面
+P25 | （4）Export为输出模型：将Icepak的模型以一定格式输出，如图3-35所示。
+P25 | 图3-35 输出界面
+P25 | （5）Unpack project为解压缩tzr文件；Pack project为压缩tzr文件；Cleanup为清除已有的ID及计算结果；Create image file为将图形显示区域的图像输出为图片格式；Quit为退出。
+P25 | 单独启动ANSYS Icepak和在ANSYS Workbench下启动ANSYS Icepak, File菜单栏是不同的，如表3-1所示。
+P25 | 表3-1 File菜单栏的区别
+P25 | 2．Edit（编辑，见图3-36）
+P25 | 图3-36 编辑界面
+P25 | （1）Undo为返回操作；Redo为重做操作。
+P25 | （2）Find为在模型树中寻找几何器件；Show clipboard为在消息窗口中显示剪贴板上的器件信息；Clear clipboard为消除剪贴板上的信息。
+P25 | （3）Snap to grid为对计算区域的模型进行网格分割，表示移动鼠标时相应的距离，默认将计算区域各个方向分割为100份。
+P25 | （4）Preferences为参数选择设定单击Display，出现如图3-37所示的界面。
+P25 | 图3-37 Preferences界面
+P25 | ① Display→Background style为图形界面背景颜色的修改：首先选择背景颜色显示的格式，主要分为单一色（Solid）显示和多色显示，然后单击Background color1在弹出的图形面板中选择设置的颜色即可，如图3-38、图3-39所示。
+P25 | 图3-38 图形区域背景颜色的格式及选择
+P25 | 图3-39 图形区域的背景颜色修改
+P25 | ② Libraries为库的信息及用户自定义库建立，如图3-40所示。
+P25 | 图3-40 Libraries界面
+P25 | ③Object types为模型类型。如图3-41（a）所示，其中Objects下罗列了ANSYS Icepak的自建模对象名称。Color表示不同对象显示的颜色，可以进行修改；Width表示模型对象线框显示线的宽度；Shading表示是否允许对模型进行实体显示；Decoration表示对一些模型对象的虚拟特征进行显示，如散热孔Grille的百叶窗特征等；Font表示模型的字体。
+P25 | 图3-41 模型显示及互动参数面板
+P25 | ④ 在Interaction面板中，勾选Motion allowed in direction后侧的轴，表示可以鼠标拖动模型在X、Y、Z 3个方向进行移动，Restrict movement to cabient表示仅仅可以在Cabinet区域内进行移动，Objects can't penetrate each other表示鼠标拖动模型移动过程中不允许两个体干涉重叠，Move object also moves group表示拖动模型时，与此模型处于同一组的其他模型会随之一起移动，Move object snaps to other objects表示拖动模型与另一模型进行对齐；Snap attributes表示Cabinet区域内的分辨率，拖动器件时能按照分辨率的尺寸进行移动；New object size factor中的0.2，表示新建模型的尺寸是Cabinet各个方向尺寸的0.2倍，Cabinet autoscale factor表示Cabinet的缩放因子，此数值必须大于等于1，勾选Move points with object表示求解计算变量的监控点随着模型的移动而移动，如图3-41（b）所示。
+P25 | ⑤ Mouse buttons为鼠标的设置，可用于修改设置鼠标左右键的操作，如图3-42所示。
+P25 | 图3-42 鼠标的设置界面
+P25 | ⑥ Meshing为设置默认网格的类型、最小间隙；设置Mesher-HD的多级网格设置，如图3-43所示。
+P25 | 图3-43 Meshing设置界面
+P25 | ⑦ Units为修改ANSYS Icepak默认的变量单位。以长度单位修改为例，首先选择Units，然后在Category中选择Length，查看Units中的单位，选择mm, “∗”会自动移动，然后单击Set as default，即可修改长度的单位。可按照图3-44的标记步骤，进行单位的修改操作。
+P25 | 图3-44 单位修改设置
+P25 | 如果用户在Perferences中做了相应的修改，希望修改后的设置只适应于本项目，可单击This project完成；如果希望修改后的设置适用于所有的ANSYS Icepak项目，便可单击All projects。
+P25 | （5）Annotations为注释标记。可用于对Icepak图形区域添加标题、日期、Logo等标记，如图3-45所示。
+P25 | 图3-45 注释标记界面
+P25 | 3．View（查看，见图3-46）
+P25 | 图3-46 View下拉菜单
+P25 | Summary（HTML）：生成HTML页面的模型报告。
+P25 | Location：测量具体点的坐标。
+P25 | Distance：测量两点、两边的距离；Angle；测量两边的夹角。
+P25 | Bounding box：计算区域边界大小。
+P25 | Traces：查看PCB各个布线层信息。
+P25 | Edit toolbars：打开工具栏，选择需要的快捷工具。
+P25 | Default shading：模型显示默认的格式，包含线框、实体等。
+P25 | Display：显示坐标原点、标尺、项目名称、项目日期等。
+P25 | Visible：显示/关闭某类型的器件模型。
+P25 | Lights：调整视图区域模型的亮度。
+P25 | View→Markers：对ANSYS Icepak项目的某点进行标记，如图3-47所示。
+P25 | 图3-47 Marker标记
+P25 | View→Rubber bands：对ANSYS Icepak模型中的两个点进行标记，如图3-48所示；单击Rubber bands→Add，然后使用鼠标选择两点，完成标记。
+P25 | 图3-48 Rubber bands的标记
+P25 | View→Default shading：表示几何模型的显示类型，如图3-49所示。
+P25 | 图3-49 Default shading的选项
+P25 | ANSYS Icepak视图区域的几何模型显示也可以通过模型本身的编辑窗口进行修改，在Shading处选择Solid实体，在Texture处选择相应的纹理图片，可完成实体纹理的显示，如图3-50所示。
+P25 | 图3-50 实体纹理显示
+P25 | Shading：选择模型显示的格式。
+P25 | Linewidth：显示模型的线条Wire的宽度。
+P25 | Color：修改模型显示的颜色。
+P25 | Texture：对模型增加纹理。
+P25 | Texture scale：纹理的比例大小。
+P25 | Transparency：透视图比例，0表示透明，1表示不透明。
+P25 | View→Lights：对视图区域中的几何模形进行光学处理，如图3-51所示。
+P25 | 图3-51 Lights光学设置效果
+P25 | 4．Orient（视图方向查看，见图3-52）
+P25 | 图3-52 Orient视图菜单
+P25 | Nearest axis：最近轴的视图。
+P25 | Save user view：保存目前视图。
+P25 | Clear user views：清除视图。
+P25 | Write user views to file：将视图写成文件。
+P25 | Read user views from file：读入视图文件。
+P25 | 5．Macros（宏菜单，见图3-53）
+P25 | 图3-53 Macro宏命令面板
+P25 | ATX：预定义的ATX机箱模型。
+P25 | Approximation：预定义的异形近似几何，包括多边形、圆环、圆形计算空间等。
+P25 | Case Check：对模型进行检查（主要是用于非连续性网格划分前的检查）。
+P25 | Data Center Components：预定义数据中心的模型，包括机柜、CRAC空调等。
+P25 | Heatsinks：预定义散热器模型。
+P25 | Packages：各封装模型的建立，以及JEDEC模型的建立，用于计算芯片的Rja、Rjb、Rjc等。
+P25 | Rotate block and plate：对block和plate进行任意角度的旋转。
+P25 | Thermo electric cooler：用于建立TEC制冷模型和进行TEC制冷的计算。
+P25 | Thermostat：用于对热源和风机进行实时控制，保持恒温状态，进行恒温控制计算。
+P25 | 使用Macros→Thermoelectric cooler命令，可以建立单级或多级TEC热电制冷模型，如图3-54所示。
+P25 | 图3-54 TEC热电制冷模型的建立
+P25 | Macros宏命令的详细说明可参考本书第10章。
+P25 | 6．Model模型
+P25 | 图3-55为Model下拉菜单，各项功能解释如下。
+P25 | 图3-55 Model下拉菜单
+P25 | Create object：创建相应的模型，如风扇、Block块。
+P25 | CAD data:Icepak自带的CAD导入接口。
+P25 | Radiation form factors：辐射换热角系数计算。
+P25 | Generate mesh：网格划分控制面板。
+P25 | Edit priorities：编辑模型的优先级（用于划分网格）。
+P25 | Edit cutouts：编辑Open、fan、Grille等是否将模型挖空。
+P25 | Power and temperature limits：热耗统计。
+P25 | Check model：模型自检查。
+P25 | Show objects by material：通过模型的材料进行显示（见图3-56）。
+P25 | 图3-56 Show objects by material（通过材料显示）
+P25 | Show objects by property：通过模型热源的热耗进行显示（见图3-57）。
+P25 | 图3-57 Show objects by property（通过属性显示）
+P25 | Show objects by type：通过模型的类型（Block、Plate）及相应子类型进行显示（见图3-58）。
+P25 | 图3-58 Show objects by type（通过类型显示）
+P25 | Show metal fractions：显示PCB/芯片Package各层铜箔的百分比云图（见图3-59）。
+P25 | 图3-59 Show metal fractions显示铜箔百分比云图
+P25 | 7．Solve（求解）
+P25 | 图3-60为Solve下拉菜单。
+P25 | 图3-60 Solve下拉菜单
+P25 | Settings：求解迭代步数、残差、并行计算等设置面板。
+P25 | Patch temperatures：对瞬态计算设置流体、固体的初始温度值。
+P25 | Run solution：打开求解计算面板。
+P25 | Run optimization：进行参数化优化面板。
+P25 | Solution monitor：残差监控的显示选择。
+P25 | Define trials：参数化优化面板开启。
+P25 | Define report：打开Summary面板，用于后处理显示定量统计各变量的具体数值（见图3-61）。
+P25 | 图3-61 Define report的统计结果
+P25 | Diagnostics：以记事本形式打开cas等文件，然后对其进行编辑。
+P25 | 8．Post（后处理命令）/Report命令
+P25 | 该命令主要是用于后处理显示、统计，在本书第8章会做详细阐述，此处不再介绍。
+P25 | 快捷工具栏位于主菜单栏下，主要是方便用户进行快捷操作的一些命令。其含义如图3-62所示，局部放大如图3-63所示。
+P25 | 图3-62 快捷工具栏（一）
+P25 | 图3-63 ANSYS Icepak的局部放大
+P25 | 显示模型名称：如果打开ANSYS Icepak项目后，软件可能会显示所有几何模型的名称，如果模型比较多，视图界面会比较杂乱；接着单击ABC按钮，ANSYS Icepak会显示当前选中器件的名称；如果再单击一次，软件将不会显示任何器件模型的名称；重复再单击一次，软件又重新显示所有器件的名称。
+P25 | 单一界面视图及四界面视图如图3-64所示，其他快捷工具如图3-65所示。
+P25 | 图3-64 单一界面视图/四界面视图
+P25 | 图3-65 快捷工具栏（二）
+P25 | 图3-66的快捷工具栏主要是针对后处理的，可参考第8章，此处不再叙述。
+P25 | 图3-66 后处理快捷工具栏
+P25 | 模型树位于GUI的最左侧，包含了基本物理问题的定义、求解设置、材料库和模型库、计算监控点的设置、Trash垃圾箱设置、Inactive抑制模型等，主要用于对模型进行不同方面的管理，Project模型树如图3-67所示。
+P25 | 图3-67 Project模型树
+P25 | Problem setup：物理问题、环境参数的定义。
+P25 | Solution settings：求解的相关设置。
+P25 | Groups：组的管理。
+P25 | Post-processing：后处理对象管理。
+P25 | Points：求解计算变量监控点的设置。
+P25 | Surfaces：将某模型表面的变量作为监控，在求解过程中统计此表面某变量的平均数值。
+P25 | Trash：在模型树下被删除的器件。
+P25 | Inactive：模型树下被抑制的器件模型。
+P25 | Points（监控点）的设置会在求解的章节仔细讲解。在模型树下，选择需要抑制Inactive的器件，左键拖动至Inactive，相应的模型将自动从Model模型树下消除，如图3-68所示。同样，如果选中器件，单击删除，则模型会进入Trash垃圾箱中。
+P25 | 图3-68 抑制Inactive模型
+P25 | 图3-69为Library模型树。
+P25 | 图3-69 Library模型树
+P25 | Main library：软件自带的材料库和模型库。
+P25 | Materials：软件自带的材料库。
+P25 | Blowers：离心风机库。
+P25 | Heatsinks：散热器库。
+P25 | TECs：热电制冷模型库。
+P25 | Thermal Interface Material：导热硅脂库。
+P25 | fans：轴流风机库。
+P25 | filters：三维阻尼多孔介质库。
+P25 | packages：芯片封装库。
+P25 | Pass：用户自定义库（库的名字自己定义）。
+P25 | 选择模型树下的Model，单击鼠标右键，将出现图3-70所示菜单，各功能说明如下。
+P25 | 图3-70 Model模型树菜单
+P25 | Create object：在模型树下创建模型。
+P25 | Find object：在模型树下查找不同模型对象。
+P25 | Paste from clipboard：从剪贴板上将选中的模型对象进行复制粘贴。
+P25 | Merge project：合并Icepak项目。
+P25 | Load assembly：加载Assembly装配模型。
+P25 | Sort：按照模型名称首字母、网格优先级、创建先后进行排序。
+P25 | Object view：模型树下对模型进行不同层次组织形式的管理。
+P25 | Expand all：展开模型树。
+P25 | Collapse all：将模型树关闭，模型将被隐藏。
+P25 | 在模型树下选择相应的模型，单击鼠标右键，出现图3-71所示菜单，各功能解释如下。
+P25 | 图3-71 模型树下几何对象的下拉菜单
+P25 | Edit：打开编辑窗口。
+P25 | Active：激活状态，如果取消√，表示抑制，即模型中不包含此对象。
+P25 | Rename：对模型进行重新命名。
+P25 | Copy：复制此模型，打开相应的复制面板。
+P25 | Move：移动此模型，打开移动的面板。
+P25 | Delete：删除选中的模型。
+P25 | Add to clipboard：将模型增加到剪贴板上（如设置监控点，如果能直接拖动模型至Points即可自动创建；如果模型比较多，则无法拖动至Points下，可先将选中的模型增加到剪贴板上，然后单击鼠标右键选择Point，在弹出的面板下选择Paste from clip-board，表示将剪贴板上的模型进行粘贴）。
+P25 | Create：用于创建装配体、组、监控点等。
+P25 | Set meshing levels：设置此模型多级网格的级数。
+P25 | Edit mesh parameters：用于对模型进行单独的网格设置，如设置其某边的网格数。
+P25 | Display options：进行实体或透明显示。
+P25 | Visible：可以看到此模型。
+P25 | Total volume：统计此模型体积。
+P25 | Total area：统计模型面积。
+P25 | Summary report：打开Summary报告的统计面板。
+P25 | 基于对象的模型工具栏是ANSYS Icepak自建模的工具，使用它们可以构建干净、简洁的电子散热模型，在4.2节会有相应的详细说明，如图3-72所示。
+P25 | 图3-72 自建模模型工具栏
+P25 | 1．编辑命令
+P25 | 在模型树下选择需要编辑的模型，然后单击按钮，则可打开对象的编辑窗口，如图3-73所示。
+P25 | 图3-73 模型编辑面板
+P25 | 打开模型对象编辑窗口的方法还有以下4种方法。
+P25 | 方法1：选择模型后，按住“Ctrl+E”键，则可打开编辑窗口。
+P25 | 方法2：选择模型后，在模型树下鼠标左键双击需要编辑的模型对象。
+P25 | 方法3：选中模型后，单击右键，在弹出的面板中选择Edit，如图3-74所示。
+P25 | 图3-74 Edit编辑面板（一）
+P25 | 方法4：选中模型后，单击屏幕右下角出现的Edit，如图3-75所示。
+P25 | 图3-75 Edit编辑面板（二）
+P25 | 上述说明均为打开单一对象的编辑窗口。如何打开多个同类型、同属性模型的编辑窗口呢？例如，10个同类型的芯片，热耗均为5W，如果逐一进行编辑，则比较烦琐；读者可按照如图3-76所示及相应的说明进行多体的编辑操作。
+P25 | 图3-76 多体编辑面板
+P25 | （1）多个同类对象的选择：要进行多个同类模型的编辑，首先务必在模型树下选中多个体，其方法如下。
+P25 | ① 按住Ctrl键，然后使用鼠标左键逐一选择同类模型，进行多选。
+P25 | ② 在模型树下选择第一个需要编辑的对象，然后按住Shift键，再用鼠标左键选择最后一个需要编辑的对象，相应的同类模型即被选中。
+P25 | ③按住Shift键，在ANSYS Icepak的模型视图区域中鼠标左键框选同类型的对象模型，然后释放左键，同类的模型在模型树下即被选中。
+P25 | （2）多体编辑窗口的打开：当选中模型后，可通过以下方法打开多体编辑窗口。
+P25 | ① 在模型树下，鼠标右键单击选中的同类多个模型，在出现的面板下，选择Edit，多体编辑窗口即被打开。
+P25 | ② 按住“Ctrl+E”键，即可打开多体编辑窗口。
+P25 | ③ 单击命令，也可以打开多体编辑面板。
+P25 | 2．删除命令
+P25 | 此命令即删除模型树下选中的单个器件、多个器件或者装配体等；选中器件后，单击右键，在出现的面板中，也可以选择Delete进行删除。
+P25 | 3．移动命令
+P25 | 如果需要移动模型的位置，可在模型树下选中被移动的对象模型，然后单击移动命令，软件则弹出移动面板，如图3-77所示。各功能说明如下。
+P25 | 图3-77 移动编辑面板
+P25 | Scale：表示按一定比例进行缩放。在Scale factor中输入缩放的比例因子，也可以输入3个比例因子（中间用空格隔开），表示在X、Y、Z 3个方向进行缩放；在Scale about下面输入X、Y、Z坐标点，选择Point，表示基于此点来进行缩放，单击Centroid表示基于几何体的中心位置进行缩放。
+P25 | Mirror：表示镜像，可选择镜面及方向进行镜像操作。
+P25 | Rotate：旋转命令，选择相应的轴及角度进行选择操作。
+P25 | Translate：输入不同方向的偏移量；单击Apply或Done即可完成操作。
+P25 | 4．复制命令
+P25 | 在模型树下选择需要复制的一个或多个模型，单击复制命令，即出现复制的面板，如图3-78所示。
+P25 | 图3-78 复制编辑面板
+P25 | Number of copies：复制的个数。
+P25 | Group name：选择输入组的名称，可将选中的器件复制到相应的组内；其他设置与移动相同。
+P25 | 1．面、边、点的对齐命令
+P25 | 、、分别是：面对齐、边对齐、点对齐命令。3个操作完全相同，本处仅使用面对齐来做说明讲解，边对齐和点对齐，读者可以自己练习。
+P25 | 面对齐命令，其意思为将两个面进行对齐。其分左键、右键操作。左键命令在对齐过程中会将对齐体进行拉伸，以达到面对齐的效果；而右键命令在将两个面对齐过程中会将对齐体进行移动，以达到面对齐的效果。
+P25 | （1）左键命令：在对齐过程中会将对齐体的尺寸会进行拉伸。单击，然后重新单击需要对齐的面，此面变成红色，然后单击中键接受（勿单击右键，表示完成），接着再单击被对齐的面，此面变成黄色，然后单击中键接受，读者会发现小方块的面和大块的面对齐，但是对齐体的长度尺寸被拉伸，接着单击右键表示完成面对齐操作。面选择的顺序不同，对齐的结果也是不同的，如图3-79所示。
+P25 | 图3-79 左键面对齐操作
+P25 | （2）右键命令：在对齐过程中对齐体尺寸不会被拉伸，会移动位置，以完成对齐。右键单击，然后重新单击需要对齐的面，此面变成红色，然后单击中键接受（勿单击右键，表示完成），接着再单击被对齐的面，此面变成黄色，然后单击中键接受，读者会发现小方块的面和大块的面对齐，尺寸未被拉伸，但是位置有所移动，接着单击右键表示完成面对齐操作。面选择的顺序不同，对齐的结果也是不同的，如图3-80所示。
+P25 | 图3-80 右键面对齐操作
+P25 | 注意：选择对齐的面时，请务必选择公用的边或者点，这样多单击几次，选中的面会进行切换，直到选中需要的面为止，切记不可以直接单击面。
+P25 | 边对齐和点对齐，其操作和面对齐完全相同，读者请自行练习。
+P25 | 2．体、面的中心对齐命令
+P25 | （1）表示两个模型的中心位置对齐。先左键单击，然后用鼠标左键单击小的方块，此块变成红色，然后单击中键接受（勿单击右键，表示完成），接着再用左键单击被对齐的大块，此块变成黄色，然后单击中键接受，可以发现小方块和大块的中心位置进行对齐，小的方块位置进行了移动，接着单击右键表示完成中心对齐操作。选择体的顺序不同，对齐的结果也有所不同，如图3-81所示，此命令仅左键可以使用。
+P25 | 图3-81 体中心对齐操作
+P25 | （2）表示两个面的中心位置对齐。先单击，然后单击需要对齐的面，此面变成红色，然后单击中键接受（勿单击右键，表示完成），接着再单击被对齐的大块的面，此面变成黄色，然后单击中键接受，读者会发现小方块红色的面和大块黄色的面中心位置进行对齐，接着单击右键表示完成面中心对齐操作。此命令仅左键可以使用。面选择的顺序不同，对齐的结果也是不同的，如图3-82所示。
+P25 | 图3-82 面中心位置对齐操作
+P25 | 3．匹配命令
+P25 | （1）表示面匹配。所谓面匹配，就是两个面无论大小、位置均相同。操作为：先单击，然后单击需要对齐的面，此面变成红色，然后单击中键接受（勿单击右键，表示完成），接着再单击被对齐的大块的面，此面变成黄色，然后单击中键接受，读者会发现小方块红色的面和大块黄色的面大小、位置进行了匹配，在匹配过程中，小块进行了尺寸的拉伸，接着单击右键表示完成面匹配操作。此命令仅左键可以使用。面选择的顺序不同，匹配的结果也是不同的，如图3-83所示。
+P25 | 图3-83 面匹配命令操作
+P25 | （2）表示边匹配，即两个边无论大小、位置均相同。操作为：先单击，然后单击需要对齐的边，此边变成红色，然后单击中键接受（勿单击右键，表示完成），接着再单击被对齐的大块的边，此边变成黄色，然后单击中键接受，读者会发现小方块红色的边和大块黄色的边大小、位置进行了匹配，在匹配过程中，小块进行了尺寸的拉伸，接着单击右键表示完成操作。此命令仅左键可以使用。边选择的顺序不同，匹配的结果也是不同的，如图3-84所示。
+P25 | 图3-84 边匹配命令操作
+P25 | 备注：
+P25 | （1）选择相应的体/面/边时，使用鼠标左键选择模型相应的边，即可选中相应的体、面或边。
+P25 | （2）切勿将所有几何模型进行实体显示。
+P25 | （3）如果需要选中某物体的某个面，可使用鼠标左键选择此面的一边，ANSYS Icepak会选中与此边连接的任意面；如果没有选中需要选择的面，可重复单击左键，直到选中应选的面。
+P25 | 图3-85为图形显示区域，其是ANSYS Icepak界面最大的区域，显示了模型树下所有模型对象的形状、大小、颜色、坐标轴、原点及整体的计算区域。另外，所有的后处理也是在图形区域内完成显示。
+P25 | 图3-85 图形显示区域
+P25 | 图形区域的大小可以通过拖动图形区域的左侧边界和下侧边界来进行调整，如图3-86所示。
+P25 | 图3-86 修改图形区域大小
+P25 | 消息窗口（Message窗口）位于ANSYS Icepak界面下方区域的中间位置，在ANSYS Icepak里进行的任何操作，如测量坐标位置、测量距离、划分网格、求解计算、结果加载等，在消息窗口中均会有相应的记录或者提示，如图3-87所示。
+P25 | 图3-87 消息窗口
+P25 | 在ANSYS Icepak界面的右下侧区域，是当前所选器件的几何信息窗口，其与打开编辑窗口的Geometry是相同的，可进行选中器件模型的名字命名、组的分类、几何形状的修改、坐标大小的修改等操作。其中包含的橙色按钮，主要用于将模型进行拉伸或者与各个轴的开始点（xS、yS、zS）或者结束点（xE、yE、zE）进行对齐，如图3-88所示。
+P25 | 图3-88 当前几何信息窗口
+P26 | ANSYS Icepak中模型对象的编辑面板均类似，面板中包含Info、Geometry、Properties、Notes 4个部分，本章节使用Plate来说明编辑面板的GUI。
+P26 | 1．Info（信息面板）
+P26 | 图3-89为Info（信息面板），各项功能说明如下。
+P26 | 图3-89 Info信息面板
+P26 | Name：模型对象名称，可自行修改。
+P26 | Groups：模型归为哪个群。
+P26 | Priority：模型划分网格的优先级。
+P26 | Display options：模型显示的选择。
+P26 | Shading：实体显示。
+P26 | Linewidth：模型线框显示线的粗细。
+P26 | Color:default模型使用默认（Preference）中的颜色。
+P26 | selected：选择模型适合的颜色。
+P26 | Texture：对模型增加纹理。
+P26 | Texture scale：纹理的比例。
+P26 | Transparency：模型实体显示的透明度。
+P26 | 2．Geometry（几何尺寸信息）
+P26 | Geometry（几何尺寸信息）主要包含模型的形状、所处的面、坐标、大小等，如图3-90所示。
+P26 | 图3-90 Geometry面板说明
+P26 | （1）Shape：模型的形状，单击下拉菜单，可实时修改Plate的形状（不同类型的模型对应的形状有所不同）。
+P26 | Rectangular表示方形。
+P26 | Inclined表示倾斜形状。
+P26 | Polygon表示多变形。
+P26 | Circular表示圆形。
+P26 | CAD表示CAD导入的异形几何Plate，此类Plate不能编辑其尺寸信息。
+P26 | （2）Local coord system：表示局部坐标系的选项。
+P26 | Create new：表示新建局部坐标系，可输入相应名字及偏移量。
+P26 | View definition：表示查看局部坐标系信息，在Message窗口可以显示。
+P26 | Edit definition：表示对坐标系进行编辑。
+P26 | （3）Plane:Plate所处的面，包含X-Y、X-Z、Y-Z；
+P26 | Location：坐标信息。
+P26 | Specify by：模型尺寸信息的编辑方式，包含Start/end，即开始点/结束点，可以在X、Y、Z 3个方向输入开始、结束对应的坐标数值。
+P26 | Start/length：表示开始点/长度，可在X、Y、Z 3个方向输入开始点、长度对应的数值。
+P26 | （4）Fixed values：固定值，Fixed values选项在模型编辑面板的Geometry和Properties中出现。如果选择Fixed values，那么所有输入“数字”的变量（如长度、热耗等），其信息将被固定。如选择Fixed values，当工程师编辑修改尺寸的单位时，相应的数字会随着单位进行修改；如果不选择Fixed values，修改长度的单位时，软件将按照新输入的单位进行模型尺寸的修改。
+P26 | 3．Properties（属性信息）
+P26 | 图3-91为Properties属性面板，各功能说明如下。
+P26 | 图3-91 Properties属性面板
+P26 | Thermal model:Plate的热模型类型。
+P26 | Thermal specification: Plate热 模 型 的输入。
+P26 | Effective thickenss: Plate有效厚度的输入。
+P26 | Solid material:Plate的材料输入。
+P26 | Total power:Plate热耗输入。
+P26 | Side specification：表示Plate两个面辐射换热的输入、面材料输入（粗糙度、发射率）等。
+P26 | 4．Notes（信息）
+P26 | Notes：主要是对此模型标注一些注释信息，方便工程师的记录或者其他工程师对此模型的学习，如图3-92所示。各功能说明如下。
+P26 | 图3-92 Notes面板说明
+P26 | Update：更新对模型的修改，不关闭编辑面板。
+P26 | New：新建同类模型。
+P26 | Reset：恢复模型原始的输入。
+P26 | Delelte：删除此对象模型。
+P26 | Done：执行操作，并关闭编辑面板。
+P26 | Cancel：取消编辑，并关闭编辑面板。
+P26 | Help：打开帮助文件。
+P26 | Copy from：模型树下至少有两个模型，主要是将其他模型的尺寸、属性信息复制到所编辑的对象上。图3-93为Copy from面板，其各项功能说明如下。
+P26 | 图3-93 Copy from面板
+P26 | Deactivate other object：复制过程中抑制其他的模型。
+P26 | Delete other object：复制过程中删除其他模型。
+P26 | Keep other object：复制过程中保留其他模型。
+P26 | Copy shape info：将其他模型的Geometry中的信息进行复制，其中From shape表示复制其他模型的形状，即形状大小完全一致；From bounding box表示只复制其他模型的尺寸大小。
+P26 | Copy Object info：复制其他模型的Properties中的信息。
+P26 | Copy creation order：复制其他模型的创建顺序，即优先级相同。
+P26 | Copy groups：将此模型移动到其他模型所在的群。
+P27 | ANSYS Icepak允许用户建立用户的材料库和模型库，以方便用户的使用。建立用户自定义库的步骤如下。
+P27 | 1．库文件夹目录的建立
+P27 | 在工作目录下，建立材料库和模型库放置的目录以及库文件夹的名字，如F: \library；即在F盘下建立了一个名字为library的文件夹，如图3-94所示。
+P27 | 图3-94 库文件夹的建立
+P27 | 2．建立库
+P27 | 打开ANSYS Icepak软件，建立库的步骤如下。
+P27 | （1）单击Edit→Preferences→Libraries，打开Libraries面板。
+P27 | （2）单击Libraries中的New library。
+P27 | （3）在Library name中输入“Cailliao”名字。
+P27 | （4）单击Location右侧的Browse，浏览找出第1步建立的文件夹，F:\library。
+P27 | （5）单击This project，表示建立的库只适合于当前的ANSYS Icepak项目。
+P27 | （6）单击All projects，表示建立的库适合于所有的ANSYS Icepak项目，可按照如图3-95所示的标记顺序进行操作。
+P27 | 图3-95 用户自定义材料库的建立
+P27 | 当建立好材料库以后，关闭ANSYS Icepak；重新启动打开ANSYS Icepak软件，单击Library，可以看到出现“Cailliao”用户自定义库，如图3-96所示。
+P27 | 图3-96 Library下建立的用户自定义库
+P27 | 3．新建材料加入用户自定义库
+P27 | （1）新建材料：单击模型工具栏中的，建立一个新的材料（见图3-97），如建立了一个导热硅脂的材料，其名称为Tim1，在属性Properties中输入导热率1.5（W/m·K）。
+P27 | 图3-97 新材料的建立
+P27 | 在Model模型树下，ANSYS Icepak会自动出现Tim1的材料，如图3-98所示。
+P27 | 图3-98 Model下的新材料
+P27 | 另外，也可以在模型的属性面板中，单击下拉菜单，选择Create material，创建新材料。
+P27 | （2）选择材料复制至剪贴板：选择Model→Materials，鼠标右键单击其下的Tim1，选择Add to clipboard，如图3-99所示。
+P27 | 图3-99 新材料的复制
+P27 | （3）粘贴至材料库：鼠标左键单击Library面板，进入库的模型树；右键单击用户自定义库cailiao，在弹出的面板里选择Paste from clipboard; ANSYS Icepak会自动将Tim1添加到cailliao库的下面，如图3-100所示。
+P27 | 图3-100 新材料的粘贴
+P27 | 4．建立材料的使用
+P27 | 建立ANSYS Icepak热模型以后，用户可以在模型对象的属性面板Solid material中，单击下拉菜单，选择用户自定义的材料Tim1，如图3-101所示。
+P27 | 图3-101 用户自定义材料的使用
+P27 | 5．建立自定义模型库
+P27 | 用户可建立自定义模型库，其建立方法与材料库相同；用户也可以直接使用材料库作为模型库，其操作方法如下。
+P27 | （1）选择相应的模型，或者选择assembly.1装配体，然后单击鼠标右键，在弹出的面板中选择Add to clipboard，如图3-102所示。
+P27 | 图3-102 模型的复制
+P27 | （2）选择Project右侧的Library模型树，选择用户自定义库的名字cailliao，然后单击右键，在弹出的面板下，选择Paste from clipboard，如图3-103所示。
+P27 | 图3-103 模型的粘贴
+P27 | （3）ANSYS Icepak会弹出一个Save project面板，即保存模型的名称，用户可输入相应的名称，如命名为xianka，单击Save，如图3-104所示。
+P27 | 图3-104 模型的命名
+P27 | （4）用户自定义库cailliao下面会出现xianka的模型，如图3-105所示。
+P27 | 图3-105 自定义库下的模型
+P27 | （5）如果用户需要使用模型库里相应的模型，则可直接双击Library下的xianka, ANSYS Icepak会自动将xianka里包含的模型（内嵌模型的属性）建立在ANSYS Icepak模型树下，用户只需要对模型进行相应的定位即可，如图3-106所示。
+P27 | 图3-106 自定义库模型的使用
+P28 | 3.7 其他常用命令操作
+P29 | 3.8 本章小结
+P30 | 第4章 ANSYS Icepak热仿真建模
+P31 | 4.1 ANSYS Icepak建模简述
+P32 | 4.2 ANSYS Icepak基于对象自建模
+P33 | 4.3 ANSYS Icepak自建模实例
+P34 | 4.4 CAD模型导入ANSYS Icepak

@@ -109,3 +109,23 @@ icedecoding/
 - **阶段 3（批量工具与验证）**：CLI 批量扫描 26 个项目 + 交叉验证（post 引用/未知类型）— 完成，零崩溃、零未知类型
 
 逆向解析主线（混淆解码 → model/problem/网格/材料/后处理解析 → 聚合导出 → 可视化）已全部实现并通过 26 个真实项目验证。关键技术风险（Il!! 编码破解）已消除。后续工作重点是补齐多边形/多 shape 几何解析与 problem 数组结构化。
+
+---
+
+## 9. GUI 100% 对标进度（P0 完成 / 2026-08-25 起）
+
+> 总规划：docs/ICEPAK_UI_100PCT_PLAN.md（P0->P9）；每次关键功能提交同步更新本节。
+
+### P0 — 黄金规格驱动命令注册表（完成）
+
+- 新增 ice_actions.py：CommandRegistry（加载 docs/icepak_gui_golden.json：11 菜单全树 / 9 工具栏 / 79 热键 / 70 图标键 / File 双变体），命令到槽位解析（SLOT_MAP + resolve_slot），图标键到矢量图标别名（ICON_ALIASES/icon_for_command），NYI 通道（NyiHandler -> Message WARN 红色）。
+- 新增 ice_menus_toolbars.py：由 golden 生成 QMenuBar（级联/分隔/热键语义）、9 组三行工具栏（row1 file/edit/viewing/orientation，row2 model+post，row3 object_tools）、窗口级热键（Ctrl-N/O/S/Z/R/F/E/X/C、Delete、Ctrl-A/V/T/M/W/L 等）；特殊控件（Default shading 单选组、Object names 单选组、Visible 逐类型复选、Edit toolbars 复选菜单、User views/Windows/Macros 动态菜单）保留专用构造器。
+- 改造 ice_gui.py：_build_menus/_build_toolbars 改为 registry 驱动（菜单硬编码清单清除）；状态项（Display mesh/Visible grid/...）落 _display_state；_created_by_command 供热键/测试寻址。
+- 改造 ice_panes.py：MessageWindow 按级别着色（WARN/ERROR 红，INFO 黑，DEBUG 灰）——对齐原版 mess <text> <color>。
+- 新增 tests/test_golden_ui.py（8 项）：注册表/菜单树=golden/命令全覆盖/工具栏组=golden/图标/热键/NYI 落消息/状态开关。
+- 回归：原 27 项测试 + 新 8 项 = 35 项全绿（headless offscreen）。
+- golden 生成工具：tools/gen_golden_spec.py（可重跑校验）、tools/pe_strings.py、tools/parse_commands.py、tools/icon_lookup.py、tools/commands_registry.json（301 命令注册表）。
+
+### 下一步（P1 -> P4）
+
+P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welcome 流补齐、New Project 面板、Edit toolbars 行为、Windows 动态菜单；P2 树与导航；P3 3D 完整化；P4 Form 引擎 + 18 类对象编辑器。

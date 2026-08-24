@@ -7,7 +7,7 @@ from datetime import datetime
 import os
 
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import (
     QAbstractItemView, QCheckBox, QDialog, QDialogButtonBox, QDoubleSpinBox,
     QFileDialog, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QLabel,
@@ -150,12 +150,28 @@ class MessageWindow(QWidget):
         v.addLayout(bar)
         self._file_log = None
 
+    LEVEL_COLORS = {
+        "ERROR": "#b71c1c",
+        "WARN": "#d32f2f",
+        "WARNING": "#d32f2f",
+        "INFO": "#212121",
+        "DEBUG": "#607d8b",
+    }
+
     def log(self, msg, level="INFO"):
+        """Append colored log line (WARN/ERROR red like Icepak's mess command)."""
         ts = datetime.now().strftime("%H:%M:%S")
         line = "[%s] %s: %s" % (ts, level, msg)
         if level == "DEBUG" and not self.chk_verbose.isChecked():
             return
-        self.text.appendPlainText(line)
+        color = self.LEVEL_COLORS.get(level, "#212121")
+        cursor = self.text.textCursor()
+        cursor.movePosition(cursor.End)
+        fmt = self.text.currentCharFormat()
+        fmt.setForeground(QColor(color))
+        cursor.insertText(line + "\n", fmt)
+        self.text.setTextCursor(cursor)
+        self.text.ensureCursorVisible()
         if self.chk_log.isChecked() and self._file_log:
             try:
                 with open(self._file_log, "a", encoding="utf-8") as fh:

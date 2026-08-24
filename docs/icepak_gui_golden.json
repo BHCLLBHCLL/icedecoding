@@ -1,0 +1,2295 @@
+{
+ "product": "ANSYS Icepak 19.5 (2019 R3)",
+ "source": "menus_icepak.tcl + commands_*.tcl (reverse engineered, authoritative)",
+ "menus": [
+  {
+   "name": "File",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "scalar": "New project"
+    },
+    {
+     "scalar": "Open project"
+    },
+    {
+     "scalar": "Merge project"
+    },
+    {
+     "scalar": "Reload main version"
+    },
+    {
+     "scalar": "separator"
+    },
+    {
+     "scalar": "Save project"
+    },
+    {
+     "scalar": "Save project as"
+    },
+    {
+     "scalar": "separator"
+    },
+    {
+     "descriptor": [
+      "Import",
+      "",
+      "cascade"
+     ],
+     "cascade": [
+      {
+       "scalar": "Import CSV/Excel"
+      },
+      {
+       "descriptor": [
+        "IDF file",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "scalar": "New board"
+        },
+        {
+         "scalar": "Update board"
+        }
+       ]
+      },
+      {
+       "scalar": "Import IDX file"
+      },
+      {
+       "scalar": "Import Electronics Cooling XML"
+      },
+      {
+       "scalar": "separator"
+      },
+      {
+       "descriptor": [
+        "Powermaps",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "scalar": "Apache Sentinel TI profile"
+        },
+        {
+         "scalar": "Cadence tab file"
+        },
+        {
+         "scalar": "Cadence Stacked Die tab files"
+        },
+        {
+         "scalar": "Gradient Firebolt i2p file"
+        },
+        {
+         "scalar": "RedHawk CTM profile"
+        }
+       ]
+      },
+      {
+       "scalar": "Import Networks"
+      },
+      {
+       "scalar": "Import JEDEC PTD/JEP30 file"
+      }
+     ]
+    },
+    {
+     "descriptor": [
+      "Export",
+      "",
+      "cascade"
+     ],
+     "cascade": [
+      {
+       "scalar": "ANSYS Electronics Desktop script"
+      },
+      {
+       "scalar": "separator"
+      },
+      {
+       "scalar": "Export CSV/Excel"
+      },
+      {
+       "scalar": "Export IDF file"
+      },
+      {
+       "scalar": "Export Electronics Cooling XML"
+      },
+      {
+       "scalar": "separator"
+      },
+      {
+       "scalar": "Export Networks"
+      },
+      {
+       "scalar": "Export JEDEC PTD/JEP30 file"
+      }
+     ]
+    },
+    {
+     "descriptor": [
+      "EM Mapping",
+      "",
+      "cascade"
+     ],
+     "cascade": [
+      {
+       "scalar": "Volumetric heat losses"
+      },
+      {
+       "scalar": "Surface heat losses"
+      }
+     ]
+    },
+    {
+     "scalar": "separator"
+    },
+    {
+     "scalar": "Unpack project"
+    },
+    {
+     "scalar": "Pack project"
+    },
+    {
+     "scalar": "separator"
+    },
+    {
+     "scalar": "Cleanup"
+    },
+    {
+     "scalar": "Print screen"
+    },
+    {
+     "scalar": "Create image file"
+    },
+    {
+     "scalar": "Command prompt"
+    },
+    {
+     "scalar": "Quit"
+    }
+   ],
+   "keyboard": "f",
+   "note": "standalone variant shown; Workbench variant differs (see menus_icepak.tcl L170-211): no New/Open/Save-as/Unpack/Import JEDEC/Export JEDEC; has Refresh Input Data first and Close Icepak instead of Quit."
+  },
+  {
+   "name": "Edit",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "scalar": "Undo"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Redo"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Find"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Show clipboard"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Clear clipboard"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Snap to grid"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Preferences"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Annotations"
+      }
+     ]
+    }
+   ],
+   "keyboard": "e"
+  },
+  {
+   "name": "View",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "scalar": "Summary (HTML)"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Location"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Distance"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Angle"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Unit vector"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Unit normal"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Bounding box"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Traces",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Net info"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Trace info"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Markers",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Add marker"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Clear markers"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Rubber bands",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Add rubber band"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Clear rubber bands"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Edit toolbars"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Default shading",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Wireframe shading"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Solid shading"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Solid/Wire shading"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Hidden line shading"
+          }
+         ]
+        },
+        {
+         "sep": true
+        },
+        {
+         "list": [
+          {
+           "scalar": "Selected solid shading"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Display",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "descriptor": [
+            "Object names",
+            "",
+            "cascade"
+           ],
+           "cascade": [
+            {
+             "list": [
+              {
+               "scalar": "Current assembly object names"
+              }
+             ]
+            },
+            {
+             "list": [
+              {
+               "scalar": "No object names"
+              }
+             ]
+            },
+            {
+             "list": [
+              {
+               "scalar": "Selected object names"
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "sep": true
+        },
+        {
+         "list": [
+          {
+           "scalar": "Coord axes"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Visible grid"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Origin marker"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Display rulers"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Display project title"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Display ANSYS logo"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Display current date"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Display construction lines"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Display construction points"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Display mesh"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Mouse position"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Depthcue"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Tcl console"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": [
+        "Visible",
+        "",
+        "cascade",
+        "$visible_object_commands"
+       ]
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Lights"
+      }
+     ]
+    }
+   ],
+   "keyboard": "v"
+  },
+  {
+   "name": "Orient",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "scalar": "Home position"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Isometric view"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Orient positive X"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Orient negative X"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Orient positive Y"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Orient negative Y"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Orient positive Z"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Orient negative Z"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Zoom in"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Scale to fit"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Reverse orientation"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Nearest axis"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Save user view"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Clear user views"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Write user views to file"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Read user views from file"
+      }
+     ]
+    }
+   ],
+   "keyboard": "o"
+  },
+  {
+   "name": "Macros",
+   "active": "",
+   "side": "left",
+   "entries": [],
+   "keyboard": "a",
+   "dynamic": "populated at runtime from icepak_lib/macros/*.tcl via add_macro_commands()"
+  },
+  {
+   "name": "Model",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Create object",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Create blocks"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create blowers"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create enclosures"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create fans"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create heat exchangers"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create heat sinks"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create materials"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create networks"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create openings"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create packages"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create assemblies"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create printed circuit boards"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create periodic boundaries"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create plates"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create resistances"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create sources"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create grille"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create walls"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Radiation form factors"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Generate mesh"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Edit priorities"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Edit cutouts"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Create material library"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Power and temperature limits"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Check model"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Show objects by material"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Show objects by property"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Show objects by type"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Show metal fractions"
+      }
+     ]
+    }
+   ],
+   "keyboard": "m"
+  },
+  {
+   "name": "Solve",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Settings",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Basic settings"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Advanced settings"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Parallel settings"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Patch temperatures"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Run solution"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Run optimization"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Create Krylov ROM"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Solution monitor"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Define trials"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Define report"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Diagnostics",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Edit .cas file"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Edit .diag file"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Edit .uns_out file"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Edit optimization log"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "keyboard": "s"
+  },
+  {
+   "name": "Post",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "scalar": "Object face (node)"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Object face (facet)"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Plane cut"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Isosurface"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Point"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Surface probe"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Min/max locations"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Convergence plot"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Variation plot"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "3D Variation plot"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "History plot"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Trials plot"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Network temperature plot"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Transient settings"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Load solution ID"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Postprocessing units"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Load post objects from file"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Save post objects to file"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Rescale vectors"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Create zoom-in model"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Power and temperature values"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Workflow data",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "CFD Post/Mechanical"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Display powermap property"
+      }
+     ]
+    }
+   ],
+   "keyboard": "p"
+  },
+  {
+   "name": "Report",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "scalar": "HTML report"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Solution overview",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "View solution overview"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Create solution overview"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Show optimization/param results"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Summary report"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Point report"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Full report"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Network block values"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Fan operating points"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "EM heat losses"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Solar loads"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "Write Autotherm file"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "descriptor": [
+        "Export",
+        "",
+        "cascade"
+       ],
+       "cascade": [
+        {
+         "list": [
+          {
+           "scalar": "Gradient Firebolt p2i file"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Cadence TPKG file"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "SIwave temp data"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "Sentinel TI HTC file"
+          }
+         ]
+        },
+        {
+         "list": [
+          {
+           "scalar": "RedHawk Back Annotation"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ],
+   "keyboard": "r"
+  },
+  {
+   "name": "Windows",
+   "active": "",
+   "side": "left set_path toplevel(windows_menu)",
+   "entries": [],
+   "keyboard": "w",
+   "dynamic": "populated at runtime from toplevel registry"
+  },
+  {
+   "name": "Help",
+   "active": "",
+   "side": "left",
+   "entries": [
+    {
+     "list": [
+      {
+       "scalar": "Help"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Icepak on the Web"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "Customer Portal"
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": "List shortcuts"
+      }
+     ]
+    },
+    {
+     "sep": true
+    },
+    {
+     "list": [
+      {
+       "scalar": "About Icepak"
+      }
+     ]
+    }
+   ],
+   "keyboard": "h"
+  }
+ ],
+ "toolbars": [
+  {
+   "name": "Object creation",
+   "row": "1 object_tools",
+   "entries": [
+    {
+     "scalar": "Create blocks"
+    },
+    {
+     "scalar": "Create blowers"
+    },
+    {
+     "scalar": "Create enclosures"
+    },
+    {
+     "scalar": "Create fans"
+    },
+    {
+     "scalar": "Create heat exchangers"
+    },
+    {
+     "scalar": "Create heat sinks"
+    },
+    {
+     "scalar": "Create materials"
+    },
+    {
+     "scalar": "Create networks"
+    },
+    {
+     "scalar": "Create openings"
+    },
+    {
+     "scalar": "Create packages"
+    },
+    {
+     "scalar": "Create assemblies"
+    },
+    {
+     "scalar": "Create printed circuit boards"
+    },
+    {
+     "scalar": "Create periodic boundaries"
+    },
+    {
+     "scalar": "Create plates"
+    },
+    {
+     "scalar": "Create resistances"
+    },
+    {
+     "scalar": "Create sources"
+    },
+    {
+     "scalar": "Create grille"
+    },
+    {
+     "scalar": "Create walls"
+    }
+   ],
+   "at_end": "0"
+  },
+  {
+   "name": "File commands",
+   "row": "1",
+   "entries": [
+    {
+     "scalar": "New project"
+    },
+    {
+     "scalar": "Open project"
+    },
+    {
+     "scalar": "Save project"
+    },
+    {
+     "scalar": "Print screen"
+    },
+    {
+     "scalar": "Create image file"
+    }
+   ],
+   "at_end": "1"
+  },
+  {
+   "name": "Edit commands",
+   "row": "1",
+   "entries": [
+    {
+     "scalar": "Undo"
+    },
+    {
+     "scalar": "Redo"
+    }
+   ],
+   "at_end": "command_make_toolbar"
+  },
+  {
+   "name": "Viewing options",
+   "row": "1",
+   "entries": [
+    {
+     "scalar": "Home position"
+    },
+    {
+     "scalar": "Zoom in"
+    },
+    {
+     "scalar": "Scale to fit"
+    },
+    {
+     "scalar": "Rotate about screen normal"
+    },
+    {
+     "scalar": "One viewing window"
+    },
+    {
+     "scalar": "Four viewing windows"
+    },
+    {
+     "scalar": "Display object names"
+    }
+   ],
+   "at_end": "command_make_toolbar"
+  },
+  {
+   "name": "Orientation commands",
+   "row": "1",
+   "entries": [
+    {
+     "scalar": "Orient negative X"
+    },
+    {
+     "scalar": "Orient positive Y"
+    },
+    {
+     "scalar": "Orient negative Z"
+    },
+    {
+     "scalar": "Isometric view"
+    },
+    {
+     "scalar": "Reverse orientation"
+    }
+   ],
+   "at_end": "command_make_toolbar"
+  },
+  {
+   "name": "Model and solve",
+   "row": "1",
+   "entries": [
+    {
+     "scalar": "Power and temperature limits"
+    },
+    {
+     "scalar": "Generate mesh"
+    },
+    {
+     "scalar": "Radiation"
+    },
+    {
+     "scalar": "Check model"
+    },
+    {
+     "scalar": "Run solution"
+    },
+    {
+     "scalar": "Run optimization"
+    }
+   ],
+   "at_end": "command_make_toolbar"
+  },
+  {
+   "name": "Postprocessing",
+   "row": "1",
+   "entries": [
+    {
+     "scalar": "Object face"
+    },
+    {
+     "scalar": "Plane cut"
+    },
+    {
+     "scalar": "Isosurface"
+    },
+    {
+     "scalar": "Point"
+    },
+    {
+     "scalar": "Surface probe"
+    },
+    {
+     "scalar": "Variation plot"
+    },
+    {
+     "scalar": "History plot"
+    },
+    {
+     "scalar": "Trials plot"
+    },
+    {
+     "scalar": "Transient settings"
+    },
+    {
+     "scalar": "Load solution ID"
+    },
+    {
+     "scalar": "Summary report"
+    },
+    {
+     "scalar": "Power and temperature values"
+    }
+   ],
+   "at_end": "#"
+  },
+  {
+   "name": "Object modification",
+   "row": "1 object_tools",
+   "entries": [
+    {
+     "scalar": "Edit object"
+    },
+    {
+     "scalar": "Delete object"
+    },
+    {
+     "scalar": "Move object"
+    },
+    {
+     "scalar": "Copy object"
+    }
+   ],
+   "at_end": "command_make_toolbar"
+  },
+  {
+   "name": "Alignment",
+   "row": "1 object_tools",
+   "entries": [
+    {
+     "list": [
+      {
+       "scalar": [
+        "multiple",
+        "Align and morph faces",
+        "Align faces - move only"
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": [
+        "multiple",
+        "Align and morph edges",
+        "Align edges - move only"
+       ]
+      }
+     ]
+    },
+    {
+     "list": [
+      {
+       "scalar": [
+        "multiple",
+        "Align and morph vertices",
+        "Align vertices - move only"
+       ]
+      }
+     ]
+    },
+    {
+     "scalar": "Align object centers"
+    },
+    {
+     "scalar": "Align face centers"
+    },
+    {
+     "scalar": "Morph faces"
+    },
+    {
+     "scalar": "Morph edges"
+    }
+   ],
+   "at_end": "#"
+  }
+ ],
+ "hotkeys": [
+  {
+   "key": "F1",
+   "cmd": "Help",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-f",
+   "cmd": "Find",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-f",
+   "cmd": "Find in tree",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-e",
+   "cmd": "Edit object or postprocessing object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Delete",
+   "cmd": "Delete object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-a",
+   "cmd": "Toggle object active",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-v",
+   "cmd": "Toggle object visible",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-h",
+   "cmd": "Toggle object shading",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-t",
+   "cmd": "Open/close tree node",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-m",
+   "cmd": "Open/close model subtree",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-s",
+   "cmd": "Save project",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-p",
+   "cmd": "Print screen",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-z",
+   "cmd": "Undo",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-r",
+   "cmd": "Redo",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-x",
+   "cmd": "Move object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-c",
+   "cmd": "Copy object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-w",
+   "cmd": "Toggle shading type",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-l",
+   "cmd": "Reload main version",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-d",
+   "cmd": "Refresh Input Data",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "F1",
+   "cmd": "Help",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-f",
+   "cmd": "Find",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-f",
+   "cmd": "Find in tree",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-e",
+   "cmd": "Edit object or postprocessing object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Delete",
+   "cmd": "Delete object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-a",
+   "cmd": "Toggle object active",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-v",
+   "cmd": "Toggle object visible",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-h",
+   "cmd": "Toggle object shading",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-t",
+   "cmd": "Open/close tree node",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-m",
+   "cmd": "Open/close model subtree",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-s",
+   "cmd": "Save project",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-p",
+   "cmd": "Print screen",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-z",
+   "cmd": "Undo",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-r",
+   "cmd": "Redo",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-x",
+   "cmd": "Move object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-c",
+   "cmd": "Copy object",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-n",
+   "cmd": "New project",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-o",
+   "cmd": "Open project",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-w",
+   "cmd": "Toggle shading type",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "Control-l",
+   "cmd": "Reload main version",
+   "kind": "command_set_hotkeys"
+  },
+  {
+   "key": "h",
+   "cmd": "Home position",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "z",
+   "cmd": "Zoom in",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "s",
+   "cmd": "Scale to fit",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Shift-x",
+   "cmd": "Orient negative X",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Shift-y",
+   "cmd": "Orient positive Y",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Shift-z",
+   "cmd": "Orient negative Z",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Shift-r",
+   "cmd": "Reverse orientation",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Shift-i",
+   "cmd": "Isometric view",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Shift-question",
+   "cmd": "Print shortcuts",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "F5",
+   "cmd": "Set wireframe offset",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "F6",
+   "cmd": "Set wireframe offset to 0",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "F7",
+   "cmd": "Increment wireframe offset",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "F8",
+   "cmd": "Decrement wireframe offset",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "F9",
+   "cmd": "Toggle shift3 button",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "File",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Edit",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Control-e",
+   "cmd": "Edit object",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Control-a",
+   "cmd": "Activate object",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Control-t",
+   "cmd": "Open/close tree node",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "View",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Orient",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Macros",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Model",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Solve",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Post",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Report",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Windows",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Help",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Control-e",
+   "cmd": "Edit object",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Control-a",
+   "cmd": "Activate object",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "Control-t",
+   "cmd": "Open/close tree node",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "View",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Orient",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Macros",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Model",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Solve",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Post",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Report",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Windows",
+   "kind": "command_set_hotkeys_tdv"
+  },
+  {
+   "key": "menu",
+   "cmd": "Help",
+   "kind": "command_set_hotkeys_tdv"
+  }
+ ],
+ "icons": {
+  "Save project": "save_icon",
+  "Refresh Input Data": "refresh_icon",
+  "Radiation": "icepak_radiation",
+  "Radiation form factors": "no_icons",
+  "Run optimization": "icepak_optim",
+  "Run solution": "icepak_solve",
+  "Object face": "icepak_object_face",
+  "Object face (node)": "icepak_object_face",
+  "Object face (facet)": "icepak_object_face",
+  "Plane cut": "icepak_plane_cut",
+  "Isosurface": "icepak_iso_surface",
+  "Point": "icepak_point_probe",
+  "Surface probe": "icepak_post_probe",
+  "Variation plot": "icepak_variation_plot",
+  "History plot": "icepak_history_plot",
+  "Trials plot": "icepak_trials_plot",
+  "Network temperature plot": "icepak_trials_plot",
+  "Transient settings": "icepak_transient",
+  "Load solution ID": "icepak_solution_id",
+  "Download RSF project": "icepak_download",
+  "Summary report": "icepak_summ_report",
+  "Power and temperature limits": "power_setup",
+  "Power and temperature values": "max_temperatures",
+  "Time average": "icepak_time_average",
+  "Help": "question",
+  "Distance": "distance_icon",
+  "Angle": "distance_icon",
+  "Location": "location_icon",
+  "Home position": "new_home_nuvo",
+  "Zoom in": "zoom_nuvo",
+  "Scale to fit": "scale_to_fit",
+  "Rotate view": "view_rotate",
+  "Rotate about screen normal": "view_rotate_normal",
+  "Orient positive X": "icepak_plus_x",
+  "Orient negative X": "icepak_plus_x",
+  "Orient positive Y": "icepak_plus_y",
+  "Orient negative Y": "icepak_plus_y",
+  "Orient positive Z": "icepak_minus_z",
+  "Orient negative Z": "icepak_minus_z",
+  "Isometric view": "icepak_iso",
+  "Reverse orientation": "icepak_reverse",
+  "New project": "bw_newg",
+  "Open project": "open_icon",
+  "Print screen": "print_icon",
+  "Create image file": "icepak_paint",
+  "Undo": "bw_undo",
+  "Redo": "bw_redo",
+  "Check model": "check_nuvo",
+  "Generate mesh": "icepak_mesh",
+  "Current assembly object names": "icepak_names",
+  "No object names": "icepak_names",
+  "Selected object names": "icepak_names",
+  "Display object names": "icepak_names_nuvo",
+  "One viewing window": "one_window_nuvo",
+  "Two viewing windows": "two_windows",
+  "Four viewing windows": "four_windows_nuvo",
+  "Move object": "icepak_move_object",
+  "Copy object": "icepak_copy_object",
+  "Edit object": "icepak_edit_object",
+  "Delete object": "icepak_delete_object",
+  "Align and morph faces": "auto_align_face",
+  "Align and morph edges": "auto_align_edge",
+  "Align and morph vertices": "auto_align_vert",
+  "Align faces - move only": "auto_align_face_move",
+  "Align edges - move only": "auto_align_edge_move",
+  "Align vertices - move only": "auto_align_vert_move",
+  "Align object centers": "auto_align_center",
+  "Align face centers": "auto_align_centerface",
+  "Morph faces": "auto_match_face",
+  "Morph edges": "auto_match_edge"
+ }
+}

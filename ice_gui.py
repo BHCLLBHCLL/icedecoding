@@ -56,6 +56,8 @@ try:  # pragma: no cover - 运行环境判断
     from vtk.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
     from vtk.util import numpy_support
     from ice_icons import IceIcons
+    from ice_actions import CommandRegistry
+    from ice_menus_toolbars import build_menus, build_toolbars, apply_hotkeys
     from ice_panes import (
         DetailsDialog, LibraryTree, MessageWindow, PROJECT_NODES, ProjectTree,
         TdvStrip, TranslateDialog, WelcomeDialog, find_icepak_lib,
@@ -486,6 +488,11 @@ class IceGui(QMainWindow):
         self._view_panes = 1
         self._toolbars = {}
         self._tb_row = -1
+        self._registry = CommandRegistry() if CommandRegistry is not None else None
+        self._menus = {}
+        self._hotkey_actions = {}
+        self._created_by_command = {}
+        self._display_state = {}
         if show_welcome is None:
             show_welcome = bool(enable_3d and not path)
         self._pending_welcome = bool(show_welcome)
@@ -631,95 +638,8 @@ class IceGui(QMainWindow):
             menu.addAction(a)
         return a
 
-    def _build_menus(self):
-        mb = self.menuBar()
-        add = self._act
-
-        # File
-        m = mb.addMenu("File")
-        add(m, "New project", self._new_project, "Ctrl+N", icon="new")
-        add(m, "Open project", self._open_dir, "Ctrl+O", icon="open")
-        add(m, "Merge project")
-        add(m, "Reload main version", self._reload, "Ctrl+L")
-        m.addSeparator()
-        add(m, "Save project", self._save, "Ctrl+S", icon="save")
-        add(m, "Save project as", self._save_as)
-        m.addSeparator()
-        imp = m.addMenu("Import")
-        add(imp, "Import CSV/Excel")
-        idf = imp.addMenu("IDF file")
-        add(idf, "New board")
-        add(idf, "Update board")
-        add(imp, "Import IDX file")
-        add(imp, "Import Electronics Cooling XML")
-        imp.addSeparator()
-        pmap = imp.addMenu("Powermaps")
-        for t in ("Apache Sentinel TI profile", "Cadence tab file",
-                  "Cadence Stacked Die tab files",
-                  "Gradient Firebolt i2p file", "RedHawk CTM profile"):
-            add(pmap, t)
-        add(imp, "Import Networks")
-        add(imp, "Import JEDEC PTD/JEP30 file")
-        exp = m.addMenu("Export")
-        add(exp, "ANSYS Electronics Desktop script")
-        exp.addSeparator()
-        add(exp, "Export CSV/Excel", self._export_csv)
-        add(exp, "Export IDF file")
-        add(exp, "Export Electronics Cooling XML")
-        exp.addSeparator()
-        add(exp, "Export Networks")
-        add(exp, "Export JEDEC PTD/JEP30 file")
-        em = m.addMenu("EM Mapping")
-        add(em, "Volumetric heat losses")
-        add(em, "Surface heat losses")
-        m.addSeparator()
-        add(m, "Unpack project", self._open_tzr)
-        add(m, "Pack project", self._pack_project)
-        m.addSeparator()
-        add(m, "Cleanup")
-        add(m, "Print screen", self._print_screen, "Ctrl+P", icon="print")
-        add(m, "Create image file", self._create_image, icon="image")
-        add(m, "Command prompt", self._command_prompt)
-        add(m, "Quit", self.close)
-
-        # Edit
-        m = mb.addMenu("Edit")
-        add(m, "Undo", self._undo, "Ctrl+Z", icon="undo")
-        add(m, "Redo", self._redo, "Ctrl+R", icon="redo")
-        m.addSeparator()
-        add(m, "Find", self._find_object, "Ctrl+F")
-        add(m, "Show clipboard")
-        add(m, "Clear clipboard")
-        m.addSeparator()
-        add(m, "Snap to grid")
-        add(m, "Preferences")
-        add(m, "Annotations")
-
-        # View
-        m = mb.addMenu("View")
-        add(m, "Summary (HTML)")
-        m.addSeparator()
-        add(m, "Location")
-        add(m, "Distance")
-        add(m, "Angle")
-        add(m, "Unit vector")
-        add(m, "Unit normal")
-        add(m, "Bounding box", self._show_bbox)
-        m.addSeparator()
-        tr = m.addMenu("Traces")
-        add(tr, "Net info")
-        add(tr, "Trace info")
-        m.addSeparator()
-        mk = m.addMenu("Markers")
-        add(mk, "Add marker")
-        add(mk, "Clear markers")
-        rb = m.addMenu("Rubber bands")
-        add(rb, "Add rubber band")
-        add(rb, "Clear rubber bands")
-        m.addSeparator()
-        tbmenu = m.addMenu("Edit toolbars")
-        self._tb_menu = tbmenu
-        sh = m.addMenu("Default shading")
+    def _build_shading_menu(self, m):
+        """View -> Default shading radio group (golden-spec special widget)."""
         self._shading_group = QActionGroup(self)
         self._shading_group.setExclusive(True)
         self._shading_actions = {}
@@ -730,18 +650,19 @@ class IceGui(QMainWindow):
             "hidden line": "Hidden line shading",
             "selected_solid": "Selected solid shading",
         }
-        for i, mode in enumerate(SHADING_MODES):
+        for mode in SHADING_MODES:
             if mode == "selected_solid":
-                sh.addSeparator()
+                m.addSeparator()
             a = QAction(labels[mode], self)
             a.setCheckable(True)
             a.setChecked(mode == self._shading)
             a.triggered.connect(lambda _=False, md=mode: self._set_shading(md))
             self._shading_group.addAction(a)
-            sh.addAction(a)
+            m.addAction(a)
             self._shading_actions[mode] = a
-        disp = m.addMenu("Display")
-        names = disp.addMenu("Object names")
+
+    def _build_names_menu(self, m):
+        """View -> Display -> Object names radio group (special widget)."""
         self._names_group = QActionGroup(self)
         for label, val in (("Current assembly object names", 1),
                            ("No object names", 0),
@@ -751,24 +672,10 @@ class IceGui(QMainWindow):
             a.setChecked(val == 0)
             a.triggered.connect(lambda _=False, v=val: self._set_names(v))
             self._names_group.addAction(a)
-            names.addAction(a)
-        disp.addSeparator()
-        self._act_axes = add(disp, "Coord axes", self._toggle_axes,
-                             checkable=True, checked=True)
-        add(disp, "Visible grid", checkable=True)
-        add(disp, "Origin marker", checkable=True)
-        add(disp, "Display rulers", checkable=True)
-        add(disp, "Display project title", checkable=True)
-        self._act_logo = add(disp, "Display ANSYS logo", self._toggle_logo,
-                             checkable=True, checked=True)
-        add(disp, "Display current date", checkable=True)
-        add(disp, "Display construction lines", checkable=True)
-        add(disp, "Display construction points", checkable=True)
-        add(disp, "Display mesh", checkable=True)
-        add(disp, "Mouse position", checkable=True)
-        add(disp, "Depthcue", checkable=True)
-        add(disp, "Tcl console", checkable=True)
-        vis = m.addMenu("Visible")
+            m.addAction(a)
+
+    def _build_visible_menu(self, m):
+        """View -> Visible per-object-type checkboxes (special widget)."""
         self._layer_actions = {}
         seen = set()
         for kind in VISIBLE_KINDS:
@@ -780,174 +687,13 @@ class IceGui(QMainWindow):
             a.setCheckable(True)
             a.setChecked(True)
             a.toggled.connect(lambda on, kk=kind: self._on_layer_toggle(kk, on))
-            vis.addAction(a)
+            m.addAction(a)
             self._layer_actions[kind] = a
-        m.addSeparator()
-        add(m, "Lights")
 
-        # Orient
-        m = mb.addMenu("Orient")
-        add(m, "Home position", self._home, "H", icon="home")
-        add(m, "Isometric view", lambda: self._orient("iso"), "Shift+I",
-            icon="iso")
-        add(m, "Orient positive X", lambda: self._orient("+x"))
-        add(m, "Orient negative X", lambda: self._orient("-x"), "Shift+X",
-            icon="axis_x")
-        add(m, "Orient positive Y", lambda: self._orient("+y"), "Shift+Y",
-            icon="axis_y")
-        add(m, "Orient negative Y", lambda: self._orient("-y"))
-        add(m, "Orient positive Z", lambda: self._orient("+z"))
-        add(m, "Orient negative Z", lambda: self._orient("-z"), "Shift+Z",
-            icon="axis_z")
-        add(m, "Zoom in", self._zoom_in, "Z", icon="zoom")
-        add(m, "Scale to fit", self._fit, "S", icon="fit")
-        add(m, "Reverse orientation", self._reverse_orient, "Shift+R",
-            icon="reverse")
-        add(m, "Nearest axis", self._nearest_axis)
-        add(m, "Save user view", self._save_user_view)
-        add(m, "Clear user views", self._clear_user_views)
-        add(m, "Write user views to file", self._write_user_views)
-        add(m, "Read user views from file", self._read_user_views)
-        self._user_views_menu = m.addMenu("User views")
-
-        # Macros (dynamic in Icepak; skeleton + documented entries)
-        m = mb.addMenu("Macros")
-        for t in ("ATX / Micro-ATX chassis", "Angled Fin Heat Sink",
-                  "PCB", "Polygonal ducts", "Heat sink creation",
-                  "Detailed heat sink creation", "Heat Pipe"):
-            add(m, t)
-
-        # Model
-        m = mb.addMenu("Model")
-        cr = m.addMenu("Create object")
-        for kind, title, cmd in CREATE_OBJECT_TYPES:
-            add(cr, title, lambda _=False, k=kind: self._create_object(k),
-                icon=kind)
-        m.addSeparator()
-        add(m, "Radiation form factors")
-        m.addSeparator()
-        add(m, "Generate mesh", icon="mesh")
-        m.addSeparator()
-        add(m, "Edit priorities")
-        add(m, "Edit cutouts")
-        add(m, "Create material library")
-        add(m, "Power and temperature limits", icon="limits")
-        m.addSeparator()
-        add(m, "Check model", self._check_model, icon="check")
-        add(m, "Show objects by material")
-        add(m, "Show objects by property")
-        add(m, "Show objects by type")
-        add(m, "Show metal fractions")
-
-        # Solve
-        m = mb.addMenu("Solve")
-        st = m.addMenu("Settings")
-        add(st, "Basic settings", self._show_basic_settings)
-        add(st, "Advanced settings", self._show_advanced_settings)
-        add(st, "Parallel settings", self._show_parallel_settings)
-        add(m, "Patch temperatures")
-        m.addSeparator()
-        add(m, "Run solution", icon="solve")
-        add(m, "Run optimization", icon="optim")
-        add(m, "Create Krylov ROM")
-        m.addSeparator()
-        add(m, "Solution monitor")
-        m.addSeparator()
-        add(m, "Define trials")
-        add(m, "Define report")
-        m.addSeparator()
-        diag = m.addMenu("Diagnostics")
-        add(diag, "Edit .cas file")
-        add(diag, "Edit .diag file")
-        add(diag, "Edit .uns_out file")
-        add(diag, "Edit optimization log")
-
-        # Post
-        m = mb.addMenu("Post")
-        add(m, "Object face (node)", icon="face")
-        add(m, "Object face (facet)", icon="face")
-        add(m, "Plane cut", icon="plane")
-        add(m, "Isosurface", icon="iso_surf")
-        add(m, "Point", icon="point")
-        add(m, "Surface probe", icon="probe")
-        add(m, "Min/max locations")
-        m.addSeparator()
-        add(m, "Convergence plot")
-        add(m, "Variation plot", icon="plot")
-        add(m, "3D Variation plot")
-        add(m, "History plot", icon="history")
-        add(m, "Trials plot", icon="trials")
-        add(m, "Network temperature plot")
-        m.addSeparator()
-        add(m, "Transient settings", icon="transient")
-        add(m, "Load solution ID", icon="sol_id")
-        add(m, "Postprocessing units")
-        add(m, "Load post objects from file", self._load_post_objects)
-        add(m, "Save post objects to file", self._save_post_objects)
-        add(m, "Rescale vectors")
-        m.addSeparator()
-        add(m, "Create zoom-in model")
-        add(m, "Power and temperature values")
-        wf = m.addMenu("Workflow data")
-        add(wf, "CFD Post/Mechanical")
-        add(m, "Display powermap property")
-
-        # Report
-        m = mb.addMenu("Report")
-        add(m, "HTML report", icon="report")
-        ov = m.addMenu("Solution overview")
-        add(ov, "View solution overview")
-        add(ov, "Create solution overview")
-        add(m, "Show optimization/param results")
-        m.addSeparator()
-        add(m, "Summary report", icon="report")
-        add(m, "Point report")
-        add(m, "Full report")
-        m.addSeparator()
-        add(m, "Network block values")
-        add(m, "Fan operating points")
-        add(m, "EM heat losses")
-        add(m, "Solar loads")
-        m.addSeparator()
-        add(m, "Write Autotherm file")
-        m.addSeparator()
-        rexp = m.addMenu("Export")
-        for t in ("Gradient Firebolt p2i file", "Cadence TPKG file",
-                  "SIwave temp data", "Sentinel TI HTC file",
-                  "RedHawk Back Annotation"):
-            add(rexp, t)
-
-        # Windows
-        m = mb.addMenu("Windows")
-        self._act_show_msg = add(m, "Message", self._toggle_message,
-                                 checkable=True, checked=True)
-        self._act_show_nav = add(m, "Project", self._toggle_nav,
-                                 checkable=True, checked=True)
-
-        # Help
-        m = mb.addMenu("Help")
-        add(m, "Help", self._help, "F1")
-        add(m, "Icepak on the Web", self._web_icepak)
-        add(m, "Customer Portal", self._web_portal)
-        add(m, "List shortcuts", self._list_shortcuts, "Shift+?")
-        m.addSeparator()
-        add(m, "About Icepak", self._about)
-
-        # Extra hotkeys (Icepak command_set_hotkeys) — window actions, not menus
-        add(self, "Edit object or postprocessing object",
-            self._edit_current, "Ctrl+E")
-        for text, sc, slot in (
-            ("Delete object", "Delete", self._delete_current),
-            ("Toggle object active", "Ctrl+A", self._toggle_selected_active),
-            ("Toggle object visible", "Ctrl+V", self._toggle_selected_visible),
-            ("Toggle object shading", "Ctrl+H", None),
-            ("Open/close tree node", "Ctrl+T", self._toggle_tree_node),
-            ("Open/close model subtree", "Ctrl+M", self._toggle_model_subtree),
-            ("Move object", "Ctrl+X", self._move_current),
-            ("Copy object", "Ctrl+C", self._copy_current),
-            ("Toggle shading type", "Ctrl+W", self._cycle_shading),
-        ):
-            add(self, text, slot, sc)
+    def _build_menus(self):
+        """P0: menus are generated from the golden command registry."""
+        build_menus(self)
+        apply_hotkeys(self)
 
     def _tb(self, name, row=0):
         tb = QToolBar(name, self)
@@ -977,83 +723,12 @@ class IceGui(QMainWindow):
         else:
             a.triggered.connect(lambda _=False, t=text: self._nyi(t))
         tb.addAction(a)
+        self._created_by_command[text] = a
         return a
 
     def _build_toolbars(self):
-        # Row 1
-        tb = self._tb("File commands", 0)
-        self._tb_act(tb, "New project", self._new_project, "new")
-        self._tb_act(tb, "Open project", self._open_dir, "open")
-        self._tb_act(tb, "Save project", self._save, "save")
-        self._tb_act(tb, "Print screen", self._print_screen, "print")
-        self._tb_act(tb, "Create image file", self._create_image, "image")
-
-        tb = self._tb("Edit commands", 0)
-        self._tb_act(tb, "Undo", self._undo, "undo")
-        self._tb_act(tb, "Redo", self._redo, "redo")
-
-        tb = self._tb("Viewing options", 0)
-        self._tb_act(tb, "Home position", self._home, "home")
-        self._tb_act(tb, "Zoom in", self._zoom_in, "zoom")
-        self._tb_act(tb, "Scale to fit", self._fit, "fit")
-        self._tb_act(tb, "Rotate about screen normal", self._rotate_normal,
-                     "rotate")
-        self._tb_act(tb, "One viewing window",
-                     lambda: self._set_view_panes(1), "win1")
-        self._tb_act(tb, "Four viewing windows",
-                     lambda: self._set_view_panes(4), "win4")
-        self._tb_act(tb, "Display object names", self._cycle_names, "names")
-
-        tb = self._tb("Orientation commands", 0)
-        self._tb_act(tb, "Orient negative X", lambda: self._orient("-x"),
-                     "axis_x")
-        self._tb_act(tb, "Orient positive Y", lambda: self._orient("+y"),
-                     "axis_y")
-        self._tb_act(tb, "Orient negative Z", lambda: self._orient("-z"),
-                     "axis_z")
-        self._tb_act(tb, "Isometric view", lambda: self._orient("iso"), "iso")
-        self._tb_act(tb, "Reverse orientation", self._reverse_orient, "reverse")
-
-        # Row 2
-        tb = self._tb("Model and solve", 1)
-        self._tb_act(tb, "Power and temperature limits", icon="limits")
-        self._tb_act(tb, "Generate mesh", icon="mesh")
-        self._tb_act(tb, "Radiation", icon="radiation")
-        self._tb_act(tb, "Check model", self._check_model, "check")
-        self._tb_act(tb, "Run solution", icon="solve")
-        self._tb_act(tb, "Run optimization", icon="optim")
-
-        tb = self._tb("Postprocessing", 1)
-        self._tb_act(tb, "Object face", icon="face")
-        self._tb_act(tb, "Plane cut", icon="plane")
-        self._tb_act(tb, "Isosurface", icon="iso_surf")
-        self._tb_act(tb, "Point", icon="point")
-        self._tb_act(tb, "Surface probe", icon="probe")
-        self._tb_act(tb, "Variation plot", icon="plot")
-        self._tb_act(tb, "History plot", icon="history")
-        self._tb_act(tb, "Trials plot", icon="trials")
-        self._tb_act(tb, "Transient settings", icon="transient")
-        self._tb_act(tb, "Load solution ID", icon="sol_id")
-        self._tb_act(tb, "Summary report", icon="report")
-        self._tb_act(tb, "Power and temperature values", icon="limits")
-
-        # Row 3 object_tools
-        tb = self._tb("Object creation", 2)
-        for kind, title, cmd in CREATE_OBJECT_TYPES:
-            self._tb_act(tb, title,
-                         lambda _=False, k=kind: self._create_object(k), kind)
-
-        tb = self._tb("Object modification", 2)
-        self._tb_act(tb, "Edit object", self._edit_current, "edit")
-        self._tb_act(tb, "Delete object", self._delete_current, "delete")
-        self._tb_act(tb, "Move object", self._move_current, "move")
-        self._tb_act(tb, "Copy object", self._copy_current, "copy")
-
-        tb = self._tb("Alignment", 2)
-        for t in ("Align and morph faces", "Align and morph edges",
-                  "Align and morph vertices", "Align object centers",
-                  "Align face centers", "Morph faces", "Morph edges"):
-            self._tb_act(tb, t, icon="align")
+        """P0: toolbars are generated from the golden command registry."""
+        build_toolbars(self)
 
     # ------------------------------------------------------------- 3D overlays
     def _setup_3d_overlays(self):
