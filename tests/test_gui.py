@@ -119,3 +119,86 @@ def test_shading_cycle(win):
     for mode in SHADING_MODES:
         win._set_shading(mode)
         assert win._shading == mode
+
+
+def test_new_project_has_cabinet(win):
+    win._new_project()
+    assert win.project is not None
+    cab = win.project.model.object_by_name("cabinet")
+    assert cab is not None
+    assert cab.kind == "domain"
+    assert win.project_tree.find_object_item("cabinet") is not None
+    it = win.project_tree.find_object_item("cabinet")
+    assert it.checkState(0) != 0  # checked
+
+
+def test_create_and_delete_object(win):
+    win._new_project()
+    obj = win._create_object("block")
+    assert obj.name == "block.1"
+    assert win.project.model.object_by_name("block.1") is not None
+    assert win.project_tree.find_object_item("block.1") is not None
+    win.selected = "block.1"
+    win._delete_current()
+    assert win.project.model.object_by_name("block.1") is None
+    assert win.project_tree.find_object_item("block.1") is None
+    assert win.project.model.object_by_name("cabinet") is not None
+
+
+def test_tree_checkbox_hides_object(win):
+    from PyQt5.QtCore import Qt
+    win._new_project()
+    win._create_object("block")
+    seen = []
+    win.project_tree.visibility_changed.connect(
+        lambda n, v: seen.append((n, v)))
+    it = win.project_tree.find_object_item("block.1")
+    it.setCheckState(0, Qt.Unchecked)
+    assert "block.1" in win._hidden
+    assert seen and seen[-1] == ("block.1", False)
+    it.setCheckState(0, Qt.Checked)
+    assert "block.1" not in win._hidden
+
+
+def test_find_selects_object(win):
+    win._new_project()
+    win._create_object("fan")
+    found = win._find_object("fan.1")
+    assert found is not None
+    assert found.name == "fan.1"
+    assert win.selected == "fan.1"
+
+
+def test_pack_new_project_roundtrip(win):
+    import os
+    import tempfile
+    from icepak_parser.project import IcepakProject
+    win._new_project()
+    win._create_object("opening")
+    with tempfile.TemporaryDirectory() as d:
+        dest = os.path.join(d, "untitled.tzr")
+        assert win.pack_to(dest) == dest
+        loaded = IcepakProject.from_archive(dest)
+        names = {o.name for o in loaded.model._all_objects()}
+        assert "cabinet" in names
+        assert "opening.1" in names
+
+
+def test_user_views_save_write_read(win):
+    import os
+    import json
+    import tempfile
+    win._clear_user_views()
+    win._save_user_view()
+    assert len(win._user_views) == 1
+    with tempfile.TemporaryDirectory() as d:
+        path = os.path.join(d, "views.json")
+        win._write_user_views(path)
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        assert data[0]["name"] == "view.1"
+        win._clear_user_views()
+        assert win._user_views == []
+        win._read_user_views(path)
+        assert win._user_views[0]["name"] == "view.1"
+
