@@ -201,6 +201,7 @@ class ProjectTree(QTreeWidget):
     object_selected = pyqtSignal(object)
     object_activated = pyqtSignal(object)
     node_selected = pyqtSignal(str, object)
+    visibility_changed = pyqtSignal(str, bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -209,6 +210,7 @@ class ProjectTree(QTreeWidget):
         self.setUniformRowHeights(True)
         self.itemSelectionChanged.connect(self._on_sel)
         self.itemDoubleClicked.connect(self._on_dbl)
+        self.itemChanged.connect(self._on_item_changed)
         self._items = {}
         self.reset_empty()
 
@@ -235,49 +237,25 @@ class ProjectTree(QTreeWidget):
         root.setExpanded(True)
         self._items["Model"].setExpanded(True)
 
-    def populate(self, project):
+    def _mark_object_item(self, it, obj, hidden):
+        it.setData(0, Qt.UserRole, ("object", obj))
+        it.setFlags(it.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsSelectable)
+        it.setCheckState(0, Qt.Unchecked if obj.name in hidden else Qt.Checked)
+
+    def populate(self, project, hidden=None):
         """Fill from IcepakProject. Keeps the nine fixed nodes."""
+        hidden = set(hidden or ())
         name = getattr(project, "name", None) or "untitled"
-        self.reset_empty(name)
-        self.setHeaderLabels([name])
+        self.blockSignals(True)
+        try:
+            self.reset_empty(name)
+            self.setHeaderLabels([name])
+            self._fill_model(project, hidden)
+            self._fill_problem_and_post(project)
+        finally:
+            self.blockSignals(False)
 
-        model_item = self._items["Model"]
-        model = getattr(project, "model", None)
-        if model is not None:
-            counts = model.kind_counts()
-            cabinet = None
-            for o in model._all_objects():
-                if o.kind == "domain":
-                    cabinet = o
-                    break
-            cab_it = QTreeWidgetItem(model_item, ["Cabinet"])
-            cab_it.setIcon(0, IceIcons.get("domain", 16))
-            if cabinet is not None:
-                cab_it.setData(0, Qt.UserRole, ("object", cabinet))
-                cab_it.setText(0, cabinet.name or "Cabinet")
-            else:
-                cab_it.setData(0, Qt.UserRole, ("node", "Cabinet"))
-
-            by_kind = {}
-            for o in model._all_objects():
-                if o.kind == "domain":
-                    continue
-                by_kind.setdefault(o.kind, []).append(o)
-            for kind in sorted(by_kind, key=lambda k: -len(by_kind[k])):
-                objs = by_kind[kind]
-                grp = QTreeWidgetItem(model_item, ["%s (%d)" % (kind, len(objs))])
-                grp.setData(0, Qt.UserRole, ("group", kind))
-                grp.setIcon(0, IceIcons.get(kind, 16))
-                for o in objs:
-                    it = QTreeWidgetItem(grp, [o.name])
-                    it.setData(0, Qt.UserRole, ("object", o))
-                    it.setIcon(0, IceIcons.get(o.kind, 16))
-                    tip = "shape=%s" % (o.shape.type if o.shape else "-")
-                    it.setToolTip(0, tip)
-                grp.setExpanded(True)
-            model_item.setText(0, "Model (%d)" % model.count_all())
-        model_item.setExpanded(True)
-
+    def _fill_problem_and_post(self, project):
         prb = getattr(project, "problem", None)
         if prb is not None and getattr(prb, "setters", None):
             basic = None
@@ -307,6 +285,45 @@ class ProjectTree(QTreeWidget):
         self._items["Problem setup"].setExpanded(False)
         self._items["Solution settings"].setExpanded(False)
 
+    def _fill_model(self, project, hidden):
+        model_item = self._items["Model"]
+        model = getattr(project, "model", None)
+        if model is None:
+            model_item.setExpanded(True)
+            return
+        cabinet = None
+        for o in model._all_objects():
+            if o.kind == "domain":
+                cabinet = o
+                break
+        cab_it = QTreeWidgetItem(model_item, ["Cabinet"])
+        cab_it.setIcon(0, IceIcons.get("domain", 16))
+        if cabinet is not None:
+            self._mark_object_item(cab_it, cabinet, hidden)
+            cab_it.setText(0, cabinet.name or "Cabinet")
+        else:
+            cab_it.setData(0, Qt.UserRole, ("node", "Cabinet"))
+
+        by_kind = {}
+        for o in model._all_objects():
+            if o.kind == "domain":
+                continue
+            by_kind.setdefault(o.kind, []).append(o)
+        for kind in sorted(by_kind, key=lambda k: -len(by_kind[k])):
+            objs = by_kind[kind]
+            grp = QTreeWidgetItem(model_item, ["%s (%d)" % (kind, len(objs))])
+            grp.setData(0, Qt.UserRole, ("group", kind))
+            grp.setIcon(0, IceIcons.get(kind, 16))
+            for o in objs:
+                it = QTreeWidgetItem(grp, [o.name])
+                it.setIcon(0, IceIcons.get(o.kind, 16))
+                self._mark_object_item(it, o, hidden)
+                tip = "shape=%s" % (o.shape.type if o.shape else "-")
+                it.setToolTip(0, tip)
+            grp.setExpanded(True)
+        model_item.setText(0, "Model (%d)" % model.count_all())
+        model_item.setExpanded(True)
+
     def find_object_item(self, name):
         def walk(item):
             role = item.data(0, Qt.UserRole)
@@ -322,6 +339,43 @@ class ProjectTree(QTreeWidget):
             if hit is not None:
                 return hit
         return None
+
+    def find_items_matching(self, text):
+        """Object items whose name contains text (case-insensitive)."""
+        needle = (text or "").strip().lower()
+        hits = []
+        if not needle:
+            return hits
+
+        def walk(item):
+            role = item.data(0, Qt.UserRole)
+            if role and role[0] == "object":
+                name = getattr(role[1], "name", "") or ""
+                if needle in name.lower():
+                    hits.append(item)
+            for i in range(item.childCount()):
+                walk(item.child(i))
+
+        for i in range(self.topLevelItemCount()):
+            walk(self.topLevelItem(i))
+        return hits
+
+    def select_object_named(self, name):
+        it = self.find_object_item(name)
+        if it is None:
+            return False
+        self.setCurrentItem(it)
+        self.scrollToItem(it)
+        return True
+
+    def _on_item_changed(self, item, _col):
+        role = item.data(0, Qt.UserRole)
+        if not role or role[0] != "object":
+            return
+        name = getattr(role[1], "name", None)
+        if not name:
+            return
+        self.visibility_changed.emit(name, item.checkState(0) == Qt.Checked)
 
     def _on_sel(self):
         items = self.selectedItems()
