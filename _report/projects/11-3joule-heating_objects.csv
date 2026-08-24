@@ -1,0 +1,42 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,0,shape_hexa,"[0.075, -0.0505711, 0.00678232]","[0.19, 0.1111498, 0.01844144]",grid_priority=0.0
+material,tr_A3V3_2784_sol_mat,-1,,,,
+material,package_mat,-1,,,,
+material,tr_A3V3_2784_sol_mat.1,-1,,,,
+material,{BOARD_OUTLINE.1 solid_material},,,,,
+part,board,35,shape_container,,,
+pcb,BOARD_OUTLINE.1,35,shape_quad,"[0.0787082, -0.05018105, 0.00152464]","[0.1666616, 0.1090739, 0.0]",grid_priority=2.0
+part,assembly.2,836,shape_container,,,
+block,BOARD_OUTLINE.1.layer-3-trace-A3V3_2784,833,shape_polygon,,,block_type=solid grid_priority=30.0
+source,source.1,834,shape_quad,"[0.111375, 0.002075, 0.001071]","[0.00535, 0.00145, 0.0]",temp=1.0 grid_priority=31.0
+source,source.2,835,shape_quad,"[0.07415, -0.085785, 0.001071]","[0.0053, 0.00089, 0.0]",temp=1.0 grid_priority=32.0
+block,U3,145,shape_hexa,"[0.044830998565, -0.0454167, 0.003469639975]","[0.016255999693, 0.0114826, 0.00381000005]",block_type=solid grid_priority=3.0
+block,U1,146,shape_hexa,"[0.026415999155, -0.020332699669, 0.002466339921]","[0.007467599969, 0.009372600661, 0.001803399942]",block_type=solid grid_priority=4.0
+block,U9,147,shape_hexa,"[0.14312899542, -0.008808719718, 0.00217423993]","[0.02311399926, 0.013106399581, 0.001219199961]",block_type=solid grid_priority=5.0
+block,U10,148,shape_hexa,"[0.14312899542, -0.0263963, 0.00217423993]","[0.02311399926, 0.0137792, 0.001219199961]",block_type=solid grid_priority=6.0
+block,U11,149,shape_hexa,"[0.14312899542, -0.05165805, 0.00217423993]","[0.02311399926, 0.0137791, 0.001219199961]",block_type=solid grid_priority=7.0
+block,U12,150,shape_hexa,"[0.14312899542, -0.069731308779, 0.00217423993]","[0.02311399926, 0.013181217558, 0.001219199961]",block_type=solid grid_priority=8.0
+block,U6,151,shape_hexa,"[0.091654239249, -0.082127356456, 0.002783839911]","[0.035529278499, 0.028787312911, 0.002438399922]",block_type=solid grid_priority=9.0
+block,U7,152,shape_hexa,"[0.092646497084, -0.006095999862, 0.004104639975]","[0.017399000159, 0.011684000484, 0.00508000005]",block_type=solid grid_priority=10.0
+block,U8,153,shape_hexa,"[0.092685613034, -0.038268532088, 0.002783839911]","[0.037591998797, 0.037523664175, 0.002438399922]",block_type=solid grid_priority=11.0
+block,U505,154,shape_hexa,"[0.028366719093, -0.04426845, -0.000876299972]","[0.005892800032, 0.0091861, 0.001752599944]",block_type=solid grid_priority=12.0
+block,U504,157,shape_hexa,"[0.044744000184, -0.01829785, -0.0008763]","[0.008048000368, 0.0106039, 0.0017526]",block_type=solid grid_priority=13.0
+block,U506.1,158,shape_hexa,"[0.021081999325, -0.012674599762, -0.000888999972]","[0.007975092106, 0.005943600476, 0.001777999943]",block_type=solid grid_priority=14.0
+block,U500,159,shape_hexa,"[0.060451998066, -0.07285785, -0.0008763]","[0.007975091865, 0.0112483, 0.0017526]",block_type=solid grid_priority=15.0
+block,U501.1,160,shape_hexa,"[0.060452, -0.05923935, -0.0008763]","[0.007975, 0.0032095, 0.0017526]",block_type=solid grid_priority=16.0
+block,L13,161,shape_hexa,"[0.047465995229, -0.06971795, 0.004104639975]","[0.009079990458, 0.0059685, 0.00508000005]",block_type=hollow grid_priority=17.0
+block,J7,163,shape_hexa,"[0.132714995753, -0.082678998602, 0.005819139814]","[0.011226799641, 0.009393997204, 0.008508999728]",block_type=hollow grid_priority=18.0
+block,L12,196,shape_hexa,"[0.047538003479, -0.079930940666, 0.007063739774]","[0.013635990382, 0.011858118669, 0.010998199648]",block_type=hollow grid_priority=19.0
+block,Q1,213,shape_hexa,"[0.04859225, -0.019007449854, 0.004104639975]","[0.0157445, 0.012023099709, 0.00508000005]",block_type=hollow grid_priority=20.0
+block,C32,222,shape_hexa,"[0.034289986535, -0.072868598928, 0.008783819975]","[0.010499826929, 0.011726802144, 0.01443836005]",block_type=hollow grid_priority=21.0
+block,C30,223,shape_hexa,"[0.033908998915, -0.087293098706, 0.007564619975]","[0.01126185164, 0.012889802587, 0.01199996005]",block_type=hollow grid_priority=22.0
+block,Y1,226,shape_hexa,"[0.050418998387, -0.060287899149, 0.004104639869]","[0.01498599965, 0.005306598298, 0.005079999837]",block_type=hollow grid_priority=23.0
+block,NOREFDES-LOGO_UL_ITE_204896_600,800,shape_hexa,"[0.032999920577, -0.0587318, 0.003469639889]","[0.013079958847, 0.0114542, 0.003809999878]",block_type=hollow grid_priority=24.0
+part,assembly.1,817,shape_container,,,
+heatsink,heatsink.1,827,shape_hexa,"[0.0921, -0.0674837, 0.01075304]","[0.06527, 0.0005, 0.0105]",grid_priority=25.0
+heatsink,heatsink.1.1,828,shape_hexa,"[0.091694, -0.094113, 0.01075304]","[0.051434, 0.00075, 0.0105]",grid_priority=26.0
+opening,cabinet_default_side_minx,820,shape_quad,"[-0.02, -0.0505711, 0.0067823]","[0.0, 0.1111498, 0.0184414]",grid_priority=33.0
+opening,cabinet_default_side_maxx,821,shape_quad,"[0.17, -0.0505711, 0.0067823]","[0.0, 0.1111498, 0.0184414]",grid_priority=34.0
+block,connector.1,829,shape_hexa,"[-0.0003937, -0.0728727, 0.00878382]","[0.0243586, 0.0557786, 0.01443836]",block_type=hollow grid_priority=27.0
+block,connector.1.1,830,shape_hexa,"[0.0354711, -0.005822565, 0.00756462]","[0.0602742, 0.01434667, 0.01199996]",block_type=hollow grid_priority=28.0
+block,connector.1.1.1,831,shape_hexa,"[0.115087, -0.005822565, 0.00706372]","[0.017374, 0.01434667, 0.01099816]",block_type=hollow grid_priority=29.0

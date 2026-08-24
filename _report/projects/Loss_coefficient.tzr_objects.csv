@@ -1,0 +1,17 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,1,shape_hexa,"[0.0005, 0.0036815, 0.00635]","[0.16, 0.007363, 0.0127]",grid_priority=0.0
+block,block.1,2,shape_hexa,"[0.0005, 0.0036815, 0.00635]","[0.001, 0.007363, 0.0127]",block_type=solid grid_priority=2.0
+opening,opening.1,3,shape_polygon,,,grid_priority=3.0
+opening,opening.1.1,4,shape_polygon,,,grid_priority=4.0
+opening,opening.1.2,5,shape_polygon,,,grid_priority=5.0
+opening,opening.1.1.1,6,shape_polygon,,,grid_priority=6.0
+opening,opening.2,7,shape_polygon,,,grid_priority=7.0
+opening,opening.2.1,8,shape_polygon,,,grid_priority=8.0
+opening,opening.2.2,9,shape_polygon,,,grid_priority=9.0
+opening,opening.2.1.1,10,shape_polygon,,,grid_priority=10.0
+opening,cabinet_default_side_maxx,12,shape_quad,"[0.0805, 0.0036815, 0.00635]","[0.0, 0.007363, 0.0127]",grid_priority=11.0
+wall,cabinet_default_side_miny,13,shape_quad,"[0.0005, 0.0, 0.00635]","[0.16, 0.0, 0.0127]",grid_priority=13.0
+wall,cabinet_default_side_maxy,14,shape_quad,"[0.0005, 0.007363, 0.00635]","[0.16, 0.0, 0.0127]",grid_priority=14.0
+wall,cabinet_default_side_minz,15,shape_quad,"[0.0005, 0.0036815, 0.0]","[0.16, 0.007363, 0.0]",grid_priority=15.0
+wall,cabinet_default_side_maxz,16,shape_quad,"[0.0005, 0.0036815, 0.0127]","[0.16, 0.007363, 0.0]",grid_priority=16.0
+opening,cabinet_default_side_minx,17,shape_quad,"[-0.0795, 0.0036815, 0.00635]","[0.0, 0.007363, 0.0127]",grid_priority=12.0

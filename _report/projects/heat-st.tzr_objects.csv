@@ -1,0 +1,12 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,1,shape_hexa,"[0.600000004019, 0.4796, 0.5]","[0.800000008039, 0.2408, 0.4]",grid_priority=0.0
+fan,delta.FFB1212_24_48VHE,3,shape_circ,"[0.2, 0.45, 0.5]",,grid_priority=7.0
+opening,Xmax,6,shape_quad,"[1.000000008038, 0.4796, 0.5]","[0.0, 0.2408, 0.2]",grid_priority=8.0
+pcb,pcb.1,7,shape_hexa,"[0.5, 0.3608, 0.5]","[0.4, 0.0032, 0.4]",grid_priority=2.0
+part,Package,11,shape_container,,,
+package,700_BGA_40X40_5peripheral_p1.50,8,,,,grid_priority=3.0
+plate,Spreader,12,shape_quad,"[0.500000004019, 0.36405, 0.5]","[0.1, 0.0, 0.1]",plate_type=conduct_thick grid_priority=6.0
+part,Staggered,12,shape_container,,,
+heatsink,heatsink.1.1,13,shape_cyl,"[0.4547500032154, 0.37105, 0.455]",,grid_priority=5.0
+part,Inline,13,shape_container,,,
+heatsink,heatsink.1,10,shape_cyl,"[0.5150000032154, 0.37105, 0.475]",,grid_priority=4.0

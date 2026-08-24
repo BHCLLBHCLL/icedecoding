@@ -1,0 +1,3642 @@
+{
+  "name": "5-1fin",
+  "path": "D:\\training\\icepak\\5-1fin",
+  "summary": {
+    "name": "5-1fin",
+    "path": "D:\\training\\icepak\\5-1fin",
+    "objects": 21,
+    "object_types": {
+      "domain": 1,
+      "block": 1,
+      "opening": 1,
+      "fan": 3,
+      "source": 5,
+      "plate": 10
+    },
+    "setters": 408,
+    "arrays": 47,
+    "time": "steady",
+    "grid_params_lines": 24,
+    "materials_lines": 2896,
+    "post_objects": 4
+  },
+  "model": {
+    "header": "#@ ANSYS Icepak 20.1 model file encoding::identity.1045 Thu Nov 25 16:50:45 GMT 2021",
+    "objects": [
+      {
+        "kind": "domain",
+        "name": "cabinet.1",
+        "path": "cabinet.1",
+        "depth": 0,
+        "creation_order": 1,
+        "shape_type": "shape_hexa",
+        "geometry": {
+          "bbox_min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bbox_max": [
+            0.07499999999999996,
+            0.25,
+            0.356
+          ],
+          "center": [
+            0.0375,
+            0.125,
+            0.178
+          ],
+          "size": [
+            0.075,
+            0.25,
+            0.356
+          ]
+        },
+        "properties": {
+          "current_genus": "default",
+          "current_stype": "hexa",
+          "creation_order": 1.0,
+          "grid_priority": 0.0
+        },
+        "setvals": {
+          "point1": [
+            "0",
+            "0",
+            "0"
+          ],
+          "point2": [
+            "0.07499999999999996",
+            "0.25",
+            "0.356"
+          ],
+          "diff": [
+            "0.07499999999999996",
+            "0.25",
+            "0.356"
+          ],
+          "volume_flag": [
+            "2"
+          ],
+          "diff_flag": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "block",
+        "name": "block.1",
+        "path": "block.1",
+        "depth": 0,
+        "creation_order": 2,
+        "shape_type": "shape_hexa",
+        "geometry": {
+          "bbox_min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "bbox_max": [
+            0.005999999999999998,
+            0.25,
+            0.356
+          ],
+          "center": [
+            0.003,
+            0.125,
+            0.178
+          ],
+          "size": [
+            0.006,
+            0.25,
+            0.356
+          ]
+        },
+        "properties": {
+          "thermal_heat_tr_face_profile": [
+            "-0.03",
+            "-0.1175",
+            "-0.1705"
+          ],
+          "current_stype": "hexa",
+          "block_type": "solid",
+          "grid_priority": 2.0,
+          "creation_order": 2.0,
+          "current_genus": "default"
+        },
+        "setvals": {
+          "point1": [
+            "0",
+            "0",
+            "0"
+          ],
+          "point2": [
+            "0.005999999999999998",
+            "0.25",
+            "0.356"
+          ],
+          "diff": [
+            "0.005999999999999998",
+            "0.25",
+            "0.356"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "opening",
+        "name": "opening.1",
+        "path": "opening.1",
+        "depth": 0,
+        "creation_order": 3,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.0,
+            0.356
+          ],
+          "bbox_max": [
+            0.075,
+            0.25,
+            0.356
+          ],
+          "center": [
+            0.0405,
+            0.125,
+            0.356
+          ],
+          "size": [
+            0.069,
+            0.25,
+            0.0
+          ]
+        },
+        "properties": {
+          "xvecf": 0.0,
+          "current_stype": "quad",
+          "grid_priority": 18.0,
+          "zvecf": 1.0,
+          "creation_order": 3.0,
+          "current_genus": "free",
+          "yvecf": 0.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0",
+            "0.356"
+          ],
+          "point2": [
+            "0.075",
+            "0.25",
+            "0.356"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0.25",
+            "0"
+          ],
+          "volume_flag": [
+            "0"
+          ],
+          "split_flag": [
+            "16"
+          ],
+          "plate_flag": [
+            "0"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "2"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "fan",
+        "name": "fan.1.1",
+        "path": "fan.1.1",
+        "depth": 0,
+        "creation_order": 4,
+        "shape_type": "shape_circ",
+        "geometry": {
+          "center": [
+            0.04,
+            0.125,
+            0.0
+          ],
+          "radius": [
+            0.03,
+            null,
+            null
+          ],
+          "iradius": [
+            0.01,
+            null,
+            null
+          ]
+        },
+        "properties": {
+          "case_size": 0.09,
+          "curvetype": "fixed",
+          "all_material": "default",
+          "vol_flow": 0.0084950531889439,
+          "current_stype": "circ",
+          "grid_priority": 20.0,
+          "xc": 0.04,
+          "side": 0.009375,
+          "yc": 0.125,
+          "iside": 0.00375,
+          "creation_order": 4.0,
+          "iradius": 0.01,
+          "case_thickness": 0.015,
+          "zvec": 1.0,
+          "radius": 0.03,
+          "current_genus": "2d",
+          "yvec": 0.0,
+          "fix_shapes": 0.0,
+          "plane": 2.0,
+          "move_sections_together": 1.0,
+          "dir_spec": "normal",
+          "xvec": 0.0,
+          "param_units": [
+            "vol_flow",
+            "cfm"
+          ]
+        },
+        "setvals": {
+          "center": [
+            "0.04",
+            "0.125",
+            "0"
+          ],
+          "split_flag": [
+            "16"
+          ],
+          "plane": [
+            "2"
+          ],
+          "radius": [
+            "0.03"
+          ],
+          "iradius": [
+            "0.01"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "fan",
+        "name": "fan.1.2",
+        "path": "fan.1.2",
+        "depth": 0,
+        "creation_order": 4,
+        "shape_type": "shape_circ",
+        "geometry": {
+          "center": [
+            0.04,
+            0.2025,
+            0.0
+          ],
+          "radius": [
+            0.03,
+            null,
+            null
+          ],
+          "iradius": [
+            0.01,
+            null,
+            null
+          ]
+        },
+        "properties": {
+          "case_size": 0.09,
+          "curvetype": "fixed",
+          "all_material": "default",
+          "vol_flow": 0.0084950531889439,
+          "current_stype": "circ",
+          "grid_priority": 21.0,
+          "xc": 0.04,
+          "side": 0.009375,
+          "yc": 0.2025,
+          "iside": 0.00375,
+          "creation_order": 4.0,
+          "iradius": 0.01,
+          "case_thickness": 0.015,
+          "zvec": 1.0,
+          "radius": 0.03,
+          "current_genus": "2d",
+          "yvec": 0.0,
+          "fix_shapes": 0.0,
+          "plane": 2.0,
+          "move_sections_together": 1.0,
+          "dir_spec": "normal",
+          "xvec": 0.0,
+          "param_units": [
+            "vol_flow",
+            "cfm"
+          ]
+        },
+        "setvals": {
+          "center": [
+            "0.04",
+            "0.2025",
+            "0"
+          ],
+          "split_flag": [
+            "16"
+          ],
+          "plane": [
+            "2"
+          ],
+          "radius": [
+            "0.03"
+          ],
+          "iradius": [
+            "0.01"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "fan",
+        "name": "fan.1",
+        "path": "fan.1",
+        "depth": 0,
+        "creation_order": 4,
+        "shape_type": "shape_circ",
+        "geometry": {
+          "center": [
+            0.04,
+            0.0475,
+            0.0
+          ],
+          "radius": [
+            0.03,
+            null,
+            null
+          ],
+          "iradius": [
+            0.01,
+            null,
+            null
+          ]
+        },
+        "properties": {
+          "case_size": 0.09,
+          "curvetype": "fixed",
+          "all_material": "default",
+          "vol_flow": 0.0084950531889439,
+          "current_stype": "circ",
+          "grid_priority": 19.0,
+          "xc": 0.04,
+          "side": 0.009375,
+          "yc": 0.0475,
+          "iside": 0.00375,
+          "creation_order": 4.0,
+          "iradius": 0.01,
+          "case_thickness": 0.015,
+          "zvec": 1.0,
+          "radius": 0.03,
+          "current_genus": "2d",
+          "yvec": 0.0,
+          "fix_shapes": 0.0,
+          "plane": 2.0,
+          "move_sections_together": 1.0,
+          "dir_spec": "normal",
+          "xvec": 0.0,
+          "param_units": [
+            "vol_flow",
+            "cfm"
+          ]
+        },
+        "setvals": {
+          "center": [
+            "0.04",
+            "0.0475",
+            "0"
+          ],
+          "split_flag": [
+            "16"
+          ],
+          "plane": [
+            "2"
+          ],
+          "radius": [
+            "0.03"
+          ],
+          "iradius": [
+            "0.01"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "source",
+        "name": "source.1.1",
+        "path": "source.1.1",
+        "depth": 0,
+        "creation_order": 5,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.0,
+            0.0765,
+            0.1805
+          ],
+          "bbox_max": [
+            0.0,
+            0.0835,
+            0.2005
+          ],
+          "center": [
+            0.0,
+            0.08,
+            0.1905
+          ],
+          "size": [
+            0.0,
+            0.007,
+            0.02
+          ]
+        },
+        "properties": {
+          "current_stype": "quad",
+          "temp": 1.0,
+          "grid_priority": 14.0,
+          "creation_order": 5.0,
+          "current_genus": "default",
+          "temp_total": 33.0
+        },
+        "setvals": {
+          "point1": [
+            "0",
+            "0.0765",
+            "0.1805"
+          ],
+          "point2": [
+            "0",
+            "0.0835",
+            "0.2005"
+          ],
+          "diff": [
+            "0",
+            "0.007000000000000006",
+            "0.02000000000000002"
+          ],
+          "volume_flag": [
+            "0"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "0"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "0"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "source",
+        "name": "source.1.2",
+        "path": "source.1.2",
+        "depth": 0,
+        "creation_order": 5,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.0,
+            0.1215,
+            0.1805
+          ],
+          "bbox_max": [
+            0.0,
+            0.1285,
+            0.2005
+          ],
+          "center": [
+            0.0,
+            0.125,
+            0.1905
+          ],
+          "size": [
+            0.0,
+            0.007,
+            0.02
+          ]
+        },
+        "properties": {
+          "current_stype": "quad",
+          "temp": 1.0,
+          "grid_priority": 15.0,
+          "creation_order": 5.0,
+          "current_genus": "default",
+          "temp_total": 33.0
+        },
+        "setvals": {
+          "point1": [
+            "0",
+            "0.1215",
+            "0.1805"
+          ],
+          "point2": [
+            "0",
+            "0.1285",
+            "0.2005"
+          ],
+          "diff": [
+            "0",
+            "0.007000000000000006",
+            "0.02000000000000002"
+          ],
+          "volume_flag": [
+            "0"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "0"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "0"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "source",
+        "name": "source.1.3",
+        "path": "source.1.3",
+        "depth": 0,
+        "creation_order": 5,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.0,
+            0.1665,
+            0.1805
+          ],
+          "bbox_max": [
+            0.0,
+            0.1735,
+            0.2005
+          ],
+          "center": [
+            0.0,
+            0.17,
+            0.1905
+          ],
+          "size": [
+            0.0,
+            0.007,
+            0.02
+          ]
+        },
+        "properties": {
+          "current_stype": "quad",
+          "temp": 1.0,
+          "grid_priority": 16.0,
+          "creation_order": 5.0,
+          "current_genus": "default",
+          "temp_total": 33.0
+        },
+        "setvals": {
+          "point1": [
+            "0",
+            "0.1665",
+            "0.1805"
+          ],
+          "point2": [
+            "0",
+            "0.1735",
+            "0.2005"
+          ],
+          "diff": [
+            "0",
+            "0.006999999999999978",
+            "0.02000000000000002"
+          ],
+          "volume_flag": [
+            "0"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "0"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "0"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "source",
+        "name": "source.1",
+        "path": "source.1",
+        "depth": 0,
+        "creation_order": 5,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.0,
+            0.0315,
+            0.1805
+          ],
+          "bbox_max": [
+            0.0,
+            0.03850000000000001,
+            0.2005
+          ],
+          "center": [
+            0.0,
+            0.035,
+            0.1905
+          ],
+          "size": [
+            0.0,
+            0.007,
+            0.02
+          ]
+        },
+        "properties": {
+          "current_stype": "quad",
+          "temp": 1.0,
+          "grid_priority": 13.0,
+          "creation_order": 5.0,
+          "current_genus": "default",
+          "temp_total": 33.0
+        },
+        "setvals": {
+          "point1": [
+            "0",
+            "0.0315",
+            "0.1805"
+          ],
+          "point2": [
+            "0",
+            "0.03850000000000001",
+            "0.2005"
+          ],
+          "diff": [
+            "0",
+            "0.007000000000000013",
+            "0.02000000000000002"
+          ],
+          "volume_flag": [
+            "0"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "0"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "0"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "source",
+        "name": "source.1.4",
+        "path": "source.1.4",
+        "depth": 0,
+        "creation_order": 5,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.0,
+            0.2115,
+            0.1805
+          ],
+          "bbox_max": [
+            0.0,
+            0.2185,
+            0.2005
+          ],
+          "center": [
+            0.0,
+            0.215,
+            0.1905
+          ],
+          "size": [
+            0.0,
+            0.007,
+            0.02
+          ]
+        },
+        "properties": {
+          "current_stype": "quad",
+          "temp": 1.0,
+          "grid_priority": 17.0,
+          "creation_order": 5.0,
+          "current_genus": "default",
+          "temp_total": 33.0
+        },
+        "setvals": {
+          "point1": [
+            "0",
+            "0.2115",
+            "0.1805"
+          ],
+          "point2": [
+            "0",
+            "0.2185",
+            "0.2005"
+          ],
+          "diff": [
+            "0",
+            "0.007000000000000006",
+            "0.02000000000000002"
+          ],
+          "volume_flag": [
+            "0"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "0"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "0"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.7",
+        "path": "plate.1.7",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.1875,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.1875,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.1875,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 10.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.1875",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.1875",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.6",
+        "path": "plate.1.6",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.1625,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.1625,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.1625,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 9.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.1625",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.1625",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.5",
+        "path": "plate.1.5",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.1375,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.1375,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.1375,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 8.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.1375",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.1375",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.4",
+        "path": "plate.1.4",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.1125,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.1125,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.1125,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 7.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.1125",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.1125",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.3",
+        "path": "plate.1.3",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.0875,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.0875,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.0875,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 6.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.08749999999999999",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.08749999999999999",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.8",
+        "path": "plate.1.8",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.2125,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.2125,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.2125,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 11.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.2125",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.2125",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1",
+        "path": "plate.1",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.0125,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.0125,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.0125,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 3.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.0125",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.0125",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.2",
+        "path": "plate.1.2",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.0625,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.0625,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.0625,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 5.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.0625",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.0625",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.1",
+        "path": "plate.1.1",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.0375,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.0375,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.0375,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 4.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.0375",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.0375",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      },
+      {
+        "kind": "plate",
+        "name": "plate.1.9",
+        "path": "plate.1.9",
+        "depth": 0,
+        "creation_order": 6,
+        "shape_type": "shape_quad",
+        "geometry": {
+          "bbox_min": [
+            0.006000000000000002,
+            0.2375,
+            0.05000000000000002
+          ],
+          "bbox_max": [
+            0.075,
+            0.2375,
+            0.331
+          ],
+          "center": [
+            0.0405,
+            0.2375,
+            0.1905
+          ],
+          "size": [
+            0.069,
+            0.0,
+            0.281
+          ]
+        },
+        "properties": {
+          "plate_type": "conduct_thick",
+          "grid_priority": 12.0,
+          "cres_heat_tr_on": 1.0,
+          "eff_thick": 0.0025,
+          "current_genus": "default",
+          "current_stype": "quad",
+          "creation_order": 6.0
+        },
+        "setvals": {
+          "point1": [
+            "0.006000000000000002",
+            "0.2375",
+            "0.05000000000000002"
+          ],
+          "point2": [
+            "0.075",
+            "0.2375",
+            "0.331"
+          ],
+          "diff": [
+            "0.06899999999999999",
+            "0",
+            "0.281"
+          ],
+          "volume_flag": [
+            "1"
+          ],
+          "split_flag": [
+            "0"
+          ],
+          "plate_flag": [
+            "1"
+          ],
+          "diff_flag": [
+            "0"
+          ],
+          "plane": [
+            "1"
+          ],
+          "iradius": [
+            "0"
+          ],
+          "thickness": [
+            "0.0025"
+          ]
+        },
+        "children": 0
+      }
+    ]
+  },
+  "problem": {
+    "setters": {
+      "job_printcmd_ps": "lp -d%p %f",
+      "job_ctrlkey": "Control",
+      "job_helpviewer": "",
+      "job_printcmd_text": "lp -d%p %f",
+      "job_autoraise": "0",
+      "job_listsort": "creation_order",
+      "job_scratch": "jobdir",
+      "job_xterm_opts": "",
+      "job_home_direction": "-z",
+      "job_precision": "0",
+      "job_diff_flag": "0",
+      "job_legend_sigfigs": "0",
+      "job_legend_figstype": "g",
+      "job_legend_time_sigfigs": "4",
+      "job_legend_time_figstype": "f",
+      "job_all_fixvals": "per",
+      "job_ptol": "1e-6",
+      "problem_radthreshhold": "0.05",
+      "problem_time": "steady",
+      "problem_nsteps": "20",
+      "problem_flowvar": "1",
+      "problem_opressure": "101325",
+      "problem_odensity": "1.225",
+      "problem_ideal_gas": "0",
+      "problem_turbulent": "1",
+      "problem_charvel": "0",
+      "problem_charlen": "0",
+      "problem_turbintens": "0",
+      "problem_turbmodel": "zero",
+      "problem_turb_prandtl": "0.9",
+      "problem_gravity": "0",
+      "problem_gravx": "0",
+      "problem_gravy": "-9.80665",
+      "problem_gravz": "0",
+      "problem_ts": "0",
+      "problem_te": "1",
+      "problem_temp": "20",
+      "problem_pressure": "0",
+      "problem_init_per_object": "0",
+      "problem_init_x": "0",
+      "problem_init_y": "0",
+      "problem_init_z": "0",
+      "problem_init_t": "ambient",
+      "problem_init_id": "",
+      "problem_oaltitude": "0",
+      "problem_alt_on": "0",
+      "problem_alt_fan": "0",
+      "problem_saveinter": "10",
+      "problem_saveintervary": "0",
+      "problem_saveinter_pvals": "",
+      "problem_stepincr": "0.001",
+      "problem_integrator": "first",
+      "problem_increments": "fixed",
+      "problem_varstep": "0.001",
+      "problem_tempvar": "1",
+      "problem_init_tke": "1",
+      "problem_init_tdr": "1",
+      "problem_init_sdr": "1",
+      "problem_tsvary": "0",
+      "problem_tsvary_type": "linear",
+      "problem_tsvary_lini": "0.001",
+      "problem_tsvary_lina": "1.0",
+      "problem_tsvary_pvals": "",
+      "problem_tsvary_lini_units": "s",
+      "problem_radtemp": "20",
+      "problem_temp_trans": "0",
+      "problem_temp_units": "C",
+      "problem_pressure_units": "N/m2",
+      "problem_opressure_units": "N/m2",
+      "problem_odensity_units": "kg/m3",
+      "problem_use_odensity": "0",
+      "problem_op_refx": "0",
+      "problem_op_refy": "0",
+      "problem_op_refz": "0",
+      "problem_op_refx_units": "m",
+      "problem_op_refy_units": "m",
+      "problem_op_refz_units": "m",
+      "problem_radtemp_units": "C",
+      "problem_init_t_units": "C",
+      "problem_oaltitude_units": "m",
+      "problem_init_tke_units": "m2/s2",
+      "problem_init_tdr_units": "m2/s3",
+      "problem_init_sdr_units": "1/s",
+      "problem_init_x_units": "m/s",
+      "problem_init_y_units": "m/s",
+      "problem_init_z_units": "m/s",
+      "problem_ts_units": "s",
+      "problem_te_units": "s",
+      "problem_gravx_units": "m/s2",
+      "problem_gravy_units": "m/s2",
+      "problem_gravz_units": "m/s2",
+      "problem_stepincr_units": "s",
+      "problem_comfort": "1",
+      "problem_disco": "0",
+      "problem_power_profile_fname": "",
+      "problem_savesteady": "100",
+      "problem_default_temp_limit": "20",
+      "problem_default_temp_limit_units": "C",
+      "problem_nthwardx": "1.0",
+      "problem_nthwardy": "0.0",
+      "problem_nthwardz": "0.0",
+      "grid_type": "hdm",
+      "grid_convert_multi": "0",
+      "grid_max_elements": "25000000",
+      "grid_perobject": "0",
+      "grid_usesize_x": "1",
+      "grid_usesize_y": "1",
+      "grid_usesize_z": "1",
+      "grid_usesize_h": "0",
+      "grid_size_x": "3.5",
+      "grid_size_y": "12.5",
+      "grid_size_z": "17.5",
+      "grid_size_h": "0",
+      "grid_gcount_i": "10",
+      "grid_gcount_j": "10",
+      "grid_gcount_k": "10",
+      "grid_hgrid": "0",
+      "grid_gtype": "unif",
+      "grid_gmax_i": "0",
+      "grid_gmax_j": "0",
+      "grid_gmax_k": "0",
+      "grid_gmin_i": "0",
+      "grid_gmin_j": "0",
+      "grid_gmin_k": "0",
+      "grid_set_default_sizes": "1",
+      "grid_hdm_uniform": "0",
+      "grid_hdm_aniso_uniform": "0",
+      "grid_hdm_mlm": "0",
+      "grid_hdm_mlm_auto": "auto",
+      "grid_hdm_mlm_auto_levels": "2",
+      "grid_hdm_mlm_auto_prox": "1",
+      "grid_hdm_ssm": "0",
+      "grid_hdm_icechip": "1",
+      "grid_hdm_per_object_size_func": "0",
+      "grid_hdm_mlm_auto_curv": "1",
+      "grid_hdm_mlm_buff": "0",
+      "grid_hdm_mlm_cartd": "0",
+      "grid_hdm_mlm_2d": "0",
+      "grid_hdm_mlm_2d_type": "2",
+      "grid_minglobal": "0",
+      "grid_global_maxrat": "0",
+      "grid_tetra_sm": "1",
+      "grid_tetra_smqual": "0.4",
+      "grid_tetra_smiters": "10",
+      "grid_tetra_smcoarse": "1",
+      "grid_tetra_smcasp": "0.1",
+      "grid_tetra_auto_inter": "1",
+      "grid_highlight_block_sides": "1",
+      "grid_tetra_smciters": "1",
+      "grid_tetra_prisms": "0",
+      "grid_tetra_prism_num": "4",
+      "grid_tetra_prism_height": "0.0",
+      "grid_tetra_prism_yplus": "0.001",
+      "grid_run_tetssi": "1",
+      "grid_triangulation_tolerance": "0.00005",
+      "grid_cutter_tries": "20",
+      "grid_allow_addfaces": "1",
+      "grid_no_tetra": "0",
+      "grid_no_cutter": "0",
+      "grid_cutter_surface": "0",
+      "grid_subgrids": "0",
+      "grid_ratios": "0",
+      "grid_mesh_parts_separate": "1",
+      "grid_settings_type": "normal",
+      "grid_tetra_settings_type": "normal",
+      "grid_sep_x": "0.6",
+      "grid_sep_y": "0.25",
+      "grid_sep_z": "1",
+      "grid_sep_x_units": "mm",
+      "grid_sep_y_units": "mm",
+      "grid_sep_z_units": "mm",
+      "grid_include_all_gaps": "0",
+      "grid_accept_all_minval_changes": "1",
+      "grid_cutouts": "1",
+      "grid_partial_cutouts": "0",
+      "solve_startmon": "1",
+      "solve_when": "now",
+      "solve_time": "",
+      "solve_where": "here",
+      "solve_lsf": "0",
+      "solve_remote": "",
+      "solve_id": "fin00",
+      "solve_jobtype": "new",
+      "solve_jobinterp": "",
+      "solve_method": "segiter",
+      "solve_segiter_num": "100",
+      "solve_segdirect_num": "100",
+      "solve_coupled_num": "50",
+      "solve_segiter_tol": "0.01",
+      "solve_segdirect_tol": "0.01",
+      "solve_coupled_tol": "0.01",
+      "solve_coupled_rtol": "0.01",
+      "solve_iter_sym_method": "CR",
+      "solve_iter_nonsym_method": "CGS",
+      "solve_iter_sym_num": "1e-5",
+      "solve_iter_nonsym_num": "1e-6",
+      "solve_sym_cond": "gauss-seidel",
+      "solve_nonsym_cond": "gauss-seidel",
+      "solve_restart_data": "interdata",
+      "solve_restid": "",
+      "solve_upwind_relax_type": "firstcut",
+      "solve_upwind_type": "first",
+      "solve_relax_type": "hybrid",
+      "solve_relax_velocity_min": "0.5",
+      "solve_relax_pressure_min": "0.75",
+      "solve_relax_temperature_min": "0.5",
+      "solve_relax_turbulent_ke_min": "0.5",
+      "solve_relax_turbulent_diss_min": "0.5",
+      "solve_relax_velocity_max": "0.0",
+      "solve_relax_pressure_max": "0.0",
+      "solve_relax_temperature_max": "0.0",
+      "solve_relax_turbulent_ke_max": "0.0",
+      "solve_relax_turbulent_diss_max": "0.0",
+      "solve_upwind_velocity": "0.1",
+      "solve_upwind_temperature": "0.1",
+      "solve_upwind_turbulent_ke": "0.1",
+      "solve_upwind_turbulent_diss": "0.1",
+      "solve_extrapolation": "1",
+      "solve_outflow_treatment": "0",
+      "solve_pre_mem": "0",
+      "solve_solve_mem": "0",
+      "solve_mem_elems": "0",
+      "solve_mem_nodes": "0",
+      "solve_ruser": "",
+      "solve_rdir": "",
+      "solve_root": "D:/Program Files/ANSYS Inc/v201/Icepak/bin//../icepak20.1",
+      "solve_fluent_inc": "",
+      "solve_segmethod": "PPROJECTION",
+      "solve_pupdate": "0.15",
+      "solve_temp_min": "ambient",
+      "solve_temp_max": "0",
+      "solve_setup_once": "0",
+      "solve_damp_on": "0",
+      "solve_damp_flow": "0",
+      "solve_damp_temp": "1",
+      "solve_mag_change_check": "2",
+      "solve_solver": "uns",
+      "solve_disable_rad": "1",
+      "solve_disable_jou": "0",
+      "solve_hybrid_init": "0",
+      "solve_fl_turb_off": "0",
+      "solve_export": "0",
+      "solve_export_type": "Nastran",
+      "solve_export_file": "",
+      "solve_do_trials": "0",
+      "solve_old_naming": "0",
+      "solve_parallel": "0",
+      "solve_parallel_num": "2",
+      "solve_parallel_file": "",
+      "solve_use_metis": "0",
+      "solve_gpu": "0",
+      "solve_gpu_num": "1",
+      "solve_allow_zone_merge": "1",
+      "solve_merge_nci": "1",
+      "solve_parallel_platform": "",
+      "solve_parallel_interconnect": "default",
+      "solve_parallel_mpi": "default",
+      "solve_sec_grad": "0",
+      "solve_temp_grad": "0",
+      "solve_pv_coupling": "0",
+      "solve_pseudo_trans": "0",
+      "solve_hot_relax": "0",
+      "solve_hot_urf": "0.25",
+      "solve_interp_udf": "0",
+      "solve_concurrent_num": "1",
+      "solve_precis": "2",
+      "solve_no_gui": "1",
+      "solve_parallel_spath": "",
+      "solve_parallel_udfshare": "0",
+      "solve_share_drive": "X:",
+      "solve_write_cfd_post_files": "0",
+      "solve_write_conductivity": "0",
+      "solve_parallel_hn": "",
+      "solve_parallel_num_mjs": "2",
+      "solve_parallel_spath_mjs": "",
+      "solve_parallel_udfshare_mjs": "0",
+      "solve_parallel_freq": "10",
+      "solve_mon_freq": "1",
+      "solve_auto_par": "0",
+      "solve_dat_file": "1",
+      "solve_fdat_file": "1",
+      "solve_rem_lnx": "0",
+      "solve_rem_mach": "",
+      "solve_rem_login": "",
+      "solve_rem_solve_path": "",
+      "solve_rem_icepak_path": "",
+      "solve_rem_work_dir": "",
+      "solve_rem_head_node": "",
+      "solve_curr_vec": "0",
+      "solve_rem_spn_com": "ssh",
+      "solve_rem_copy_com": "",
+      "solve_use_poor_mesh_numerics": "1",
+      "solve_variable_continuity_scaling": "0",
+      "solve_parallel_lnxjs": "0",
+      "solve_parallel_lnxjs_num": "2",
+      "solve_parallel_lnxjs_lsfqpath": "",
+      "solve_parallel_lnxjs_sgeqmaster": "localhost",
+      "solve_parallel_lnxjs_sgequeue": "",
+      "solve_parallel_lnxjs_sgepe": "",
+      "solve_parallel_lnxjs_pbs_host": "",
+      "solve_sequential": "0",
+      "solve_no_run": "0",
+      "solve_do_fast_trials": "1",
+      "uns_numiter": "200",
+      "uns_numtransiter": "20",
+      "uns_crit": "0.001",
+      "uns_crit_energy": "1e-7",
+      "uns_crit_k": "0.001",
+      "uns_crit_epsilon": "0.001",
+      "uns_crit_omega": "0.001",
+      "uns_crit_disco": "1e-6",
+      "uns_crit_species": "0.001",
+      "uns_pre_sweeps": "0",
+      "uns_post_sweeps": "1",
+      "uns_group_size": "2",
+      "default_pipe_radius": "0.1",
+      "shape_x_grid_on": "0",
+      "shape_y_grid_on": "0",
+      "shape_z_grid_on": "0",
+      "shape_x_grid": "1.0",
+      "shape_y_grid": "1.0",
+      "shape_z_grid": "1.0",
+      "shape_color_gray": "1",
+      "merge_zone_cfd_post": "1",
+      "update_name_from_dm": "0",
+      "disp_classic_cur": "0",
+      "mouse_right_click_menu": "1",
+      "mouse_selected_pt_rot": "1",
+      "display_traces_in_3D": "1",
+      "cmap_legendmap_style": "0",
+      "cmap_monolegclr": "#ffffff",
+      "shape_movegroup": "0",
+      "shape_snap_objects": "0",
+      "shape_snap_tol": "10",
+      "new_shape_factor": "0.2",
+      "domain_autoscale_factor": "1.0",
+      "default_fluid_family": "FLUID",
+      "gmax_in_def_units": "1",
+      "family_name_type": "full",
+      "family_name_nchars": "6",
+      "family_name_sep_dims": "1",
+      "grid_concurrency": "1",
+      "meshing_units": "mm",
+      "meshing_frequency_value": "0",
+      "meshing_frequency_scale": "GHz",
+      "tdv_user_views": "",
+      "tdv_animate_rotation": "1",
+      "tdv_animate_outline": "1",
+      "expression_mode": "all",
+      "expression_edit_trial_how_solveid": "nums",
+      "library_path": "{$ICEPAK_ROOT/icepak_lib}",
+      "cad_show_used": "0",
+      "cad_show_unused": "1",
+      "cad_on_interface": "1",
+      "custom_job_directory": "",
+      "custom_file_directory": "",
+      "custom_scriptfile_directory": "",
+      "named_point_move_with_object": "1",
+      "ice_ekm": "0",
+      "solve_nodewt": "1",
+      "gridcut_use_opengl": "1",
+      "gridcut_opengl_saveimage": "0",
+      "ff_tolerance": "0.0",
+      "ff_tolerance_display": "0.01",
+      "ff_tolerance_coarsen": "1e-3",
+      "ff_division_level": "7",
+      "ff_minval": "1e-5",
+      "ff_show_self": "1",
+      "ff_compute_method": "hemi",
+      "ff_compute_level": "coarse",
+      "ff_handle_small_gaps": "1",
+      "default_fluid_material": "Air",
+      "default_solid_material": "Al-Extruded",
+      "default_surface_material": "Steel-Oxidised-surface",
+      "spec_solar_fl": "0",
+      "transient_use_patch": "0",
+      "vol_losses_on": "0",
+      "sur_losses_on": "0",
+      "em_freq": "",
+      "em_feed_back": "0",
+      "report_full_var": "Temperature",
+      "report_full_region": "all",
+      "report_full_obtype": "",
+      "report_full_obname": "",
+      "report_full_onlyhead": "1",
+      "report_full_whichsides": "all",
+      "report_full_timetype": "value",
+      "report_full_timevalue": "0",
+      "report_full_timestep": "1",
+      "report_full_writefile": "1",
+      "report_full_writewindow": "1",
+      "report_full_derived_flow": "1",
+      "report_full_derived_flux_type": "total",
+      "report_full_derived_ref_type": "specified",
+      "report_full_derived_ref_temp": "ambient",
+      "report_full_derived_ref_height": "0",
+      "opt_saved_random_stuff": "",
+      "simplorer": "0",
+      "sspace_input_objects": "",
+      "sspace_output_objects": "",
+      "sspace_input_power": "5.0",
+      "ss_krylov": "0",
+      "krylov_input_objects": "",
+      "krylov_cons_order": "3",
+      "krylov_eval_order": "3",
+      "krylov_heat_flux": "0",
+      "krylov_eval_times": "0.0",
+      "krylov_trans_id": "transient00"
+    },
+    "arrays": {
+      "problem_ambient": {
+        "temp_trans_square_on": "0.0",
+        "temp_trans_curve": "",
+        "temp_trans_sin_t": "0.0",
+        "temp_trans_square_phase": "0.0",
+        "temp_fixed": "0.0",
+        "temp_transient": "0",
+        "temp_trans_type": "linear",
+        "temp_trans_square_off": "0.0",
+        "temp_trans_sin_t0": "0.0",
+        "temp_total": "0.0",
+        "temp_trans_power_a": "0.0",
+        "temp_trans_exp_a": "0.0",
+        "temp_trans_square_offval": "0.0",
+        "temp_trans_exp_b": "0.0",
+        "temp_trans_power_b": "0.0",
+        "temp_lincoeff": "0.0",
+        "temp_volume": "0.0",
+        "temp_linvalue": "0.0",
+        "temp_trans_sin_a": "0.0",
+        "temp_type": "volume",
+        "temp_trans_linear_a": "0.0"
+      },
+      "problem_ambient_units": {
+        "temp_trans_square_on": "s",
+        "temp_trans_square_phase": "s",
+        "temp_trans_sin_t0": "s",
+        "temp_trans_square_off": "s"
+      },
+      "problem_trans_tsq_vals": {
+        "min_duration": "0.0",
+        "maxval": "0.0",
+        "phase_delay": "0.0",
+        "max_duration": "0.0",
+        "minval": "0.0"
+      },
+      "problem_trans_tsq_vals_units": {
+        "min_duration": "s",
+        "maxval": "s",
+        "phase_delay": "s",
+        "max_duration": "s",
+        "minval": "s"
+      },
+      "problem_trans_auto_vals": {
+        "mint": "0.001",
+        "nft": "5",
+        "maxs": "5",
+        "maxt": "2",
+        "tre": "0.01",
+        "mins": "0.5"
+      },
+      "problem_trans_auto_vals_units": {
+        "mint": "s",
+        "maxt": "s"
+      },
+      "grid_gratio": {
+        "j_dir": "0",
+        "j_rat": "1",
+        "i_init": "0",
+        "k_dir": "0",
+        "k_rat": "1",
+        "j_init": "0",
+        "k_init": "0",
+        "i_dir": "0",
+        "i_rat": "1"
+      },
+      "grid_prism_families": {
+        "ORFN": "0"
+      },
+      "grid_tetra_params": {
+        "tetra_size_on_surfs": "0",
+        "n_cells_in_gap": "2",
+        "natural_size_refinement": "32",
+        "tetra_size_on_curves": "0",
+        "split_spanning": "1",
+        "tetra_ratio": "0",
+        "edge_criterion": "0.05",
+        "natural_size_factor": "0.8"
+      },
+      "uns_disc_order": {
+        "species_default": "1",
+        "turb_d": "1",
+        "pressure": "1",
+        "disco": "1",
+        "energy": "1",
+        "temperature_secondary_grad": "0",
+        "temperature": "1",
+        "momentum": "1",
+        "turb_w": "1",
+        "turb_k": "1"
+      },
+      "uns_under_rel": {
+        "species_default": "1.0",
+        "turb_d": "0.8",
+        "bodyforce": "1.0",
+        "viscosity": "1.0",
+        "pressure": "0.3",
+        "energy": "1.0",
+        "temperature": "1.0",
+        "momentum": "0.7",
+        "joule": "1.0",
+        "turb_w": "0.8",
+        "turb_k": "0.8"
+      },
+      "uns_solver_type": {
+        "species_default": "flex",
+        "turb_d": "flex",
+        "bodyforce": "flex",
+        "pressure": "V",
+        "energy": "F",
+        "temperature": "F",
+        "momentum": "flex",
+        "joule": "F",
+        "turb_w": "flex",
+        "turb_k": "flex"
+      },
+      "uns_term_crit": {
+        "species_default": "0.1",
+        "turb_d": "0.1",
+        "bodyforce": "0.1",
+        "pressure": "0.1",
+        "energy": "0.1",
+        "temperature": "0.1",
+        "momentum": "0.1",
+        "joule": "0.1",
+        "turb_w": "0.1",
+        "turb_k": "0.1"
+      },
+      "uns_resid_tol": {
+        "species_default": "0.7",
+        "turb_d": "0.7",
+        "bodyforce": "0.7",
+        "pressure": "0.7",
+        "energy": "0.7",
+        "temperature": "0.7",
+        "momentum": "0.7",
+        "joule": "0.7",
+        "turb_w": "0.7",
+        "turb_k": "0.7"
+      },
+      "uns_stab": {
+        "pressure": "None",
+        "temperature": "None",
+        "joule": "None"
+      },
+      "graph_color": {
+        "opening": "#fff49b",
+        "mesh quad": "yellow",
+        "resistance": "#c5ebb8",
+        "cad point": "#e6e6fa",
+        "block": "#a8a8b5",
+        "package": "#ffd1a1",
+        "names": "white",
+        "plate": "#d19d6d",
+        "mesh selected": "orange",
+        "ventres": "#aaaaaa",
+        "heatsink": "#69b46e",
+        "part": "gray",
+        "enclosure": "#b8d1eb",
+        "wall": "#b0b182",
+        "domain": "blue",
+        "surface_probe": "#ff0000",
+        "cad line": "gray",
+        "highlight": "red",
+        "source": "#ce0000",
+        "network": "purple",
+        "title": "white",
+        "mesh bar": "white",
+        "blower": "#dedeeb",
+        "mesh hexa": "#e6e6fa",
+        "pcb": "#8fb582",
+        "vent": "#aaaaaa",
+        "fan": "#829bb5",
+        "mesh penta": "#fae6e6",
+        "heat_exchanger": "#d1f7ea",
+        "mesh quality": "red",
+        "part_sep": "#ff50c0",
+        "date": "white",
+        "periodic": "#e4e5b6",
+        "mesh adjacent": "orange"
+      },
+      "graph_width": {
+        "opening": "1",
+        "mesh quad": "1",
+        "resistance": "1",
+        "cad point": "4",
+        "block": "1",
+        "package": "1",
+        "names": "",
+        "plate": "1",
+        "mesh selected": "1",
+        "ventres": "1",
+        "heatsink": "1",
+        "part": "1",
+        "enclosure": "1",
+        "wall": "1",
+        "domain": "1",
+        "cad line": "2",
+        "highlight": "1",
+        "source": "1",
+        "network": "1",
+        "title": "",
+        "mesh bar": "4",
+        "blower": "1",
+        "mesh hexa": "1",
+        "pcb": "1",
+        "vent": "1",
+        "fan": "1",
+        "mesh penta": "1",
+        "heat_exchanger": "1",
+        "mesh quality": "1",
+        "part_sep": "1",
+        "date": "",
+        "periodic": "1",
+        "mesh adjacent": "1"
+      },
+      "graph_shadepolicy": {
+        "opening": "view",
+        "mesh quad": "",
+        "resistance": "view",
+        "cad point": "",
+        "block": "view",
+        "package": "view",
+        "names": "",
+        "plate": "view",
+        "mesh selected": "",
+        "ventres": "view",
+        "heatsink": "view",
+        "part": "view",
+        "enclosure": "view",
+        "wall": "view",
+        "domain": "",
+        "cad line": "",
+        "highlight": "",
+        "source": "view",
+        "network": "view",
+        "title": "",
+        "mesh bar": "",
+        "blower": "view",
+        "mesh hexa": "",
+        "pcb": "view",
+        "vent": "view",
+        "fan": "view",
+        "mesh penta": "",
+        "heat_exchanger": "view",
+        "mesh quality": "",
+        "part_sep": "view",
+        "date": "",
+        "periodic": "view",
+        "mesh adjacent": ""
+      },
+      "graph_fancy": {
+        "opening": "1",
+        "mesh quad": "",
+        "resistance": "1",
+        "cad point": "",
+        "block": "",
+        "package": "1",
+        "names": "",
+        "plate": "",
+        "mesh selected": "",
+        "ventres": "1",
+        "heatsink": "",
+        "part": "",
+        "enclosure": "",
+        "wall": "",
+        "domain": "",
+        "cad line": "",
+        "highlight": "",
+        "source": "1",
+        "network": "1",
+        "title": "",
+        "mesh bar": "",
+        "blower": "1",
+        "mesh hexa": "",
+        "pcb": "1",
+        "vent": "1",
+        "fan": "1",
+        "mesh penta": "",
+        "heat_exchanger": "1",
+        "mesh quality": "",
+        "part_sep": "",
+        "date": "",
+        "periodic": "",
+        "mesh adjacent": ""
+      },
+      "graph_font": {
+        "opening": "fixed",
+        "mesh quad": "",
+        "resistance": "fixed",
+        "cad point": "",
+        "block": "fixed",
+        "package": "fixed",
+        "names": "fixed",
+        "plate": "fixed",
+        "mesh selected": "",
+        "ventres": "fixed",
+        "heatsink": "fixed",
+        "part": "fixed",
+        "enclosure": "fixed",
+        "wall": "fixed",
+        "domain": "fixed",
+        "cad line": "",
+        "highlight": "",
+        "source": "fixed",
+        "network": "fixed",
+        "title": "fixed",
+        "mesh bar": "",
+        "blower": "fixed",
+        "mesh hexa": "",
+        "pcb": "fixed",
+        "vent": "fixed",
+        "fan": "fixed",
+        "mesh penta": "",
+        "heat_exchanger": "fixed",
+        "mesh quality": "",
+        "part_sep": "fixed",
+        "date": "fixed",
+        "periodic": "fixed",
+        "mesh adjacent": ""
+      },
+      "graph_texture": {
+        "mesh quad": "",
+        "cad point": "",
+        "names": "",
+        "mesh selected": "",
+        "part": "",
+        "cad line": "",
+        "highlight": "",
+        "title": "",
+        "mesh bar": "",
+        "mesh hexa": "",
+        "mesh penta": "",
+        "mesh quality": "",
+        "part_sep": "",
+        "date": "",
+        "mesh adjacent": ""
+      },
+      "graph_transparency": {
+        "mesh quad": "0.5",
+        "cad point": "0.5",
+        "names": "0.5",
+        "mesh selected": "0.5",
+        "part": "0.5",
+        "cad line": "0.5",
+        "highlight": "0.5",
+        "title": "0.5",
+        "mesh bar": "0.5",
+        "mesh hexa": "0.5",
+        "mesh penta": "0.5",
+        "mesh quality": "0.5",
+        "part_sep": "0.5",
+        "date": "0.5",
+        "mesh adjacent": "0.5"
+      },
+      "graph_transparency_on": {
+        "mesh quad": "0",
+        "cad point": "0",
+        "names": "0",
+        "mesh selected": "0",
+        "part": "0",
+        "cad line": "0",
+        "highlight": "0",
+        "title": "0",
+        "mesh bar": "0",
+        "mesh hexa": "0",
+        "mesh penta": "0",
+        "mesh quality": "0",
+        "part_sep": "0",
+        "date": "0",
+        "mesh adjacent": "0"
+      },
+      "grid_mesher_params": {
+        "no_group_ogrids": "0",
+        "conformal": "1",
+        "plate_join_tolerance": "0",
+        "cartesian": "0",
+        "min_cylinder_face": "4",
+        "cyl_shrink_factor": "0.99",
+        "max_ratio": "2",
+        "no_ogrids": "0",
+        "height_max": "0",
+        "min_elements_gap": "3",
+        "min_triangle_face": "4",
+        "ignore_globals": "0",
+        "ignore_perobject": "0",
+        "max_ogrid": "0",
+        "min_elements_block": "2",
+        "conformal_tol": "0.01"
+      },
+      "tdv_lights_settings": {
+        "light1_x": "0.0",
+        "ambient": "1",
+        "light2_intensity": "0.6",
+        "light2_x": "0.0",
+        "light1_y": "0.0",
+        "light3_intensity": "0.4",
+        "light1": "1",
+        "light3_x": "1.0",
+        "light2_y": "1.0",
+        "light1_pos": "0",
+        "light1_z": "10.0",
+        "light4_intensity": "0.0",
+        "light2": "1",
+        "light4_x": "-2.0",
+        "light3_y": "-2.0",
+        "light2_pos": "0",
+        "light2_z": "-1.0",
+        "light3": "1",
+        "light4_y": "1.0",
+        "light3_pos": "0",
+        "light3_z": "-1.0",
+        "light4": "0",
+        "light4_pos": "0",
+        "light4_z": "-1.0",
+        "ambient_color": "#ffffff",
+        "light1_color": "#ffffff",
+        "complex": "0",
+        "light2_color": "#ffffff",
+        "light3_color": "#ffffff",
+        "light4_color": "#ffffff",
+        "ambient_intensity": "0.3",
+        "light1_intensity": "0.75"
+      },
+      "tdv_material_settings": {
+        "m_d": "1.0",
+        "m_a": "0.35",
+        "m_sh": "15",
+        "m_s": "0.35"
+      },
+      "tdv_mouse_bindings": {
+        "select": "1",
+        "scale": "3",
+        "trans": "2",
+        "wheelactive": "1",
+        "wheel": "5",
+        "rot": "1",
+        "cancel": "3",
+        "done": "2",
+        "scale_dir": "1"
+      },
+      "unit_data": {
+        "kg/m2": "0        1          0 mass/area                \t0",
+        "g/cm2-s": "0        0.1        0 mass_flow/area             0",
+        "": "0        1          0 \"\"",
+        "kg/m3": "0        1          0 density            \t0",
+        "m/s2": "0        1          0 acceleration        \t0",
+        "mm": "0        1000       0 \"length roughness\"         0",
+        "1/cm2": "0        1e-4       0 1/area             \t0",
+        "cm/s": "0        100        0 \"speed velocity\"           0",
+        "C": "-273.15  1          0 temperature        \t0",
+        "microns": "0        1e6\t   0 \"length roughness\"         0",
+        "cal/s-m-K": "0        0.23890    0 conductivity       \t0",
+        "lbm/ft-s": "0        0.671969   0 viscosity          \t0",
+        "kcal/kg-C": "0        2.38852e-4 0 sp_heat            \t0",
+        "N/m2": "0        1          0 pressure           \t0",
+        "mm2": "0        1e6        0 area               \t0",
+        "ft/s": "0        3.28084    0 \"speed velocity\"           0",
+        "cm/s2": "0        100        0 acceleration               0",
+        "m2/g": "0        1          0 extcoeff                   0",
+        "BTU/F-h": "0        1.8961056  0 conductance          \t0",
+        "mm3": "0        1e9        0 volume               \t0",
+        "kg/m-s": "0        1          0 viscosity          \t0",
+        "BTU/s-ft2": "0        8.8114e-5  0 \"power/area heat_flux\"     0",
+        "Rd": "0        1.8        0 temp_change        \t0",
+        "F": "-459.67  1.8        0 temperature        \t0",
+        "BTU/s-ft3": "0        8.8114e-5  0 power/volume               0",
+        "erg/cm2-s": "0        1000       0 \"power/area heat_flux\"     0",
+        "Kd": "0        1          0 temp_change        \t0",
+        "1/in": "0        0.0254     0 1/length                   0",
+        "m2": "0        1          0 area               \t0",
+        "ft2/s2": "0        10.76391   0 turbulent_k                0",
+        "kg/s-m2": "0        1          0 mass_flow/area     \t0",
+        "m3": "0        1          0 volume               \t0",
+        "ms": "0        1000       0 time                       0",
+        "ft2/s3": "0        10.76391   0 turbulent_o                0",
+        "in2": "0        1550.003   0 area               \t0",
+        "C-mm2/W": "0        1e6        0 impedance          \t0",
+        "ft": "0        3.28084    0 \"length roughness\" \t0",
+        "in3": "0        61023.7    0 volume               \t0",
+        "m2/s2": "0        1          0 turbulent_k                0",
+        "lbm": "0        2.20462    0 mass                \t0",
+        "J/kg-C": "0        1          0 \"sp_heat heat_capacity\"  \t0",
+        "K": "0        1          0 temperature        \t0",
+        "Amp/m2": "0        1          0 elect_current_density      0",
+        "m2/s3": "0        1          0 turbulent_o                0",
+        "kg/kmol": "0        1          0 mol_weight         \t0",
+        "BTU/h-ft-F": "0        0.577934   0 conductivity       \t0",
+        "kcal/kg-K": "0        2.38852e-4 0 sp_heat            \t0",
+        "ft2": "0        10.76391   0 area               \t0",
+        "W/C-m2": "0        1          0 heat_tr_coeff              0",
+        "microns2": "0        1e12       0 area                       0",
+        "ft3": "0        35.3147    0 volume               \t0",
+        "mm/s2": "0        1000       0 acceleration               0",
+        "BTU/s-ft-F": "0        1.60537e-4 0 conductivity               0",
+        "lbm/ft3": "0        0.062426   0 density            \t0",
+        "BTU/F-s": "0        5.26696e-4 0 conductance          \t0",
+        "1/cm": "0        1e-2       0 1/length                   0",
+        "gr": "0        14172.34   0 mass                \t0",
+        "m2/s": "0        1          0 diffusivity        \t0",
+        "BTU/R-h": "0        1.8961056  0 conductance          \t0",
+        "BTU/ft2-s-F": "0        4.89167e-5 0 heat_tr_coeff     \t \t0",
+        "Cu-oz/ft2": "0        29362.4    0 \"length roughness\" \t0",
+        "W/mm2": "0        1.0e-6     0 \"power/area heat_flux\"     0",
+        "R": "0        1.8        0 temperature        \t0",
+        "gr/lbm": "0        1          0 gr/lbm                     0",
+        "J/kg-K": "0        1          0 \"sp_heat heat_capacity\"    0",
+        "cm2/s": "0        1e4        0 diffusivity                0",
+        "lbm/s": "0        2.204623   0 mass_flow          \t0",
+        "W/K-m2": "0        1          0 heat_tr_coeff      \t0",
+        "1/m": "0        1          0 1/length                   0",
+        "microsec": "0        1000000    0 time                       0",
+        "V": "0        1          0 e_voltage                  0",
+        "Amp": "0        1          0 e_current                  0",
+        "Ohm-m": "0        1          0 e_resistance               0",
+        "cfm": "0        2118.8802  0 volume_flow\t\t0",
+        "BTU/ft2-h-F": "0        0.17614937 0 heat_tr_coeff              0",
+        "ft/s2": "0        3.28084    0 acceleration               0",
+        "W": "0        1          0 \"power heat rad_flux\"  \t0",
+        "m/s": "0        1          0 \"speed velocity\"     \t0",
+        "g/kg": "0        1          0 g/kg                       0",
+        "BTU/h-ft-R": "0        0.577934   0 conductivity       \t0",
+        "erg/cm3-s": "0        1000       0 power/volume               0",
+        "erg/s": "0        1e7        0 \"power heat rad_flux\"      0",
+        "HP": "0        1.34102e-3 0 \"power heat rad_flux\"      0",
+        "deg": "0        57.2957805 0 angle              \t0",
+        "Fd": "0        1.8        0 temp_change        \t0",
+        "mil": "0        39370.08   0 \"length roughness\" \t0",
+        "cm2": "0        1e4        0 area               \t0",
+        "BTU/lb-F": "0        2.38852e-4 0 sp_heat            \t0",
+        "BTU/h-ft2": "0        0.3170878  0 \"power/area heat_flux\"     0",
+        "1/s": "0        1          0 1/time               \t0",
+        "cm3": "0        1e6        0 volume               \t0",
+        "BTU/R-s": "0        5.26696e-4 0 conductance          \t0",
+        "BTU/h-ft3": "0        0.3170878  0 power/volume               0",
+        "BTU/ft2-s-R": "0        4.89167e-5 0 heat_tr_coeff              0",
+        "lbm/min": "0        132.2774   0 mass_flow                  0",
+        "C-in2/W": "0        1550.003   0 impedance          \t0",
+        "lb/ft-s": "0        0.671969   0 viscosity          \t0",
+        "in": "0        39.37008   0 \"length roughness\" \t0",
+        "rad": "0        1          0 angle              \t0",
+        "ft3/min": "0        2118.8802  0 volume_flow                0",
+        "m3/s": "0        1\t   0 volume_flow\t        0",
+        "BTU/ft2-h-R": "0        0.17614937 0 heat_tr_coeff              0",
+        "W/m-C": "0        1          0 conductivity       \t0",
+        "fpm": "0        196.8504   0 \"speed velocity\"           0",
+        "c": "0        2.99793e+8 0 \"speed velocity\"           0",
+        "in/s2": "0        39.37008   0 acceleration               0",
+        "oz/ft2": "0        3.2765     0 mass/area                \t0",
+        "kg/s": "0        1          0 mass_flow          \t0",
+        "dyn/cm2": "0        10         0 pressure                   0",
+        "psi": "0        1.45038e-4 0 pressure                   0",
+        "cm3/s": "0        1e6        0 volume_flow                0",
+        "W/m2": "0        1          0 \"power/area heat_flux\"     0",
+        "ft2/s": "0        10.76391   0 diffusivity                0",
+        "lbm/s-ft2": "0        0.20483    0 mass_flow/area     \t0",
+        "W/m3": "0        1          0 power/volume               0",
+        "g": "0        1000       0 mass                \t0",
+        "slugs/ft-s": "0        0.02088555 0 viscosity          \t0",
+        "BTU/lb-R": "0        2.38852e-4 0 sp_heat            \t0",
+        "torr": "0        7.50063e-3 0 pressure                   0",
+        "lbf/ft2": "0        2.08855e-2 0 pressure           \t0",
+        "cm": "0        100        0 \"length roughness\" \t0",
+        "in_water": "0        4.01606e-3 0 pressure   \t\t0",
+        "in/s": "0        39.37008   0 \"speed velocity\"           0",
+        "kg": "0        1          0 mass                \t0",
+        "1/mm": "0        1e-3       0 1/length                   0",
+        "W/m-K": "0        1          0 conductivity       \t0",
+        "1/C": "0        1          0 vol_expansion\t\t0",
+        "ppmv": "0        1e6        0 concentration              0",
+        "erg/g-K": "0        10000      0 sp_heat            \t0",
+        "BTU/hr": "0        3.4129693  0 \"power heat rad_flux\"   \t0",
+        "1/mm2": "0        1e-6       0 1/area             \t0",
+        "m": "0        1          0 \"length roughness\" \t0",
+        "g/mol": "0        1          0 mol_weight                 0",
+        "cal/g-C": "0        2.38852e-4 0 sp_heat            \t0",
+        "1/F": "0        .555555555 0 vol_expansion      \t0",
+        "slug/ft3": "0        1.94032e-3 0 density            \t0",
+        "1/m2": "0        1          0 1/area             \t0",
+        "F-s/BTU": "0        1898.627   0 resistance          \t0",
+        "poise": "0        10         0 viscosity          \t0",
+        "1/ms": "0        1e-3       0 1/time               \t0",
+        "g/s": "0        1000       0 mass_flow                  0",
+        "W/C": "0        1          0 conductance          \t0",
+        "C/W": "0        1          0 resistance          \t0",
+        "Pa": "0        1          0 pressure                   0",
+        "1/in2": "0        6.45161e-4 0 1/area             \t0",
+        "atm": "0        9.86923e-6 0 pressure                   0",
+        "1/ft": "0        0.3048     0 1/length                   0",
+        "inch": "0        39.37008   0 \"length roughness\" \t0",
+        "1/K": "0        1          0 vol_expansion      \t0",
+        "s": "0        1          0 time               \t0",
+        "1/ft2": "0        0.09290304 0 1/area             \t0",
+        "BTU/s": "0        9.48047e-4 0 \"power heat rad_flux\"      0",
+        "cal/g-K": "0        2.38852e-4 0 sp_heat            \t0",
+        "fraction": "0        1          0 concentration              0",
+        "ft3/s": "0        35.31467   0 volume_flow                0",
+        "W/K": "0        1          0 conductance          \t0",
+        "K/W": "0        1          0 resistance          \t0",
+        "g/cm3": "0        0.001      0 density            \t0",
+        "identity": "0        1          0 \"\"                         0",
+        "1/R": "0        .555555555 0 vol_expansion      \t0",
+        "m3/min": "0        60         0 volume_flow\t        0",
+        "R-s/BTU": "0        1898.627   0 resistance          \t0",
+        "cal/s-m-C": "0        0.23890    0 conductivity       \t0",
+        "mm/s": "0        1000       0 \"speed velocity\"           0",
+        "C-m2/W": "0        1          0 impedance          \t0",
+        "erg/cm-s-K": "0        1e5        0 conductivity       \t0",
+        "1/microsec": "0        1e-6       0 1/time               \t0",
+        "met": "0        0.017182130584193 0 \"power/area heat_flux\"     0",
+        "L/min": "0        60000      0 volume_flow                0",
+        "Cd": "0        1          0 temp_change        \t0"
+      },
+      "unit_choices": {
+        "volume": "m3 ft3 cm3 mm3 in3",
+        "heat_flux": "W/m2 W/mm2 BTU/s-ft2 BTU/h-ft2 erg/cm2-s met",
+        "density": "kg/m3 lbm/ft3 slug/ft3 g/cm3",
+        "turbulent_o": "m2/s3 ft2/s3",
+        "power/volume": "W/m3 BTU/s-ft3 BTU/h-ft3 erg/cm3-s",
+        "viscosity": "kg/m-s lbm/ft-s poise lb/ft-s slugs/ft-s",
+        "time": "s ms microsec",
+        "angle": "deg",
+        "conductance": "W/C BTU/F-s W/K BTU/R-s BTU/F-h BTU/R-h",
+        "mol_weight": "kg/kmol g/mol",
+        "1/length": "1/m 1/ft 1/cm 1/mm 1/in",
+        "e_resistance": "Ohm-m",
+        "elect_current_density": "Amp/m2",
+        "heat_tr_coeff": "W/K-m2 BTU/ft2-s-F BTU/ft2-h-F W/C-m2 BTU/ft2-h-R \n                      BTU/ft2-s-R",
+        "fan_curve": "\"\"",
+        "gr/lbm": "gr/lbm",
+        "extcoeff": "m2/g",
+        "mass": "kg lbm g gr",
+        "impedance": "C-m2/W C-in2/W C-mm2/W",
+        "diffusivity": "m2/s ft2/s cm2/s",
+        "e_current": "Amp",
+        "g/kg": "g/kg",
+        "PMV": "\"\"",
+        "temp_change": "Cd Fd Kd Rd",
+        "losscoeff": "\"\"",
+        "vol_expansion": "1/K 1/R 1/C 1/F",
+        "e_voltage": "V",
+        "emissivity": "\"\"",
+        "concentration": "fraction ppmv",
+        "1/area": "1/m2 1/ft2 1/cm2 1/mm2 1/in2",
+        "resistance": "C/W F-s/BTU K/W R-s/BTU",
+        "length": "m ft cm mm microns in mil Cu-oz/ft2",
+        "PPD": "\"\"",
+        "roughness": "m ft cm mm microns in",
+        "heat_capacity": "J/kg-K J/kg-C",
+        "xxx": "\"\"",
+        "pressure": "N/m2 lbf/ft2 Pa atm psi torr dyn/cm2 in_water",
+        "speed": "m/s ft/s cm/s mm/s in/s fpm",
+        "viscosity_ratio": "\"\"",
+        "sp_heat": "J/kg-K BTU/lb-F J/kg-C BTU/lb-R cal/g-K cal/g-C\n\t              kcal/kg-K kcal/kg-C erg/g-K",
+        "power": "W BTU/s BTU/hr HP erg/s",
+        "rad_flux": "W BTU/s BTU/hr HP erg/s",
+        "1/time": "1/s 1/ms 1/microsec",
+        "acceleration": "m/s2 ft/s2 cm/s2 mm/s2 in/s2",
+        "mass_flow": "kg/s lbm/s lbm/min g/s",
+        "mass_flow/area": "kg/s-m2 lbm/s-ft2 g/cm2-s",
+        "conductivity": "W/m-K BTU/s-ft-F BTU/h-ft-R W/m-C BTU/h-ft-F cal/s-m-C\n\t              cal/s-m-K erg/cm-s-K",
+        "temperature": "C F K R",
+        "area": "m2 ft2 cm2 mm2 in2 microns2",
+        "heat": "W BTU/s BTU/hr HP erg/s",
+        "mass/area": "kg/m2 oz/ft2",
+        "power/area": "W/m2 W/mm2 BTU/s-ft2 BTU/h-ft2 erg/cm2-s met",
+        "volume_flow": "m3/s ft3/min m3/min ft3/s cfm cm3/s L/min",
+        "turbulent_k": "m2/s2 ft2/s2"
+      },
+      "unit_default": {
+        "density": "kg/m3",
+        "heat_flux": "W/m2",
+        "volume": "m3",
+        "turbulent_o": "m2/s3",
+        "power/volume": "W/m3",
+        "viscosity": "kg/m-s",
+        "mol_weight": "kg/kmol",
+        "conductance": "W/C",
+        "angle": "deg",
+        "time": "s",
+        "1/length": "1/m",
+        "e_resistance": "Ohm-m",
+        "elect_current_density": "Amp/m2",
+        "heat_tr_coeff": "W/K-m2",
+        "fan_curve": "",
+        "gr/lbm": "gr/lbm",
+        "extcoeff": "m2/g",
+        "mass": "kg",
+        "impedance": "C-m2/W",
+        "diffusivity": "m2/s",
+        "e_current": "Amp",
+        "g/kg": "g/kg",
+        "PMV": "",
+        "temp_change": "Cd",
+        "losscoeff": "",
+        "vol_expansion": "1/K",
+        "e_voltage": "V",
+        "emissivity": "",
+        "concentration": "fraction",
+        "1/area": "1/m2",
+        "resistance": "C/W",
+        "length": "m",
+        "PPD": "",
+        "roughness": "m",
+        "heat_capacity": "J/kg-K",
+        "xxx": "",
+        "pressure": "N/m2",
+        "speed": "m/s",
+        "viscosity_ratio": "",
+        "sp_heat": "J/kg-K",
+        "power": "W",
+        "rad_flux": "W",
+        "1/time": "1/s",
+        "acceleration": "m/s2",
+        "mass_flow": "kg/s",
+        "mass_flow/area": "kg/s-m2",
+        "conductivity": "W/m-K",
+        "temperature": "C",
+        "area": "m2",
+        "heat": "W",
+        "mass/area": "kg/m2",
+        "power/area": "W/m2",
+        "turbulent_k": "m2/s2",
+        "volume_flow": "m3/s"
+      },
+      "pipe_mesh_params": {
+        "init_height": "0",
+        "ogrid_height": "0.5",
+        "on": "0",
+        "height_ratio": "1.1",
+        "max_length": "0"
+      },
+      "type_visible": {
+        "opening": "1",
+        "resistance": "1",
+        "block": "1",
+        "package": "1",
+        "names": "0",
+        "plate": "1",
+        "heatsink": "1",
+        "cad_line": "0",
+        "part": "1",
+        "ventres": "1",
+        "wall": "1",
+        "enclosure": "1",
+        "domain": "1",
+        "source": "1",
+        "cad_point": "0",
+        "network": "1",
+        "blower": "1",
+        "fan": "1",
+        "pcb": "1",
+        "vent": "0",
+        "heat_exchanger": "1",
+        "material": "1",
+        "periodic": "1"
+      },
+      "species": {
+        "type2": "fraction",
+        "count": "2",
+        "initval2": "0.007",
+        "maxnum": "12",
+        "name1": "Air",
+        "name2": "h2o",
+        "enabled": "0"
+      },
+      "post_units": {
+        "volume": "m3",
+        "heat_flux": "W/m2",
+        "resistance": "C/W",
+        "heat_tr_coeff": "W/K-m2",
+        "acceleration": "m/s2",
+        "length": "m",
+        "turbulent_o": "m2/s3",
+        "mass_flow/area": "kg/s-m2",
+        "mass_flow": "kg/s",
+        "PPD": "identity",
+        "power/volume": "W/m3",
+        "conductivity": "W/m-K",
+        "temperature": "C",
+        "angle": "deg",
+        "time": "s",
+        "area": "m2",
+        "speed": "m/s",
+        "pressure": "N/m2",
+        "heat": "W",
+        "PMV": "identity",
+        "viscosity_ratio": "identity",
+        "rad_flux": "W",
+        "e_voltage": "V",
+        "elect_current_density": "Amp/m2",
+        "concentration": "fraction",
+        "1/time": "1/s",
+        "turbulent_k": "m2/s2",
+        "volume_flow": "m3/s"
+      },
+      "named_point": {
+        "names": ""
+      },
+      "named_surface": {
+        "names": ""
+      },
+      "autotherm_output": {
+        "plane": "2",
+        "file": "",
+        "reftemp_units": "C",
+        "numi": "50",
+        "numj": "50",
+        "reftemp": ""
+      },
+      "solar_load": {
+        "sunshine_frac": "1.0",
+        "angle_units": "deg",
+        "lon": "73.97",
+        "dsi_units": "W/m2",
+        "air_refract": "1.0",
+        "e_w": "W",
+        "lsm": "-5",
+        "split": "0.5",
+        "vec_x": "1.0",
+        "on": "0",
+        "vec_y": "0.0",
+        "hour": "12",
+        "vec_z": "0.0",
+        "angle": "60.0",
+        "dfsi_units": "W/m2",
+        "dsi": "100.0",
+        "n_s": "N",
+        "lat": "40.78",
+        "scat_fract": "0.0",
+        "minute": "0",
+        "max_qtr": "7",
+        "dfsi": "7.0",
+        "date": "1",
+        "month": "1",
+        "ground_refl": "0.2"
+      },
+      "disco": {
+        "pp": "1",
+        "tp": "1",
+        "pd": "1",
+        "td": "1",
+        "fiter": "1"
+      },
+      "ray": {
+        "fc": "20",
+        "miter": "5",
+        "res": "5",
+        "riter": "1"
+      },
+      "montecarlo": {
+        "cc": "1",
+        "histories": "100000",
+        "riter": "10"
+      },
+      "report_summary": {
+        "writesuffix": ".report",
+        "count": "0",
+        "facet_values": "0",
+        "incfans": "0",
+        "all_times": "0",
+        "frame": ".report_summary.main.bot.scroll.c.win",
+        "timestep": "0",
+        "writewindow": "1",
+        "writefilename": "C:/Users/Zoey/fin/report_summary.01",
+        "sol_trans": "0",
+        "sol_all": "0",
+        "incnetworks": "0",
+        "incoverview": "0",
+        "timetype": "value",
+        "writefile": "0",
+        "timevalue": "0.0",
+        "obj_top": "0",
+        "sol_pats": "*",
+        "incpoints": "1"
+      },
+      "report_point": {
+        "writefilename": "",
+        "timevalue": "0.0",
+        "count": "0",
+        "timetype": "value",
+        "all_times": "0",
+        "writefile": "0",
+        "writewindow": "1",
+        "timestep": "0"
+      },
+      "report_variables": {
+        "Area/volume": "1",
+        "Mean": "1",
+        "Time Value": "1",
+        "Total": "1",
+        "Section": "1",
+        "Object": "1",
+        "Sides": "1",
+        "Solution ID": "1",
+        "Time Step": "1",
+        "Min": "1",
+        "Mesh": "1",
+        "Value": "1",
+        "Max": "1",
+        "Stdev": "1"
+      },
+      "opt_design_var": {
+        "names": ""
+      },
+      "opt_function": {},
+      "opt_option": {
+        "show_diags": "0",
+        "type": "single",
+        "ff_lock_values": "1",
+        "tol_f": "0.001",
+        "trial_list_trials_across": "0",
+        "tol_design": "0.01",
+        "trial_list_changing_vars": "1",
+        "tol_cons": "0.001",
+        "perturb": "0.1",
+        "cleanup_trials": "bestonly",
+        "max_iterations": "25",
+        "move": "0.2"
+      }
+    }
+  },
+  "xml": {
+    "metadata": {
+      "version": "17.0",
+      "flow": "on",
+      "temperature": "on",
+      "radiation": "off",
+      "flowRegime": "turbulent",
+      "turbulenceModel": "zeroEquation",
+      "timeVariation": "steady",
+      "naturalConvection": "off",
+      "solarLoading": "off",
+      "altitude": "off",
+      "species": "off",
+      "coupledSolver": "off",
+      "sequentialSolution": "off",
+      "parameterization": "off",
+      "parallelSolution": "off"
+    },
+    "setup": [],
+    "results": []
+  },
+  "grid": [
+    [
+      "domain",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0.075",
+      "0.25",
+      "0.356",
+      "0.0136923",
+      "0.00287356",
+      "1e+37",
+      "0.002",
+      "1",
+      "0.00325",
+      "1.11538",
+      "0.00625",
+      "1",
+      "0.0035",
+      "1",
+      "0.00333333",
+      "1.25",
+      "0.00833333",
+      "1"
+    ],
+    [
+      "hexa",
+      "1",
+      "0",
+      "0",
+      "0",
+      "0.006",
+      "0.25",
+      "0.356",
+      "1",
+      "0.006",
+      "0.25",
+      "0.356",
+      "0",
+      "0.0035",
+      "0",
+      "0",
+      "0",
+      "0",
+      "1",
+      "1",
+      "1",
+      "1",
+      "1",
+      "1",
+      "0.002",
+      "1"
+    ],
+    [
+      "hexa",
+      "2",
+      "0.006",
+      "0.0125",
+      "0.05",
+      "0.075",
+      "0.015",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.002",
+      "0.0025",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "1.8125",
+      "1.4",
+      "1",
+      "1",
+      "0.00125",
+      "1.08333"
+    ],
+    [
+      "hexa",
+      "3",
+      "0.006",
+      "0.0375",
+      "0.05",
+      "0.075",
+      "0.04",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.002",
+      "0.0025",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "2",
+      "1.75",
+      "1",
+      "1",
+      "0.00125",
+      "1.08333"
+    ],
+    [
+      "hexa",
+      "4",
+      "0.006",
+      "0.0625",
+      "0.05",
+      "0.075",
+      "0.065",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.0025",
+      "0.0025",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "1.75",
+      "2",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "hexa",
+      "5",
+      "0.006",
+      "0.0875",
+      "0.05",
+      "0.075",
+      "0.09",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.002",
+      "0.001",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "1",
+      "2",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "hexa",
+      "6",
+      "0.006",
+      "0.1125",
+      "0.05",
+      "0.075",
+      "0.115",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.0025",
+      "0.0025",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "3",
+      "1.6",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "hexa",
+      "7",
+      "0.006",
+      "0.1375",
+      "0.05",
+      "0.075",
+      "0.14",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.0025",
+      "0.0025",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "1.3",
+      "2.5",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "hexa",
+      "8",
+      "0.006",
+      "0.1625",
+      "0.05",
+      "0.075",
+      "0.165",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.0025",
+      "0.0015",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "2",
+      "1.33333",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "hexa",
+      "9",
+      "0.006",
+      "0.1875",
+      "0.05",
+      "0.075",
+      "0.19",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.0025",
+      "0.0025",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "2.2",
+      "2",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "hexa",
+      "10",
+      "0.006",
+      "0.2125",
+      "0.05",
+      "0.075",
+      "0.215",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.001",
+      "0.0035",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "2",
+      "2",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "hexa",
+      "11",
+      "0.006",
+      "0.2375",
+      "0.05",
+      "0.075",
+      "0.24",
+      "0.331",
+      "1",
+      "0.00345",
+      "0.00125",
+      "0.0165294",
+      "0.002",
+      "0",
+      "0.0025",
+      "0.0025",
+      "0.0125",
+      "0.00833333",
+      "1",
+      "1",
+      "1.9",
+      "1.66667",
+      "1",
+      "1",
+      "0.00125",
+      "1"
+    ],
+    [
+      "quad",
+      "12",
+      "yz",
+      "0",
+      "0.0315",
+      "0.1805",
+      "0",
+      "0.0385",
+      "0.2005",
+      "1",
+      "0.00233333",
+      "0.01",
+      "0",
+      "0.002",
+      "0.0025",
+      "1",
+      "1",
+      "1.25"
+    ],
+    [
+      "quad",
+      "13",
+      "yz",
+      "0",
+      "0.0765",
+      "0.1805",
+      "0",
+      "0.0835",
+      "0.2005",
+      "1",
+      "0.007",
+      "0.02",
+      "0",
+      "0.002",
+      "0.001",
+      "1",
+      "1",
+      "1"
+    ],
+    [
+      "quad",
+      "14",
+      "yz",
+      "0",
+      "0.1215",
+      "0.1805",
+      "0",
+      "0.1285",
+      "0.2005",
+      "1",
+      "0.007",
+      "0.02",
+      "0",
+      "0.002",
+      "0.0035",
+      "1",
+      "1",
+      "1"
+    ],
+    [
+      "quad",
+      "15",
+      "yz",
+      "0",
+      "0.1665",
+      "0.1805",
+      "0",
+      "0.1735",
+      "0.2005",
+      "1",
+      "0.007",
+      "0.02",
+      "0",
+      "0.002",
+      "0.002",
+      "1",
+      "1",
+      "1"
+    ],
+    [
+      "quad",
+      "16",
+      "yz",
+      "0",
+      "0.2115",
+      "0.1805",
+      "0",
+      "0.2185",
+      "0.2005",
+      "1",
+      "0.00175",
+      "0.01",
+      "0",
+      "0.002",
+      "0.00225",
+      "1",
+      "1",
+      "1"
+    ],
+    [
+      "quad",
+      "17",
+      "xy",
+      "0.006",
+      "0",
+      "0.356",
+      "0.075",
+      "0.25",
+      "0.356",
+      "1",
+      "0.069",
+      "0.25",
+      "0.00833333",
+      "0",
+      "0.003375",
+      "1",
+      "1",
+      "1"
+    ],
+    [
+      "cyl",
+      "18",
+      "xy",
+      "0.04",
+      "0.0475",
+      "0",
+      "0.03",
+      "0.01",
+      "0",
+      "1",
+      "0.00272727",
+      "0",
+      "0",
+      "0.00114943",
+      "0.00136099",
+      "0.00141421",
+      "1",
+      "1",
+      "2",
+      "1.6"
+    ],
+    [
+      "cyl",
+      "19",
+      "xy",
+      "0.04",
+      "0.0475",
+      "0",
+      "0.01",
+      "0.01",
+      "0",
+      "1",
+      "0.000909091",
+      "0",
+      "0",
+      "0.00114943",
+      "0.00141421",
+      "0.000502148",
+      "1",
+      "1",
+      "1.6",
+      "1"
+    ],
+    [
+      "cyl",
+      "20",
+      "xy",
+      "0.04",
+      "0.125",
+      "0",
+      "0.03",
+      "0.01",
+      "0",
+      "1",
+      "0.003",
+      "0",
+      "0",
+      "0.00114943",
+      "0.00136099",
+      "0.00141421",
+      "1",
+      "1",
+      "1.67904",
+      "1.6"
+    ],
+    [
+      "cyl",
+      "21",
+      "xy",
+      "0.04",
+      "0.125",
+      "0",
+      "0.01",
+      "0.01",
+      "0",
+      "1",
+      "0.001",
+      "0",
+      "0",
+      "0.00114943",
+      "0.00141421",
+      "0.000963305",
+      "1",
+      "1",
+      "1.6",
+      "1"
+    ],
+    [
+      "cyl",
+      "22",
+      "xy",
+      "0.04",
+      "0.2025",
+      "0",
+      "0.03",
+      "0.01",
+      "0",
+      "1",
+      "0.00285714",
+      "0",
+      "0",
+      "0.00114943",
+      "0.00136099",
+      "0.00141421",
+      "1",
+      "1",
+      "2",
+      "1.6"
+    ],
+    [
+      "cyl",
+      "23",
+      "xy",
+      "0.04",
+      "0.2025",
+      "0",
+      "0.01",
+      "0.01",
+      "0",
+      "1",
+      "0.000952381",
+      "0",
+      "0",
+      "0.00114943",
+      "0.00141421",
+      "0.000963305",
+      "1",
+      "1",
+      "1.6",
+      "1"
+    ]
+  ],
+  "materials_lines": 2896,
+  "post": [
+    {
+      "type": "planecut",
+      "params": {
+        "-name": "cut-velocity",
+        "-contour_lmin": "20",
+        "-contour_lmax": "59.9695",
+        "-vector_heads": "4",
+        "-particle_end": "1.001",
+        "-particle_incr": "0.02002",
+        "-grid_color": "#000000",
+        "-clip_maxx": "0.075",
+        "-clip_maxy": "0.25",
+        "-clip_maxz": "0.356",
+        "-spectype": "normx",
+        "-px": "0.0375075",
+        "-py": "0.125025",
+        "-pz": "0.178036",
+        "-d": "0.0375075"
+      }
+    },
+    {
+      "type": "planecut",
+      "params": {
+        "-name": "cut-prvelocity",
+        "-contour_var": "Pressure",
+        "-contour_lmin": "-7.20626",
+        "-contour_lmax": "1.17254",
+        "-contour_autotype": "surface",
+        "-vector_usecolor": "0",
+        "-vector_color": "#000000",
+        "-vector_heads": "4",
+        "-particle_end": "1.001",
+        "-particle_incr": "0.02002",
+        "-grid_color": "#000000",
+        "-clip_maxx": "0.075",
+        "-clip_maxy": "0.25",
+        "-clip_maxz": "0.356",
+        "-spectype": "normx",
+        "-px": "0.0375075",
+        "-py": "0.125025",
+        "-pz": "0.178036",
+        "-d": "0.0375075"
+      }
+    },
+    {
+      "type": "objsurface",
+      "params": {
+        "-name": "face-tempsource",
+        "-contour_draw": "1",
+        "-contour_lmin": "20",
+        "-contour_lmax": "59.9695",
+        "-contour_autotype": "surface",
+        "-particle_end": "1.001",
+        "-particle_incr": "0.02002",
+        "-grid_color": "#000000",
+        "-clip_maxx": "0.075",
+        "-clip_maxy": "0.25",
+        "-clip_maxz": "0.356",
+        "-object_names": "object source.1 object source.1.4 object source.1.1 object source.1.2 object source.1.3"
+      }
+    },
+    {
+      "type": "planecut",
+      "params": {
+        "-name": "cut-temperature",
+        "-contour_lmin": "20",
+        "-contour_lmax": "59.9695",
+        "-contour_autotype": "surface",
+        "-particle_end": "1.001",
+        "-particle_incr": "0.02002",
+        "-grid_color": "#000000",
+        "-clip_maxx": "0.075",
+        "-clip_maxy": "0.25",
+        "-clip_maxz": "0.356",
+        "-spectype": "normx",
+        "-px": "0.0375075",
+        "-py": "0.125025",
+        "-pz": "0.178036",
+        "-d": "0.0375075"
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,1,shape_hexa,"[0.2, 0.065, 0.125]","[0.4, 0.13, 0.25]",grid_priority=0.0
+ventres,grille.1,3,shape_quad,"[0.4, 0.065, 0.125]","[0.0, 0.13, 0.25]",grid_priority=12.0
+wall,wall.1,4,shape_quad,"[0.2, 0.0, 0.125]","[0.4, 0.0, 0.25]",grid_priority=2.0
+block,block.3,7,shape_hexa,"[0.075, 0.055, 0.035]","[0.15, 0.09, 0.07]",block_type=solid grid_priority=7.0
+part,Heatsink-packages-asy,9,shape_container,,,
+block,block.1.2,5,shape_hexa,"[0.235, 0.02, 0.125]","[0.05, 0.02, 0.05]",block_type=solid grid_priority=4.0
+block,block.1.1,5,shape_hexa,"[0.155, 0.02, 0.125]","[0.05, 0.02, 0.05]",block_type=solid grid_priority=3.0
+block,block.1,5,shape_hexa,"[0.075, 0.02, 0.125]","[0.05, 0.02, 0.05]",block_type=solid grid_priority=5.0
+block,block.1.3,5,shape_hexa,"[0.315, 0.02, 0.125]","[0.05, 0.02, 0.05]",block_type=solid grid_priority=6.0
+block,block.2.3,6,shape_hexa,"[0.315, 0.02, 0.205]","[0.05, 0.02, 0.05]",block_type=network grid_priority=13.0
+block,block.2.2,6,shape_hexa,"[0.235, 0.02, 0.205]","[0.05, 0.02, 0.05]",block_type=network grid_priority=15.0
+block,block.2,6,shape_hexa,"[0.075, 0.02, 0.205]","[0.05, 0.02, 0.05]",block_type=network grid_priority=16.0
+block,block.2.1,6,shape_hexa,"[0.155, 0.02, 0.205]","[0.05, 0.02, 0.05]",block_type=network grid_priority=14.0
+heatsink,heatsink.1,8,shape_hexa,"[0.195, 0.065, 0.104]","[0.29, 0.05, 0.008]",grid_priority=8.0
+part,fan-asy,10,shape_container,,,
+fan,fan.1,2,shape_circ,"[0.0, 0.07, 0.1]",,grid_priority=11.0

@@ -1,0 +1,83 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,1,shape_hexa,"[0.129, 0.0935, 0.1705]","[0.258, 0.187, 0.341]",grid_priority=0.0
+material,Air_0m,-1,,,,
+material,Air_10000m,-1,,,,
+block,hollow-inner,2,shape_hexa,"[0.129, 0.0935, 0.1725]","[0.23, 0.183, 0.307]",block_type=hollow grid_priority=8.0
+wall,wall-maxz,3,shape_quad,"[0.129, 0.0935, 0.339]","[0.258, 0.187, 0.0]",grid_priority=2.0
+wall,wall-minx,4,shape_quad,"[0.0, 0.0935, 0.1705]","[0.0, 0.187, 0.341]",grid_priority=3.0
+wall,wall-maxx,5,shape_quad,"[0.256, 0.0935, 0.1705]","[0.0, 0.187, 0.341]",grid_priority=4.0
+wall,wall-miny,6,shape_quad,"[0.129, 0.0, 0.1705]","[0.258, 0.0, 0.341]",grid_priority=5.0
+wall,wall-maxy,7,shape_quad,"[0.129, 0.185, 0.1705]","[0.258, 0.0, 0.341]",grid_priority=6.0
+wall,wall-maxz.1,9,shape_quad,"[0.129, 0.0935, 0.0]","[0.258, 0.187, 0.0]",grid_priority=7.0
+plate,inner-z,11,shape_quad,"[0.129, 0.0935, 0.017]","[0.23, 0.183, 0.0]",plate_type=conduct_thick grid_priority=41.0
+plate,inner-z.1,13,shape_quad,"[0.129, 0.0935, 0.326]","[0.23, 0.183, 0.0]",plate_type=conduct_thick grid_priority=42.0
+plate,inner-x,14,shape_quad,"[0.012, 0.0935, 0.178]","[0.0, 0.183, 0.322]",plate_type=conduct_thick grid_priority=43.0
+plate,inner-x.1,15,shape_quad,"[0.244, 0.0935, 0.178]","[0.0, 0.183, 0.322]",plate_type=conduct_thick grid_priority=44.0
+opening,outlet,16,shape_quad,"[0.007, 0.0935, 0.341]","[0.01, 0.183, 0.0]",grid_priority=76.0
+opening,outlet.1,17,shape_quad,"[0.251, 0.0935, 0.341]","[0.01, 0.183, 0.0]",grid_priority=77.0
+source,load1,19,shape_quad,"[0.129, 0.0935, 0.019]","[0.16, 0.13, 0.0]",temp=1.0 grid_priority=45.0
+block,card_guide.l.00,20,shape_hexa,"[0.019, 0.0995, 0.0225]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=9.0
+block,card_guide.l.01,22,shape_hexa,"[0.019, 0.0995, 0.0425]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=10.0
+block,card_guide.l.02,23,shape_hexa,"[0.019, 0.0995, 0.0625]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=11.0
+block,card_guide.l.03,24,shape_hexa,"[0.019, 0.0995, 0.0825]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=12.0
+block,card_guide.l.04,25,shape_hexa,"[0.019, 0.0995, 0.1025]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=13.0
+block,card_guide.l.05,26,shape_hexa,"[0.019, 0.0995, 0.1225]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=14.0
+block,card_guide.l.06,27,shape_hexa,"[0.019, 0.0995, 0.1425]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=15.0
+block,card_guide.l.07,28,shape_hexa,"[0.019, 0.0995, 0.1625]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=16.0
+block,card_guide.l.08,29,shape_hexa,"[0.019, 0.0995, 0.1825]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=17.0
+block,card_guide.l.09,30,shape_hexa,"[0.019, 0.0995, 0.2025]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=18.0
+block,card_guide.l.10,31,shape_hexa,"[0.019, 0.0995, 0.2225]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=19.0
+block,card_guide.l.11,32,shape_hexa,"[0.019, 0.0995, 0.2425]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=20.0
+block,card_guide.l.12,33,shape_hexa,"[0.019, 0.0995, 0.2625]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=21.0
+block,card_guide.l.13,34,shape_hexa,"[0.019, 0.0995, 0.2825]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=22.0
+block,card_guide.l.14,35,shape_hexa,"[0.019, 0.0995, 0.3025]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=23.0
+block,card_guide.r.00,37,shape_hexa,"[0.239, 0.0995, 0.0225]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=24.0
+block,card_guide.r.01,38,shape_hexa,"[0.239, 0.0995, 0.0425]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=25.0
+block,card_guide.r.02,39,shape_hexa,"[0.239, 0.0995, 0.0625]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=26.0
+block,card_guide.r.03,40,shape_hexa,"[0.239, 0.0995, 0.0825]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=27.0
+block,card_guide.r.04,41,shape_hexa,"[0.239, 0.0995, 0.1025]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=28.0
+block,card_guide.r.05,42,shape_hexa,"[0.239, 0.0995, 0.1225]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=29.0
+block,card_guide.r.06,43,shape_hexa,"[0.239, 0.0995, 0.1425]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=30.0
+block,card_guide.r.07,44,shape_hexa,"[0.239, 0.0995, 0.1625]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=31.0
+block,card_guide.r.08,45,shape_hexa,"[0.239, 0.0995, 0.1825]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=32.0
+block,card_guide.r.09,46,shape_hexa,"[0.239, 0.0995, 0.2025]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=33.0
+block,card_guide.r.10,47,shape_hexa,"[0.239, 0.0995, 0.2225]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=34.0
+block,card_guide.r.11,48,shape_hexa,"[0.239, 0.0995, 0.2425]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=35.0
+block,card_guide.r.12,49,shape_hexa,"[0.239, 0.0995, 0.2625]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=36.0
+block,card_guide.r.13,50,shape_hexa,"[0.239, 0.0995, 0.2825]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=37.0
+block,card_guide.r.14,51,shape_hexa,"[0.239, 0.0995, 0.3025]","[0.01, 0.165, 0.007]",block_type=solid grid_priority=38.0
+source,cload.l.00,55,shape_quad,"[0.019, 0.0995, 0.026]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=46.0
+source,cload.l.01,56,shape_quad,"[0.019, 0.0995, 0.046]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=47.0
+source,cload.l.02,58,shape_quad,"[0.019, 0.0995, 0.066]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=48.0
+source,cload.l.03,59,shape_quad,"[0.019, 0.0995, 0.086]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=49.0
+source,cload.l.04,60,shape_quad,"[0.019, 0.0995, 0.106]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=50.0
+source,cload.l.05,61,shape_quad,"[0.019, 0.0995, 0.126]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=51.0
+source,cload.l.06,62,shape_quad,"[0.019, 0.0995, 0.146]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=52.0
+source,cload.l.07,63,shape_quad,"[0.019, 0.0995, 0.166]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=53.0
+source,cload.l.08,64,shape_quad,"[0.019, 0.0995, 0.186]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=54.0
+source,cload.l.09,65,shape_quad,"[0.019, 0.0995, 0.206]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=55.0
+source,cload.l.10,66,shape_quad,"[0.019, 0.0995, 0.226]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=56.0
+source,cload.l.11,67,shape_quad,"[0.019, 0.0995, 0.246]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=57.0
+source,cload.l.12,68,shape_quad,"[0.019, 0.0995, 0.266]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=58.0
+source,cload.l.13,70,shape_quad,"[0.019, 0.0995, 0.286]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=59.0
+source,cload.l.14,71,shape_quad,"[0.019, 0.0995, 0.306]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=60.0
+source,cload.r.00,73,shape_quad,"[0.239, 0.0995, 0.026]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=61.0
+source,cload.r.01,74,shape_quad,"[0.239, 0.0995, 0.046]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=62.0
+source,cload.r.02,75,shape_quad,"[0.239, 0.0995, 0.066]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=63.0
+fan,fan.1,76,shape_circ,"[0.129, 0.09350000000000006, 0.0]",,grid_priority=78.0
+source,cload.r.03,76,shape_quad,"[0.239, 0.0995, 0.086]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=64.0
+source,cload.r.04,77,shape_quad,"[0.239, 0.0995, 0.106]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=65.0
+source,cload.r.05,78,shape_quad,"[0.239, 0.0995, 0.126]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=66.0
+source,cload.r.06,79,shape_quad,"[0.239, 0.0995, 0.146]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=67.0
+source,cload.r.07,82,shape_quad,"[0.239, 0.0995, 0.166]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=68.0
+source,cload.r.08,83,shape_quad,"[0.239, 0.0995, 0.186]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=69.0
+source,cload.r.09,84,shape_quad,"[0.239, 0.0995, 0.206]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=70.0
+source,cload.r.10,85,shape_quad,"[0.239, 0.0995, 0.226]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=71.0
+source,cload.r.11,86,shape_quad,"[0.239, 0.0995, 0.246]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=72.0
+source,cload.r.12,87,shape_quad,"[0.239, 0.0995, 0.266]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=73.0
+source,cload.r.13,88,shape_quad,"[0.239, 0.0995, 0.286]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=74.0
+source,cload.r.14,89,shape_quad,"[0.239, 0.0995, 0.306]","[0.01, 0.165, 0.0]",temp=1.0 grid_priority=75.0
+part,assembly.1,92,shape_container,,,
+heatsink,heat_sink_minx,90,shape_hexa,"[0.007, 0.002075, 0.1725]","[0.01, 0.00015, 0.307]",grid_priority=39.0
+part,assembly.2,93,shape_container,,,
+heatsink,heat_sink_maxx,91,shape_hexa,"[0.251, 0.002075, 0.1725]","[0.01, 0.00015, 0.307]",grid_priority=40.0

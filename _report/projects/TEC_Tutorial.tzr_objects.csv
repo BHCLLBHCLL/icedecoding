@@ -1,0 +1,40 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,1,shape_hexa,"[0.515, 0.409675, 0.515]","[0.13, 0.01255, 0.13]",grid_priority=0.0
+material,tec-tab_mat.1.6,-1,,,,
+material,tec-tab_mat.1.5,-1,,,,
+material,tec-tab_mat.1.4,-1,,,,
+material,tec-tab_mat.1.3,-1,,,,
+material,tec-tab_mat.1.2,-1,,,,
+material,tec-tab_mat.1.1,-1,,,,
+material,tec-solid_mat.1.3,-1,,,,
+material,tec-solid_mat.1.2,-1,,,,
+material,tec-solid_mat.1.1,-1,,,,
+material,tec-solid_mat.1,-1,,,,
+material,tec-tab_mat.1,-1,,,,
+block,air-solid,1,shape_hexa,"[0.515, 0.411275, 0.515]","[0.13, 0.00935, 0.13]",block_type=solid grid_priority=2.0
+part,Package,10,shape_container,,,
+package,560_BGA_39X39_4peripheral_p1.00,2,,,,grid_priority=3.0
+block,HeatSpreader1,42,shape_hexa,"[0.515, 0.40975, 0.515]","[0.085, 0.002, 0.085]",block_type=solid grid_priority=10.0
+pcb,PCB,12,shape_hexa,"[0.515, 0.405, 0.515]","[0.13, 0.0032, 0.13]",grid_priority=9.0
+block,HeatSpreader1_,13,shape_hexa,"[0.515, 0.40975, 0.515]","[0.085, 0.002, 0.085]",block_type=solid grid_priority=10.0
+block,HeatSpreader2_,30,shape_hexa,"[0.515, 0.41495, 0.515]","[0.13, 0.002, 0.13]",block_type=solid grid_priority=21.0
+wall,UpperColdPlateWallBoundary_,32,shape_quad,"[0.515, 0.41595, 0.515]","[0.13, 0.0, 0.13]",grid_priority=22.0
+wall,LowerWallBoundary_,34,shape_quad,"[0.515, 0.4034, 0.515]","[0.13, 0.0, 0.13]",grid_priority=23.0
+block,DummyBlock1,35,shape_hexa,"[0.4925, 0.41235, 0.5355]","[0.03, 0.0032, 0.034]",block_type=solid
+block,DummyBlock2,36,shape_hexa,"[0.4925, 0.41235, 0.4945]","[0.03, 0.0032, 0.034]",block_type=solid
+block,DummyBlock3,37,shape_hexa,"[0.5375, 0.41235, 0.4945]","[0.03, 0.0032, 0.034]",block_type=solid
+block,DummyBlock4,38,shape_hexa,"[0.5375, 0.41235, 0.5355]","[0.03, 0.0032, 0.034]",block_type=solid
+block,HollowBlock1,39,shape_hexa,"[0.3, 0.411175, 0.515]","[0.3, 0.01555, 0.13]",block_type=hollow
+block,HollowBlock2,40,shape_hexa,"[0.73, 0.411175, 0.515]","[0.3, 0.01555, 0.13]",block_type=hollow
+heatsink,PinFinHeatSink_,41,shape_hexa,"[0.515, 0.42495, 0.4515]","[0.13, 0.012, 0.003]",
+block,HeatSpreader2,44,shape_hexa,"[0.515, 0.41495, 0.515]","[0.13, 0.002, 0.13]",block_type=solid grid_priority=11.0
+wall,LowerWallBoundary,45,shape_quad,"[0.515, 0.4034, 0.515]","[0.13, 0.0, 0.13]",grid_priority=12.0
+wall,UpperColdPlateWallBoundary,46,shape_quad,"[0.515, 0.41595, 0.515]","[0.13, 0.0, 0.13]",grid_priority=13.0
+part,Laird_HT4_12_F2_3030.1,49,shape_container,,,
+block,tec-ceramic-bot,3,shape_hexa,"[0.515, 0.4111945, 0.517]","[0.03, 0.000889, 0.03]",block_type=solid grid_priority=4.0
+block,tec-ceramic-top,4,shape_hexa,"[0.515, 0.4135055, 0.515]","[0.03, 0.000889, 0.034]",block_type=solid grid_priority=5.0
+block,tec-tab-bot,5,shape_hexa,"[0.515, 0.411677, 0.517]","[0.03, 7.6e-05, 0.03]",block_type=solid grid_priority=6.0
+block,tec-tab-top,6,shape_hexa,"[0.515, 0.413023, 0.517]","[0.03, 7.6e-05, 0.03]",block_type=solid grid_priority=7.0
+block,tec-solid,7,shape_hexa,"[0.515, 0.41235, 0.517]","[0.03, 0.00127, 0.03]",block_type=solid grid_priority=8.0
+source,tec-cold,8,shape_quad,"[0.515, 0.411714999544, 0.516999999983]","[0.03, 0.0, 0.03]",temp=1.0 grid_priority=14.0
+source,tec-hot,9,shape_quad,"[0.515, 0.412984999544, 0.517000000017]","[0.03, 0.0, 0.03]",temp=1.0 grid_priority=15.0

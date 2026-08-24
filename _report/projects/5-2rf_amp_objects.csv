@@ -1,0 +1,20 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,1,shape_hexa,"[0.05, 0.3, 0.1]","[0.1, 0.6, 0.3]",grid_priority=0.0
+opening,cabinet_default_side_maxy,2,shape_quad,"[0.05, 0.6, 0.1]","[0.1, 0.0, 0.3]",grid_priority=18.0
+enclosure,enclosure.1,3,shape_none,,,grid_priority=3.0
+fan,delta.FFB0812_24EHE,3,shape_circ,"[0.05, 0.0, 0.1]",,grid_priority=19.0
+wall,wall.1,4,shape_quad,"[0.0, 0.3, 0.1]","[0.0, 0.3, 0.2]",grid_priority=2.0
+pcb,pcb.1,5,shape_hexa,"[0.0592, 0.3, 0.1]","[0.0016, 0.3, 0.2]",grid_priority=4.0
+source,source.1.1.2,6,shape_quad,"[0.0584, 0.33, 0.1]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=9.0
+source,source.1.1.1,6,shape_quad,"[0.0584, 0.266, 0.1]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=8.0
+source,source.1,6,shape_quad,"[0.0584, 0.202, 0.045]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=6.0
+source,source.1.1.3,6,shape_quad,"[0.0584, 0.394, 0.1]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=10.0
+source,source.1.4,6,shape_quad,"[0.0584, 0.33, 0.045]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=16.0
+source,source.1.1,6,shape_quad,"[0.0584, 0.202, 0.1]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=7.0
+source,source.1.2,6,shape_quad,"[0.0584, 0.202, 0.155]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=11.0
+source,source.1.3,6,shape_quad,"[0.0584, 0.266, 0.045]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=15.0
+source,source.1.2.3,6,shape_quad,"[0.0584, 0.394, 0.155]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=14.0
+source,source.1.2.2,6,shape_quad,"[0.0584, 0.33, 0.155]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=13.0
+source,source.1.5,6,shape_quad,"[0.0584, 0.394, 0.045]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=17.0
+source,source.1.2.1,6,shape_quad,"[0.0584, 0.266, 0.155]","[0.0, 0.016, 0.02]",temp=1.0 grid_priority=12.0
+heatsink,heatsink.1,7,shape_hexa,"[0.082, 0.3, 0.001]","[0.036, 0.3, 0.002]",grid_priority=5.0

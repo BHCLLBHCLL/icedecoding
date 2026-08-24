@@ -1,0 +1,15 @@
+﻿kind,name,creation_order,shape_type,center,size,props
+domain,cabinet.1,1,shape_hexa,"[0.2, 0.15, 0.1]","[0.4, 0.3, 0.2]",grid_priority=0.0
+opening,cabinet_default_side_minx,11,shape_quad,"[0.0, 0.15, 0.1]","[0.0, 0.3, 0.2]",grid_priority=14.0
+opening,cabinet_default_side_maxx,12,shape_quad,"[0.4, 0.15, 0.1]","[0.0, 0.3, 0.2]",grid_priority=15.0
+part,assembly.1,13,shape_container,,,
+block,block.1,2,shape_hexa,"[0.2, 0.15, 0.1]","[0.3, 0.14, 0.06]",block_type=solid grid_priority=2.0
+block,block.2,3,shape_hexa,"[0.2, 0.15, 0.1]","[0.28, 0.12, 0.04]",block_type=fluid grid_priority=3.0
+block,block.3,4,shape_cyl,"[0.1, 0.0, 0.1]",,block_type=solid grid_priority=4.0
+block,block.4,5,shape_cyl,"[0.3, 0.0, 0.1]",,block_type=solid grid_priority=5.0
+block,block.6,6,shape_cyl,"[0.3, 0.0, 0.1]",,block_type=fluid grid_priority=6.0
+block,block.5,7,shape_cyl,"[0.1, 0.0, 0.1]",,block_type=fluid grid_priority=7.0
+plate,plate.1,8,shape_quad,"[0.2, 0.15, 0.06]","[0.26, 0.1, 0.0]",plate_type=conduct_thick grid_priority=8.0
+plate,plate.2,9,shape_quad,"[0.2, 0.15, 0.13]","[0.26, 0.1, 0.0]",plate_type=conduct_thick grid_priority=9.0
+opening,opening.1,10,shape_circ,"[0.1, 0.0, 0.1]",,grid_priority=12.0
+opening,opening.1.1,10,shape_circ,"[0.3, 0.0, 0.1]",,grid_priority=13.0
