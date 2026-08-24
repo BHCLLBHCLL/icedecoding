@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import gzip
 import io
+import os
 import tarfile
 
 
@@ -43,6 +44,54 @@ def unpack_file(path: str) -> dict:
     """从文件路径读取并解包."""
     with open(path, "rb") as f:
         return unpack(f.read())
+
+
+def pack(files: dict, prefix="project") -> bytes:
+    """打包 {basename: bytes} 为 .tzr (gzip + tar, 成员路径 prefix/name)."""
+    tar_buf = io.BytesIO()
+    with tarfile.open(fileobj=tar_buf, mode="w") as tar:
+        for name, raw in files.items():
+            if raw is None:
+                continue
+            if isinstance(raw, str):
+                raw = raw.encode("latin-1", "replace")
+            else:
+                raw = bytes(raw)
+            base = str(name).replace("\\", "/").rsplit("/", 1)[-1]
+            if not base:
+                continue
+            info = tarfile.TarInfo("%s/%s" % (prefix, base))
+            info.size = len(raw)
+            tar.addfile(info, io.BytesIO(raw))
+    return gzip.compress(tar_buf.getvalue())
+
+
+def pack_file(path: str, files: dict, prefix=None):
+    """写出 .tzr 文件. prefix 默认取目标文件名去扩展名."""
+    if prefix is None:
+        prefix = os.path.splitext(os.path.basename(path))[0] or "project"
+    data = pack(files, prefix)
+    with open(path, "wb") as f:
+        f.write(data)
+    return path
+
+
+def pack_directory(dirpath: str, dest=None) -> bytes:
+    """把工程目录内的普通文件打成 .tzr 字节; dest 若给出则同时写文件."""
+    name = os.path.basename(os.path.normpath(dirpath)) or "project"
+    files = {}
+    for fn in os.listdir(dirpath):
+        if fn.startswith("."):
+            continue
+        fp = os.path.join(dirpath, fn)
+        if os.path.isfile(fp):
+            with open(fp, "rb") as f:
+                files[fn] = f.read()
+    data = pack(files, name)
+    if dest:
+        with open(dest, "wb") as f:
+            f.write(data)
+    return data
 
 
 def _decompress(data: bytes) -> bytes:
