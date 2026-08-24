@@ -224,6 +224,23 @@ def parse_post_objects(text: str):
     return out
 
 
+def format_post_objects(posts):
+    """Inverse of parse_post_objects (best-effort Tcl line)."""
+    lines = []
+    for po in posts or []:
+        ptype = po.get("type") or "post"
+        bits = [ptype]
+        for k, v in (po.get("params") or {}).items():
+            key = k if str(k).startswith("-") else "-" + str(k).lstrip("-")
+            vs = str(v)
+            if any(ch in vs for ch in " \t"):
+                vs = "{%s}" % vs
+            bits.append(key)
+            bits.append(vs)
+        lines.append("post_load_object {%s}" % " ".join(bits))
+    return "\n".join(lines) + ("\n" if lines else "")
+
+
 def _lex_tcl(s: str):
     i, n, out = 0, len(s), []
     while i < n:

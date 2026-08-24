@@ -4,13 +4,15 @@
 from __future__ import annotations
 
 from datetime import datetime
+import os
 
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (
-    QAbstractItemView, QCheckBox, QDialog, QFileDialog, QFrame, QHBoxLayout,
-    QHeaderView, QLabel, QPushButton, QTabWidget, QTableWidget, QTableWidgetItem,
-    QToolBar, QToolButton, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
+    QAbstractItemView, QCheckBox, QDialog, QDialogButtonBox, QDoubleSpinBox,
+    QFileDialog, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QLabel,
+    QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QToolBar,
+    QToolButton, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
     QPlainTextEdit, QButtonGroup, QSizePolicy,
 )
 
@@ -53,6 +55,22 @@ NODE_ICONS = {
     "Inactive": "inactive",
     "Model": "domain",
 }
+
+TITLE_KEYS = ("title", "notes", "job_title", "problem_title")
+SOLUTION_BASIC_KEYS = (
+    "niterations", "flow_iterations", "energy_iterations", "problem_time",
+    "time_step", "n_time_steps", "flow_regime", "temp_precision",
+)
+SOLUTION_ADV_KEYS = (
+    "radiation", "solar_load", "gravity", "ambient_temp", "ambient_pressure",
+)
+SOLUTION_PAR_KEYS = (
+    "nproc", "parallel", "npartitions", "hosts", "parallel_type",
+)
+
+ICEPAK_LIB_CANDIDATES = (
+    r"C:\Program Files\ANSYS Inc\v195\Icepak\icepak19.5\icepak_lib",
+)
 
 
 class WelcomeDialog(QDialog):
@@ -195,12 +213,42 @@ class DetailsDialog(QDialog):
         v.addWidget(btn, 0, Qt.AlignRight)
 
 
+class TranslateDialog(QDialog):
+    """Numeric Move / Copy offset dialog (Icepak-style dx dy dz)."""
+
+    def __init__(self, title="Move object", parent=None, dx=0.0, dy=0.0, dz=0.0):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+        form = QFormLayout(self)
+        self.spx = QDoubleSpinBox(self)
+        self.spy = QDoubleSpinBox(self)
+        self.spz = QDoubleSpinBox(self)
+        for sp, val in ((self.spx, dx), (self.spy, dy), (self.spz, dz)):
+            sp.setDecimals(6)
+            sp.setRange(-1e6, 1e6)
+            sp.setSingleStep(0.01)
+            sp.setValue(val)
+        form.addRow("X offset", self.spx)
+        form.addRow("Y offset", self.spy)
+        form.addRow("Z offset", self.spz)
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        form.addRow(buttons)
+
+    def offset(self):
+        return (self.spx.value(), self.spy.value(), self.spz.value())
+
+
 class ProjectTree(QTreeWidget):
     """Icepak Project tab: nine fixed nodes + Model objects."""
 
     object_selected = pyqtSignal(object)
     object_activated = pyqtSignal(object)
     node_selected = pyqtSignal(str, object)
+    node_activated = pyqtSignal(str, object)
     visibility_changed = pyqtSignal(str, bool)
 
     def __init__(self, parent=None):
@@ -242,16 +290,21 @@ class ProjectTree(QTreeWidget):
         it.setFlags(it.flags() | Qt.ItemIsUserCheckable | Qt.ItemIsSelectable)
         it.setCheckState(0, Qt.Unchecked if obj.name in hidden else Qt.Checked)
 
-    def populate(self, project, hidden=None):
+    def populate(self, project, hidden=None, inactive=None, trash=None,
+                 groups=None):
         """Fill from IcepakProject. Keeps the nine fixed nodes."""
         hidden = set(hidden or ())
+        inactive = set(inactive or ())
+        trash = list(trash or [])
+        groups = dict(groups or {})
         name = getattr(project, "name", None) or "untitled"
         self.blockSignals(True)
         try:
             self.reset_empty(name)
             self.setHeaderLabels([name])
-            self._fill_model(project, hidden)
+            self._fill_model(project, hidden, inactive, trash)
             self._fill_problem_and_post(project)
+            self._fill_groups_inactive_trash(project, groups, inactive, trash)
         finally:
             self.blockSignals(False)
 
@@ -274,18 +327,60 @@ class ProjectTree(QTreeWidget):
         posts = getattr(project, "post", None) or []
         post_item = self._items["Post-processing"]
         for po in posts:
-            label = po.get("type") or po.get("name") or "post"
+            label = "post"
             if isinstance(po, dict):
-                label = po.get("name") or po.get("type") or str(po)[:40]
+                params = po.get("params") or {}
+                label = (params.get("-name") or params.get("name")
+                         or po.get("name") or po.get("type") or "post")
             it = QTreeWidgetItem(post_item, [str(label)])
             it.setData(0, Qt.UserRole, ("post", po))
         if posts:
             post_item.setText(0, "Post-processing (%d)" % len(posts))
+            post_item.setExpanded(True)
 
         self._items["Problem setup"].setExpanded(False)
         self._items["Solution settings"].setExpanded(False)
 
-    def _fill_model(self, project, hidden):
+        sol = self._items["Solution settings"]
+        prb = getattr(project, "problem", None)
+        if prb is not None and getattr(prb, "setters", None):
+            buckets = {
+                "Basic settings": SOLUTION_BASIC_KEYS,
+                "Advanced settings": SOLUTION_ADV_KEYS,
+                "Parallel settings": SOLUTION_PAR_KEYS,
+            }
+            for child_name, keys in buckets.items():
+                node = None
+                for i in range(sol.childCount()):
+                    if sol.child(i).text(0) == child_name:
+                        node = sol.child(i)
+                        break
+                if node is None:
+                    continue
+                n = 0
+                for k in keys:
+                    if k in prb.setters:
+                        it = QTreeWidgetItem(node, ["%s = %s" % (k, prb.setters[k])])
+                        it.setData(0, Qt.UserRole, ("setter", (k, prb.setters[k])))
+                        n += 1
+                if n:
+                    node.setText(0, "%s (%d)" % (child_name, n))
+
+        title_node = None
+        parent = self._items["Problem setup"]
+        for i in range(parent.childCount()):
+            if parent.child(i).text(0) == "Title/notes":
+                title_node = parent.child(i)
+                break
+        if title_node is not None and prb is not None:
+            for k in TITLE_KEYS:
+                if getattr(prb, "setters", None) and k in prb.setters:
+                    it = QTreeWidgetItem(title_node, ["%s = %s" % (k, prb.setters[k])])
+                    it.setData(0, Qt.UserRole, ("setter", (k, prb.setters[k])))
+
+    def _fill_model(self, project, hidden, inactive=None, trash=None):
+        inactive = set(inactive or ())
+        trash_names = {getattr(o, "name", None) for o in (trash or [])}
         model_item = self._items["Model"]
         model = getattr(project, "model", None)
         if model is None:
@@ -308,11 +403,13 @@ class ProjectTree(QTreeWidget):
         for o in model._all_objects():
             if o.kind == "domain":
                 continue
+            if o.name in inactive or o.name in trash_names:
+                continue
             by_kind.setdefault(o.kind, []).append(o)
         for kind in sorted(by_kind, key=lambda k: -len(by_kind[k])):
             objs = by_kind[kind]
             grp = QTreeWidgetItem(model_item, ["%s (%d)" % (kind, len(objs))])
-            grp.setData(0, Qt.UserRole, ("group", kind))
+            grp.setData(0, Qt.UserRole, ("kindgroup", kind))
             grp.setIcon(0, IceIcons.get(kind, 16))
             for o in objs:
                 it = QTreeWidgetItem(grp, [o.name])
@@ -323,6 +420,50 @@ class ProjectTree(QTreeWidget):
             grp.setExpanded(True)
         model_item.setText(0, "Model (%d)" % model.count_all())
         model_item.setExpanded(True)
+
+    def _fill_groups_inactive_trash(self, project, groups, inactive, trash):
+        g_item = self._items["Groups"]
+        model = getattr(project, "model", None)
+        for gname, members in sorted((groups or {}).items()):
+            git = QTreeWidgetItem(g_item, ["%s (%d)" % (gname, len(members))])
+            git.setIcon(0, IceIcons.get("group", 16))
+            git.setData(0, Qt.UserRole, ("usergroup", gname))
+            for m in members:
+                obj = model.object_by_name(m) if model is not None else None
+                c = QTreeWidgetItem(git, [m])
+                if obj is not None:
+                    c.setData(0, Qt.UserRole, ("objectref", obj))
+                    c.setIcon(0, IceIcons.get(obj.kind, 16))
+                else:
+                    c.setData(0, Qt.UserRole, ("groupmember", (gname, m)))
+            git.setExpanded(True)
+        if groups:
+            g_item.setText(0, "Groups (%d)" % len(groups))
+            g_item.setExpanded(True)
+
+        in_item = self._items["Inactive"]
+        n_in = 0
+        for name in sorted(inactive or ()):
+            obj = model.object_by_name(name) if model is not None else None
+            it = QTreeWidgetItem(in_item, [name])
+            if obj is not None:
+                self._mark_object_item(it, obj, set())
+                it.setIcon(0, IceIcons.get(obj.kind, 16))
+            else:
+                it.setData(0, Qt.UserRole, ("inactive", name))
+            n_in += 1
+        if n_in:
+            in_item.setText(0, "Inactive (%d)" % n_in)
+            in_item.setExpanded(True)
+
+        tr_item = self._items["Trash"]
+        for o in trash or []:
+            it = QTreeWidgetItem(tr_item, [getattr(o, "name", str(o))])
+            it.setIcon(0, IceIcons.get(getattr(o, "kind", "trash"), 16))
+            it.setData(0, Qt.UserRole, ("trash", o))
+        if trash:
+            tr_item.setText(0, "Trash (%d)" % len(trash))
+            tr_item.setExpanded(True)
 
     def find_object_item(self, name):
         def walk(item):
@@ -387,21 +528,30 @@ class ProjectTree(QTreeWidget):
         tag = role[0]
         if tag == "object":
             self.object_selected.emit(role[1])
+        elif tag == "objectref":
+            self.object_selected.emit(role[1])
         else:
             self.node_selected.emit(tag, role[1] if len(role) > 1 else None)
 
     def _on_dbl(self, item, _col):
         role = item.data(0, Qt.UserRole)
-        if role and role[0] == "object":
+        if not role:
+            return
+        if role[0] in ("object", "objectref"):
             self.object_activated.emit(role[1])
+        else:
+            self.node_activated.emit(role[0], role[1] if len(role) > 1 else None)
 
 
 class LibraryTree(QTreeWidget):
     """Icepak Library tab (read-only browse of icepak_lib categories)."""
 
+    item_activated = pyqtSignal(str, object)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setHeaderLabels(["Library"])
+        self.itemDoubleClicked.connect(self._on_dbl)
         self.reset_default()
 
     def reset_default(self):
@@ -414,6 +564,59 @@ class LibraryTree(QTreeWidget):
             it.setIcon(0, IceIcons.get("folder", 16))
             it.setData(0, Qt.UserRole, ("lib", name))
         root.setExpanded(True)
+
+    def populate_from_path(self, root):
+        """Read-only listing of icepak_lib (no tar unpack)."""
+        if not root or not os.path.isdir(root):
+            self.reset_default()
+            return False
+        self.clear()
+        top = QTreeWidgetItem([os.path.basename(root) or "icepak_lib"])
+        top.setIcon(0, IceIcons.get("library", 16))
+        top.setData(0, Qt.UserRole, ("libroot", root))
+        self.addTopLevelItem(top)
+        names = sorted(os.listdir(root), key=lambda s: s.lower())
+        for name in names:
+            if name.startswith("."):
+                continue
+            fp = os.path.join(root, name)
+            label = name
+            if name.endswith(".tar"):
+                label = os.path.splitext(name)[0]
+            it = QTreeWidgetItem(top, [label])
+            it.setIcon(0, IceIcons.get("folder" if os.path.isdir(fp) else "material", 16))
+            it.setData(0, Qt.UserRole, ("lib", fp))
+            if os.path.isdir(fp):
+                children = sorted(os.listdir(fp), key=lambda s: s.lower())[:40]
+                for ch in children:
+                    if ch.startswith("."):
+                        continue
+                    cfp = os.path.join(fp, ch)
+                    cit = QTreeWidgetItem(it, [ch])
+                    cit.setData(0, Qt.UserRole, ("lib", cfp))
+                    cit.setIcon(0, IceIcons.get("folder" if os.path.isdir(cfp) else "material", 16))
+        top.setExpanded(True)
+        return True
+
+    def _on_dbl(self, item, _col):
+        role = item.data(0, Qt.UserRole)
+        self.item_activated.emit(item.text(0), role[1] if role and len(role) > 1 else None)
+
+
+def find_icepak_lib():
+    env = os.environ.get("ICEPAK_LIB") or ""
+    if env and os.path.isdir(env):
+        return env
+    root = os.environ.get("ICEPAK_ROOT") or ""
+    if root:
+        for sub in ("icepak_lib", os.path.join("icepak19.5", "icepak_lib")):
+            p = os.path.join(root, sub)
+            if os.path.isdir(p):
+                return p
+    for p in ICEPAK_LIB_CANDIDATES:
+        if os.path.isdir(p):
+            return p
+    return None
 
 
 class TdvStrip(QFrame):
