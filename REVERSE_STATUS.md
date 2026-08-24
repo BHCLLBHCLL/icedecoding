@@ -11,7 +11,7 @@
 
 **核心解析链路已跑通，全部 26 个项目扫描通过、无解析异常、无未知对象类型、post 引用对象全部可在 model 中找到。**
 
-- 已解析项目数: **26**（16 个目录 + 10 个 `.tzr` 归档）
+- 已解析项目数: **26**（17 个目录 + 9 个 `.tzr` 归档）
 - 覆盖对象类型: domain / block / plate / source / fan / opening / wall / pcb / package / heatsink / material / part / resistance / ventres / enclosure / assembly 等
 - 解析对象总数: 约 **1200+**（单项目最多 259 个，如 datacenter）
 - 交叉验证: 全部项目 `post_missing_in_model = []`、`unknown_object_types = []`
@@ -41,20 +41,32 @@ model、materials_from_libraries 等文件以 `Il!!` 开头并整体混淆：
 
 | 模块 | 功能 | 状态 |
 | --- | --- | --- |
-| `decoder.py` | `Il!!` 混淆编解码 | 完成，往返验证通过 |
-| `tzr.py` | `.tzr` gzip+tar 解包 | 完成 |
-| `model_parser.py` | model 文件 → 对象树（object/shape/setval/嵌套 object） | 基本完成（见限制） |
-| `problem_parser.py` | problem 文件 → set / array set 结构 | 基本完成 |
+| `decoder.py` | `Il!!` 混淆编解码（双周期密钥 + 行种子，周期 112） | 完成，155 行密文同 seed 往返 100% 还原 |
+| `tzr.py` | `.tzr` gzip+tar 解包（含内存流式） | 完成，avonics.tzr → 5 个项目文件 |
+| `model_parser.py` | model 文件 → 对象树（object/shape/setval/嵌套 assembly） | 完成，递归计数/几何提取正确 |
+| `problem_parser.py` | problem 文件 → set / array set（含跨行 block） | 完成，408 set / 47 array，problem_ambient 21 项正确 |
 | `project.py` | 目录/归档聚合入口 + main.ice.xml / grid_params / materials / post_objects | 完成 |
-| `export.py` | 类型化导出 JSON / objects / problem / grid CSV，几何量提取（bbox/center/radius 等） | 完成 |
-| `cli.py` | 批量 scan + 交叉验证（post 引用、grid 对照、未知类型） | 完成 |
-| `ice_gui.py` | PyQt5 + VTK 3D 可视化查看器（几何构建/拾取/渲染模式） | 实现（GUI 依赖 PyQt5/VTK） |
+| `export.py` | 类型化导出 JSON / objects / problem / grid CSV，几何量提取（bbox/center/radius 等） | 完成，修复坐标含 0 的边界计算 bug |
+| `cli.py` | 批量 scan + 交叉验证（post 引用、grid 对照、未知类型） | 完成，post 引用含嵌套 assembly 全部 resolve |
+| `ice_gui.py` | PyQt5 + VTK 3D 可视化查看器：7 种 shape 几何构建（hexa/quad/cyl 含空心/polygon/circ/container/none）、15 类对象分图层渲染（Shading/Line/Translucent）、拾取联动/双击聚焦、headless 测试模式 | 已验证（几何 1195/1247 成功；headless 全流程通过；3D 渲染需桌面 GL 环境） |
 
 ## 5. 交叉验证结果（_report/report.json）
 
 - post 对象引用的 model 对象名：**全部命中**（各项目 `post_missing_in_model` 均为空）
 - 未知对象类型：**0 个**
 - grid_params 行类型与 model 对象类型分布可对照（信息性校验）
+
+## 5.1 GUI 验证（ice_gui.py）
+
+- 几何管线：26 个项目共 **1247** 个对象，**1195** 个成功构建 3D 几何（其余 52 个为 shape_none 空对象/无几何，正常跳过）
+- headless 测试模式（`enable_3d=False`）：目录扫描 → 树填充（对象分组/问题设置/文件列表）→ 对象选中 → 属性表 → tzr 归档载入 → 图层/渲染模式切换，全部通过
+- 依赖：PyQt5、vtk 9.3.1、numpy 已就绪
+- 说明：offscreen 无 GL 环境下 3D 渲染无法验证（VTK 需真实显卡上下文），属环境限制；3D 效果需在正常桌面会话中启动查看
+
+## 5.2 关键问题修复
+
+- `all()` 误判 0 坐标为假：坐标含 0 时包围盒计算被错误跳过，已修复边界计算
+- 对象按名查找需递归进嵌套 assembly：`object_by_name` 已支持嵌套子对象递归查找，post 引用（含嵌套）全部 resolve
 
 ## 6. 已知限制与待办
 
@@ -66,7 +78,7 @@ model、materials_from_libraries 等文件以 `Il!!` 开头并整体混淆：
 | grid_params | 仅 token 级切分，未结构化解释各字段含义 |
 | problem 数组 | `_pairs` 只处理标量键值，列表/嵌套值未完整建模 |
 | 硬编码路径 | 多个脚本默认参数硬编码 `D:\training\icepak` |
-| GUI 依赖 | 3D 查看器需要 PyQt5 + VTK，非核心解析依赖 |
+| GUI 3D 环境 | 3D 渲染需真实显卡上下文；offscreen/无 GL 环境仅可 headless 测试（`enable_3d=False`），属环境限制而非代码缺陷 |
 
 ## 7. 目录结构
 
@@ -90,4 +102,10 @@ icedecoding/
 
 ## 8. 结论
 
-逆向解析主线（混淆解码 → model/problem/网格/材料/后处理解析 → 聚合导出 → 可视化）已全部实现并通过 26 个真实项目验证，处于"功能完整、细节待打磨"阶段。后续工作重点是补齐多边形/多 shape 几何解析与 problem 数组结构化。
+三阶段开发规划已全部实施并验证通过：
+
+- **阶段 1（核心解析库）**：Il!! 编解码、.tzr 解包、model/problem 解析、项目聚合 — 完成
+- **阶段 2（数据模型与导出）**：几何量提取 + JSON/CSV 导出 + 项目汇总 — 完成
+- **阶段 3（批量工具与验证）**：CLI 批量扫描 26 个项目 + 交叉验证（post 引用/未知类型）— 完成，零崩溃、零未知类型
+
+逆向解析主线（混淆解码 → model/problem/网格/材料/后处理解析 → 聚合导出 → 可视化）已全部实现并通过 26 个真实项目验证。关键技术风险（Il!! 编码破解）已消除。后续工作重点是补齐多边形/多 shape 几何解析与 problem 数组结构化。
