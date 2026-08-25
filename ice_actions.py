@@ -189,7 +189,7 @@ def _create_kind(label):
 
 SLOT_MAP = {
     # File
-    "New project": "_new_project", "Open project": "_open_dir",
+    "New project": "_new_project_dialog", "Open project": "_open_dir",
     "Reload main version": "_reload", "Save project": "_save",
     "Save project as": "_save_as", "Unpack project": "_open_tzr",
     "Pack project": "_pack_project", "Print screen": "_print_screen",

@@ -9,11 +9,12 @@ import os
 from PyQt5.QtCore import QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtWidgets import (
+        QLineEdit,
     QAbstractItemView, QCheckBox, QDialog, QDialogButtonBox, QDoubleSpinBox,
     QFileDialog, QFormLayout, QFrame, QHBoxLayout, QHeaderView, QLabel,
     QPushButton, QTabWidget, QTableWidget, QTableWidgetItem, QToolBar,
     QToolButton, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
-    QPlainTextEdit, QButtonGroup, QSizePolicy,
+    QPlainTextEdit, QButtonGroup, QSizePolicy, QGridLayout,
 )
 
 from ice_icons import IceIcons
@@ -266,11 +267,18 @@ class ProjectTree(QTreeWidget):
     node_selected = pyqtSignal(str, object)
     node_activated = pyqtSignal(str, object)
     visibility_changed = pyqtSignal(str, bool)
+    drop_requested = pyqtSignal(str, list)
+    context_action = pyqtSignal(str, object, list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setHeaderLabels(["Project"])
-        self.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.setDragEnabled(True)
+        self.setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
+        self.tree_detail = 1          # 0 flat 1 types 2 types+subtypes 3 +shapes
+        self.listsort = "creation_order"
         self.setUniformRowHeights(True)
         self.itemSelectionChanged.connect(self._on_sel)
         self.itemDoubleClicked.connect(self._on_dbl)
@@ -415,25 +423,84 @@ class ProjectTree(QTreeWidget):
         else:
             cab_it.setData(0, Qt.UserRole, ("node", "Cabinet"))
 
-        by_kind = {}
+        objs = []
         for o in model._all_objects():
             if o.kind == "domain":
                 continue
             if o.name in inactive or o.name in trash_names:
                 continue
-            by_kind.setdefault(o.kind, []).append(o)
-        for kind in sorted(by_kind, key=lambda k: -len(by_kind[k])):
-            objs = by_kind[kind]
-            grp = QTreeWidgetItem(model_item, ["%s (%d)" % (kind, len(objs))])
-            grp.setData(0, Qt.UserRole, ("kindgroup", kind))
-            grp.setIcon(0, IceIcons.get(kind, 16))
+            objs.append(o)
+
+        def sort_key(o):
+            if self.listsort == "alphabetical":
+                return o.name.lower()
+            if self.listsort == "meshing priority":
+                sv = getattr(o, "setvals", None) or {}
+                return (int(sv.get("grid_priority", 10)), getattr(o, "name", ""))
+            return (getattr(o, "creation_order", 0), getattr(o, "name", ""))
+
+        objs.sort(key=sort_key)
+
+        def subtype_of(o):
+            sv = getattr(o, "setvals", None) or {}
+            return sv.get("current_stype") or getattr(o, "current_stype", None) \
+                or sv.get("stype") or "default"
+
+        def shape_of(o):
+            return getattr(getattr(o, "shape", None), "type", None) or "-"
+
+        def add_leaf(parent, o):
+            it = QTreeWidgetItem(parent, [o.name])
+            it.setIcon(0, IceIcons.get(o.kind, 16))
+            self._mark_object_item(it, o, hidden)
+            tip = "shape=%s" % shape_of(o)
+            it.setToolTip(0, tip)
+            return it
+
+        if self.tree_detail == 0:
             for o in objs:
-                it = QTreeWidgetItem(grp, [o.name])
-                it.setIcon(0, IceIcons.get(o.kind, 16))
-                self._mark_object_item(it, o, hidden)
-                tip = "shape=%s" % (o.shape.type if o.shape else "-")
-                it.setToolTip(0, tip)
-            grp.setExpanded(True)
+                add_leaf(model_item, o)
+        else:
+            by_kind = {}
+            for o in objs:
+                by_kind.setdefault(o.kind, []).append(o)
+            for kind in sorted(by_kind, key=lambda k: -len(by_kind[k])):
+                group = by_kind[kind]
+                if self.tree_detail == 1:
+                    grp = QTreeWidgetItem(model_item,
+                                          ["%s (%d)" % (kind, len(group))])
+                    grp.setData(0, Qt.UserRole, ("kindgroup", kind))
+                    grp.setIcon(0, IceIcons.get(kind, 16))
+                    for o in group:
+                        add_leaf(grp, o)
+                    grp.setExpanded(True)
+                else:
+                    grp = QTreeWidgetItem(model_item,
+                                          ["%s (%d)" % (kind, len(group))])
+                    grp.setData(0, Qt.UserRole, ("kindgroup", kind))
+                    grp.setIcon(0, IceIcons.get(kind, 16))
+                    by_sub = {}
+                    for o in group:
+                        by_sub.setdefault(subtype_of(o), []).append(o)
+                    for sname, sobjs in sorted(by_sub.items()):
+                        if self.tree_detail == 2:
+                            sub_parent = grp
+                            label = "%s (%d)" % (sname, len(sobjs))
+                        else:
+                            sub = QTreeWidgetItem(grp,
+                                                  ["%s (%d)" % (sname,
+                                                                 len(sobjs))])
+                            sub.setData(0, Qt.UserRole, ("subtype", sname))
+                            sub_parent = sub
+                            label = None
+                        for o in sobjs:
+                            if label is not None:
+                                add_leaf(sub_parent, o)
+                            else:
+                                add_leaf(sub_parent, o)
+                        if sub_parent is not grp:
+                            sub_parent.setExpanded(True)
+                    grp.setExpanded(True)
         model_item.setText(0, "Model (%d)" % model.count_all())
         model_item.setExpanded(True)
 
@@ -480,6 +547,38 @@ class ProjectTree(QTreeWidget):
         if trash:
             tr_item.setText(0, "Trash (%d)" % len(trash))
             tr_item.setExpanded(True)
+
+    # ---- P2: drag & drop onto Inactive / Trash / Points -----------------
+    def dropEvent(self, ev):
+        """Dropping object items onto Inactive/Trash/Points nodes."""
+        target = self.itemAt(ev.pos())
+        if target is None:
+            return
+        tag = target.data(0, Qt.UserRole)
+        tagname = tag[0] if isinstance(tag, tuple) else None
+        if tagname not in ("Inactive", "Trash", "Monitor points",
+                           "Monitor surfaces", "Points", "Surfaces"):
+            return
+        names = [it.text(0) for it in self.selectedItems()
+                 if it.data(0, Qt.UserRole) and
+                 it.data(0, Qt.UserRole)[0] == "object"]
+        if names:
+            target_name = "Trash" if tagname == "Trash" else (
+                "Points" if tagname in ("Monitor points", "Points") else
+                ("Surfaces" if tagname in ("Monitor surfaces", "Surfaces")
+                 else "Inactive"))
+            self.drop_requested.emit(target_name, names)
+            ev.accept()
+        super().dropEvent(ev)
+
+    def selected_object_items(self):
+        """All currently selected items that carry a model object."""
+        out = []
+        for it in self.selectedItems():
+            d = it.data(0, Qt.UserRole)
+            if isinstance(d, tuple) and d and d[0] == "object":
+                out.append(it)
+        return out
 
     def find_object_item(self, name):
         def walk(item):
@@ -683,3 +782,322 @@ class TdvStrip(QFrame):
             if b.isChecked():
                 return name
         return "pick"
+
+
+# ---------------------------------------------------------------------------
+# P1 — New project panel (Icepak: name must not contain Chinese characters)
+# ---------------------------------------------------------------------------
+
+_CHINESE = [chr(c) for c in range(0x4E00, 0x9FFF + 1)]
+
+
+class NewProjectDialog(QDialog):
+    """File -> New project panel with Icepak name rules."""
+
+    def __init__(self, parent=None, default_name="project"):
+        super().__init__(parent)
+        self.setWindowTitle("New Project")
+        self._name = None
+        v = QVBoxLayout(self)
+        v.setContentsMargins(12, 12, 12, 12)
+        v.setSpacing(8)
+        form = QHBoxLayout()
+        form.addWidget(QLabel("Project name:", self))
+        self.txt_name = QLineEdit(default_name, self)
+        self.txt_name.setMinimumWidth(240)
+        self.txt_name.textChanged.connect(self._check)
+        form.addWidget(self.txt_name, 1)
+        v.addLayout(form)
+        self.lbl_err = QLabel("", self)
+        self.lbl_err.setStyleSheet("color:#d32f2f;")
+        v.addWidget(self.lbl_err)
+        hint = QLabel("Project name and working directory must not contain "
+                      "Chinese characters.", self)
+        hint.setStyleSheet("color:#607d8b;")
+        v.addWidget(hint)
+        buttons = QHBoxLayout()
+        buttons.addStretch(1)
+        self.btn_create = QPushButton("Create", self)
+        self.btn_create.setDefault(True)
+        self.btn_create.clicked.connect(self._accept)
+        self.btn_cancel = QPushButton("Cancel", self)
+        self.btn_cancel.clicked.connect(self.reject)
+        buttons.addWidget(self.btn_create)
+        buttons.addWidget(self.btn_cancel)
+        v.addLayout(buttons)
+        self._check(self.txt_name.text())
+
+    def _check(self, text):
+        bad = [c for c in text if c in _CHINESE]
+        if not text:
+            self.lbl_err.setText("Project name is required.")
+            self.btn_create.setEnabled(False)
+            return False
+        if bad:
+            self.lbl_err.setText("Invalid project name: %s" %
+                                 "".join(sorted(set(bad))))
+            self.btn_create.setEnabled(False)
+            return False
+        self.lbl_err.setText("")
+        self.btn_create.setEnabled(True)
+        return True
+
+    def _accept(self):
+        name = self.txt_name.text().strip()
+        if self._check(name):
+            self._name = name
+            self.accept()
+
+    @staticmethod
+    def get_name(parent=None):
+        dlg = NewProjectDialog(parent)
+        if dlg.exec_() == QDialog.Accepted:
+            return dlg._name
+        return None
+
+
+# ---------------------------------------------------------------------------
+# P1 — bottom-right "current object" geometry window (Icepak 图3-88)
+# ---------------------------------------------------------------------------
+
+class GeometryWindow(QWidget):
+    """当前所选器件几何信息窗口: name/shape/geometry + orange xS..zE buttons."""
+
+    AXIS_LABELS = ("xS", "yS", "zS", "xE", "yE", "zE")
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumWidth(230)
+        self.setMaximumWidth(330)
+        v = QVBoxLayout(self)
+        v.setContentsMargins(4, 4, 4, 4)
+        v.setSpacing(4)
+        self.lbl_title = QLabel("Geometry", self)
+        self.lbl_title.setStyleSheet("font-weight:bold;")
+        v.addWidget(self.lbl_title)
+        self.txt_name = QLineEdit(self)
+        self.txt_name.setReadOnly(True)
+        v.addWidget(self.txt_name)
+        self.txt_shape = QLineEdit(self)
+        self.txt_shape.setReadOnly(True)
+        v.addWidget(self.txt_shape)
+        self._rows = {}
+        grid = QGridLayout()
+        grid.setSpacing(3)
+        for r, name in enumerate(("Start", "End")):
+            for c, ax in enumerate(("X", "Y", "Z")):
+                key = self.AXIS_LABELS[r * 3 + c]
+                btn = QPushButton(key, self)
+                btn.setFocusPolicy(Qt.NoFocus)
+                btn.setToolTip("Align/stretch to %s (P4 wires the full "
+                               "align engine)" % key)
+                btn.setStyleSheet(
+                    "QPushButton { background:#f3a53a; color:#3a2a10; "
+                    "border:1px solid #c57f1e; border-radius:3px; "
+                    "min-width:30px; min-height:20px; }")
+                btn.clicked.connect(lambda _=False, k=key: self._axis(k))
+                grid.addWidget(btn, r, c + 0)
+                box = QLineEdit(self)
+                box.setReadOnly(True)
+                box.setMinimumWidth(56)
+                grid.addWidget(box, r, c + 3)
+                self._rows[key] = box
+        v.addLayout(grid)
+        self.btn_edit = QPushButton("Edit...", self)
+        self.btn_edit.clicked.connect(self._edit)
+        v.addWidget(self.btn_edit)
+        v.addStretch(1)
+        self._object = None
+
+    def set_object(self, obj):
+        """obj: ModelObject or None; fills read-only values."""
+        self._object = obj
+        if obj is None:
+            self.txt_name.setText("")
+            self.txt_shape.setText("")
+            for k in self._rows:
+                self._rows[k].setText("")
+            self.lbl_title.setText("Geometry")
+            return
+        name = getattr(obj, "name", "?")
+        shape = getattr(obj, "shape", None)
+        self.txt_name.setText(name)
+        self.txt_shape.setText(getattr(shape, "type", None) or
+                               getattr(shape, "stype", "") or "")
+        sv = {}
+        if shape is not None:
+            sv = getattr(shape, "setvals", None) or {}
+        axis_map = (("point1", "xS", "yS", "zS"), ("point2", "xE", "yE", "zE"))
+        coord = {}
+        for key, cx, cy, cz in axis_map:
+            v = sv.get(key)
+            if isinstance(v, (list, tuple)) and len(v) >= 3:
+                coord[cx], coord[cy], coord[cz] = v[0], v[1], v[2]
+        for key in ("xS", "yS", "zS", "xE", "yE", "zE"):
+            self._rows[key].setText(str(coord.get(key, "")))
+        self.lbl_title.setText("Geometry — %s" % name)
+
+    def _edit(self):
+        obj = self._object
+        if obj is not None and hasattr(self, "edit_requested"):
+            self.edit_requested.emit(obj.name)
+        elif obj is not None:
+            parent = self.window()
+            fn = getattr(parent, "_edit_current", None)
+            if fn is not None:
+                fn()
+
+    def _axis(self, key):
+        if self._object is None:
+            return
+        msg = "Geometry window: %s selected — align/stretch engine lands in P4." % key
+        parent = self.window()
+        log = getattr(parent, "log", None)
+        if log is not None:
+            log(msg, "WARN")
+
+
+# ---------------------------------------------------------------------------
+# P1 — Edit toolbars dialog (Icepak View->Edit toolbars)
+# ---------------------------------------------------------------------------
+
+class EditToolbarsDialog(QDialog):
+    """Check/uncheck toolbars; persisted through QSettings."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit toolbars")
+        v = QVBoxLayout(self)
+        v.setContentsMargins(10, 10, 10, 10)
+        self._checks = []
+        owner = parent if parent is not None else None
+        toolbars = getattr(owner, "_toolbars", {}) if owner is not None else {}
+        for name, tb in toolbars.items():
+            chk = QCheckBox(name, self)
+            chk.setChecked(not tb.isHidden())
+            chk.toggled.connect(
+                lambda on, n=name, t=tb: self._apply(n, t, on))
+            v.addWidget(chk)
+            self._checks.append((chk, name, tb))
+        buttons = QHBoxLayout()
+        buttons.addStretch(1)
+        ok_btn = QPushButton("OK", self)
+        ok_btn.setDefault(True)
+        ok_btn.clicked.connect(self.accept)
+        buttons.addWidget(ok_btn)
+        v.addLayout(buttons)
+
+    def _apply(self, name, tb, on):
+        tb.setVisible(on)
+        owner = self.window()
+        if owner is not None and hasattr(owner, "_toolbar_visible"):
+            owner._toolbar_visible[name] = bool(on)
+
+
+# ---------------------------------------------------------------------------
+# P2 — Edit via spreadsheet (Icepak tkTable parity, multi-edit entry)
+# ---------------------------------------------------------------------------
+
+class SpreadsheetDialog(QDialog):
+    """Rows = objects, columns = property/setval keys; editable scalars."""
+
+    def __init__(self, parent=None, names=None, project=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit via spreadsheet")
+        self.setMinimumSize(760, 460)
+        self._project = project
+        objs = []
+        if project is not None:
+            for n in (names or []):
+                o = project.model.object_by_name(n) if project.model else None
+                if o is not None:
+                    objs.append(o)
+        self._objs = objs
+        v = QVBoxLayout(self)
+        v.setContentsMargins(8, 8, 8, 8)
+        self.table = QTableWidget(self)
+        self.table.setAlternatingRowColors(True)
+        v.addWidget(self.table, 1)
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        self.btn_apply = QPushButton("Apply", self)
+        self.btn_apply.clicked.connect(self._apply)
+        ok_btn = QPushButton("OK", self)
+        ok_btn.setDefault(True)
+        ok_btn.clicked.connect(self._apply_and_close)
+        cancel = QPushButton("Cancel", self)
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(self.btn_apply)
+        btns.addWidget(ok_btn)
+        btns.addWidget(cancel)
+        v.addLayout(btns)
+        self._reload()
+
+    def _keys_of(self, obj):
+        keys = []
+        sv = getattr(obj, "setvals", None) or {}
+        for k in sv:
+            keys.append(k)
+        sh = getattr(obj, "shape", None)
+        ssv = getattr(sh, "setvals", None) or {}
+        for k in ssv:
+            keys.append("shape." + k)
+        return list(dict.fromkeys(keys))
+
+    def _reload(self):
+        keys = []
+        for obj in self._objs:
+            for k in self._keys_of(obj):
+                if k not in keys:
+                    keys.append(k)
+        cols = ["Name", "Kind"] + keys[:28]
+        self.table.setColumnCount(len(cols))
+        self.table.setHorizontalHeaderLabels(cols)
+        self.table.setRowCount(len(self._objs))
+        for r, obj in enumerate(self._objs):
+            name_item = QTableWidgetItem(getattr(obj, "name", ""))
+            name_item.setFlags(name_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 0, name_item)
+            kind_item = QTableWidgetItem(getattr(obj, "kind", ""))
+            kind_item.setFlags(kind_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 1, kind_item)
+            sv = {}
+            if getattr(obj, "setvals", None):
+                sv.update(obj.setvals)
+            sh = getattr(obj, "shape", None)
+            ssv = getattr(sh, "setvals", None) or {}
+            for k, val in ssv.items():
+                sv["shape." + k] = val
+            for c, key in enumerate(keys, start=2):
+                val = sv.get(key, "")
+                if isinstance(val, (list, tuple)):
+                    val = " ".join(str(x) for x in val)
+                self.table.setItem(r, c, QTableWidgetItem(str(val)))
+
+    def _apply(self):
+        keys = []
+        for c in range(2, self.table.columnCount()):
+            keys.append(self.table.horizontalHeaderItem(c).text())
+        for r, obj in enumerate(self._objs):
+            for c, key in enumerate(keys):
+                item = self.table.item(r, c + 2)
+                if item is None:
+                    continue
+                val = item.text()
+                if key.startswith("shape."):
+                    sh = getattr(obj, "shape", None)
+                    if sh is not None:
+                        sh.setvals[key[6:]] = val
+                else:
+                    sv = getattr(obj, "setvals", None)
+                    if sv is None:
+                        sv = obj.setvals = {}
+                    sv[key] = val
+        parent = self.window()
+        refresh = getattr(parent, "_refresh", None)
+        if refresh is not None:
+            refresh()
+
+    def _apply_and_close(self):
+        self._apply()
+        self.accept()

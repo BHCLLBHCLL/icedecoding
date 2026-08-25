@@ -59,7 +59,8 @@ try:  # pragma: no cover - 运行环境判断
     from ice_actions import CommandRegistry
     from ice_menus_toolbars import build_menus, build_toolbars, apply_hotkeys
     from ice_panes import (
-        DetailsDialog, LibraryTree, MessageWindow, PROJECT_NODES, ProjectTree,
+        DetailsDialog, EditToolbarsDialog, GeometryWindow, LibraryTree,
+        MessageWindow, NewProjectDialog, PROJECT_NODES, ProjectTree,
         TdvStrip, TranslateDialog, WelcomeDialog, find_icepak_lib,
     )
     HAS_GUI = True
@@ -536,6 +537,7 @@ class IceGui(QMainWindow):
         self.project_tree.node_selected.connect(self._on_node_selected)
         self.project_tree.node_activated.connect(self._on_node_activated)
         self.project_tree.visibility_changed.connect(self._on_tree_visibility)
+        self.project_tree.drop_requested.connect(self._on_tree_drop)
         self.project_tree.setContextMenuPolicy(Qt.CustomContextMenu)
         self.project_tree.customContextMenuRequested.connect(self._tree_menu)
         self.library_tree = LibraryTree(self)
@@ -596,12 +598,22 @@ class IceGui(QMainWindow):
         self.message_win = MessageWindow(self)
         self.logger = self.message_win  # compat
 
+        # 右下"当前所选对象几何信息窗口"（Icepak 图3-88）
+        self.geometry_win = GeometryWindow(self)
+        bottom = QSplitter(Qt.Horizontal, self)
+        bottom.addWidget(self.message_win)
+        bottom.addWidget(self.geometry_win)
+        bottom.setStretchFactor(0, 1)
+        bottom.setStretchFactor(1, 0)
+        bottom.setSizes([720, 260])
+        self._bottom_split = bottom
+
         right = QSplitter(Qt.Vertical, self)
         right.addWidget(graphics)
-        right.addWidget(self.message_win)
+        right.addWidget(bottom)
         right.setStretchFactor(0, 5)
         right.setStretchFactor(1, 1)
-        right.setSizes([640, 140])
+        right.setSizes([640, 160])
         self._right_split = right
 
         main = QSplitter(Qt.Horizontal, self)
@@ -610,7 +622,19 @@ class IceGui(QMainWindow):
         main.setStretchFactor(0, 0)
         main.setStretchFactor(1, 1)
         main.setSizes([260, 1340])
-        self.setCentralWidget(main)
+
+        # 顶部项目名称条（Icepak 布局最上沿）
+        central = QWidget(self)
+        cv = QVBoxLayout(central)
+        cv.setContentsMargins(0, 0, 0, 0)
+        cv.setSpacing(0)
+        self._title_bar = QLabel("Project: untitled", central)
+        self._title_bar.setContentsMargins(8, 2, 8, 2)
+        self._title_bar.setStyleSheet(
+            "background:#1f4e79; color:#ffffff; font-weight:bold;")
+        cv.addWidget(self._title_bar)
+        cv.addWidget(main, 1)
+        self.setCentralWidget(central)
 
         self.statusBar().showMessage("No project")
 
@@ -695,6 +719,11 @@ class IceGui(QMainWindow):
         build_menus(self)
         apply_hotkeys(self)
 
+    def _open_edit_toolbars(self):
+        """View -> Edit toolbars dialog (Icepak parity)."""
+        dlg = EditToolbarsDialog(self)
+        dlg.exec_()
+
     def _tb(self, name, row=0):
         tb = QToolBar(name, self)
         tb.setMovable(False)
@@ -709,7 +738,8 @@ class IceGui(QMainWindow):
         a.setCheckable(True)
         a.setChecked(True)
         a.toggled.connect(tb.setVisible)
-        self._tb_menu.addAction(a)
+        if self._tb_menu is not None:
+            self._tb_menu.addAction(a)
         return tb
 
     def _tb_act(self, tb, text, slot=None, icon=None, shortcut=None):
@@ -774,13 +804,23 @@ class IceGui(QMainWindow):
             self.log("Only a project directory or .tzr archive is supported: %s"
                      % path, "WARN")
 
-    def _new_project(self):
+    def _new_project(self, name="untitled"):
+        """Programmatic new project (kept argument-compatible with tests)."""
         from icepak_parser.project import IcepakProject
-        proj = IcepakProject.empty("untitled")
+        proj = IcepakProject.empty(name)
         proj.model.objects.append(default_cabinet())
         self.root_path = None
         self._reset_edit_state()
-        self._apply_project(proj, "New project (default cabinet 0.5 x 0.4 x 0.3)")
+        self._apply_project(proj, "New project %s "
+                           "(default cabinet 0.5 x 0.4 x 0.3)" % name)
+
+    def _new_project_dialog(self):
+        """Icepak File->New project panel (no Chinese in name)."""
+        name = NewProjectDialog.get_name(self)
+        if not name:
+            self.log("New project cancelled", "INFO")
+            return
+        self._new_project(name)
 
     def _reset_edit_state(self):
         self._hidden = set()
@@ -813,6 +853,8 @@ class IceGui(QMainWindow):
         self.project = proj
         name = getattr(proj, "name", None) or "untitled"
         self.setWindowTitle("%s — %s" % (ICEPAK_TITLE, name))
+        if hasattr(self, "_title_bar"):
+            self._title_bar.setText("Project: %s" % name)
         if log_msg:
             self.log(log_msg)
         self._scan_inactive()
@@ -976,6 +1018,8 @@ class IceGui(QMainWindow):
     # ------------------------------------------------------------- tree
     def _on_object_selected(self, o):
         self._highlight_object(o.name)
+        if hasattr(self, "geometry_win"):
+            self.geometry_win.set_object(o)
         self.log("Selected: %s (%s)" % (o.name, o.kind))
 
     def _on_object_activated(self, o):
@@ -1311,17 +1355,61 @@ class IceGui(QMainWindow):
             role = item.data(0, Qt.UserRole)
             tag = role[0] if role else ""
             if tag in ("object", "objectref"):
+                obj = role[1] if len(role) > 1 else None
                 menu.addAction("Edit object", self._edit_current)
+                menu.addAction("Edit via spreadsheet...",
+                               self._open_spreadsheet)
                 menu.addAction("Delete object", self._delete_current)
                 menu.addAction("Move object", self._move_current)
                 menu.addAction("Copy object", self._copy_current)
                 menu.addAction("Toggle visible", self._toggle_selected_visible)
                 menu.addAction("Toggle active", self._toggle_selected_active)
                 menu.addAction("Add to group...", self._group_selected)
+                menu.addAction("Remove from group",
+                               lambda: self._remove_from_group(obj))
+            elif tag == "usergroup":
+                menu.addAction("Rename group...",
+                               lambda: self._rename_group(role[1]))
+                menu.addAction("Delete group",
+                               lambda: self._delete_group(role[1]))
+                menu.addSeparator()
+                menu.addAction("Activate all",
+                               lambda: self._group_all(role[1], True))
+                menu.addAction("Deactivate all",
+                               lambda: self._group_all(role[1], False))
+                menu.addAction("Delete all",
+                               lambda: self._group_all(role[1], False))
+                menu.addAction("Create assembly",
+                               lambda: self._group_to_assembly(role[1]))
+                menu.addAction("Copy params", lambda: self._nyi(
+                    "Copy params from group"))
             elif tag == "trash":
                 menu.addAction("Restore from Trash",
                                lambda: self.restore_from_trash(
                                    getattr(role[1], "name", None)))
+            elif (item.text(0) == "Model" or item.text(0) == "Project"
+                  or tag == "root"):
+                menu.addAction("Find object", self._find_object)
+                menu.addAction("Expand all", self._expand_tree)
+                menu.addAction("Collapse all", self._collapse_tree)
+                menu.addSeparator()
+                ov = menu.addMenu("Object view")
+                for i, label in enumerate((
+                        "Flat", "Types", "Types+subtypes",
+                        "Types+subtypes+shapes")):
+                    a = ov.addAction(label)
+                    a.setCheckable(True)
+                    a.setChecked(self.project_tree.tree_detail == i)
+                    a.triggered.connect(
+                        lambda _=False, d=i: self._set_tree_detail(d))
+                srt = menu.addMenu("Sort")
+                for label in ("creation_order", "meshing priority",
+                              "alphabetical"):
+                    a = srt.addAction(label)
+                    a.setCheckable(True)
+                    a.setChecked(self.project_tree.listsort == label)
+                    a.triggered.connect(
+                        lambda _=False, s=label: self._set_tree_sort(s))
             else:
                 menu.addAction("Find", self._find_object)
         if not menu.actions():
@@ -1332,6 +1420,105 @@ class IceGui(QMainWindow):
         name, ok = QInputDialog.getText(self, "Create group", "Group name:")
         if ok and str(name).strip():
             self.create_group(str(name).strip())
+
+    def _on_tree_drop(self, target, names):
+        """Drag & drop: object items -> Inactive / Trash / Points / Surfaces."""
+        model = getattr(self.project, "model", None) if self.project else None
+        if model is None:
+            return
+        for name in names:
+            obj = model.object_by_name(name)
+            if obj is None:
+                continue
+            if target == "Inactive":
+                set_object_active(obj, False)
+                self._inactive.add(name)
+                self.log("Inactive: %s" % name)
+            elif target == "Trash":
+                if not object_active(obj):
+                    set_object_active(obj, True)
+                    self._inactive.discard(name)
+                take_object(model, name)
+                self._trash.append(obj)
+                self.log("Trash: %s" % name)
+            elif target == "Points":
+                if not hasattr(self, "_points"):
+                    self._points = []
+                self._points.append(name)
+                self.log("Monitor point queued: %s (P4 wires values)" % name)
+            elif target == "Surfaces":
+                if not hasattr(self, "_surfaces"):
+                    self._surfaces = []
+                self._surfaces.append(name)
+                self.log("Monitor surface queued: %s (P4 wires values)" % name)
+        self._refresh()
+
+    def _set_tree_detail(self, d):
+        self.project_tree.tree_detail = int(d)
+        self._refresh()
+        self.log("Object view: %s" % (
+            ("Flat", "Types", "Types+subtypes", "Types+subtypes+shapes")[int(d)]))
+
+    def _set_tree_sort(self, s):
+        self.project_tree.listsort = s
+        self._refresh()
+        self.log("Sort: %s" % s)
+
+    def _expand_tree(self):
+        self.project_tree.expandAll()
+
+    def _collapse_tree(self):
+        self.project_tree.collapseAll()
+
+    def _remove_from_group(self, obj):
+        if obj is None:
+            return
+        for gname, members in list(self._groups.items()):
+            if obj.name in members:
+                members.remove(obj.name)
+        self._refresh()
+        self.log("Removed %s from group" % obj.name)
+
+    def _rename_group(self, name):
+        new, ok = QInputDialog.getText(self, "Rename group",
+                                       "New group name:", text=str(name))
+        if ok and str(new).strip() and name in self._groups:
+            self._groups[str(new).strip()] = self._groups.pop(name)
+            self._refresh()
+
+    def _delete_group(self, name, delete_all=False):
+        if name in self._groups:
+            self._groups.pop(name)
+            self._refresh()
+            self.log("Deleted group %s" % name)
+
+    def _group_all(self, name, active):
+        model = getattr(self.project, "model", None) if self.project else None
+        if model is None:
+            return
+        for m in self._groups.get(name, []):
+            obj = model.object_by_name(m)
+            if obj is not None:
+                set_object_active(obj, active)
+                if active:
+                    self._inactive.discard(m)
+                else:
+                    self._inactive.add(m)
+        self._refresh()
+
+    def _group_to_assembly(self, name):
+        self.log("Create assembly from group %s (P4)" % name, "WARN")
+
+    def _open_spreadsheet(self):
+        """Edit via spreadsheet: multi-edit entry point (tkTable parity)."""
+        items = self.project_tree.selected_object_items()
+        names = [it.text(0) for it in items]
+        if not names:
+            current = self._current_object()
+            names = [current.name] if current is not None else []
+        from ice_panes import SpreadsheetDialog
+        dlg = SpreadsheetDialog(self, names=names, project=self.project)
+        dlg.exec_()
 
     def _toggle_tree_node(self):
         items = self.project_tree.selectedItems()
@@ -1942,7 +2129,7 @@ class IceGui(QMainWindow):
         if ch == WelcomeDialog.existing:
             self._open_dir()
         elif ch == WelcomeDialog.new:
-            self._new_project()
+            self._new_project_dialog()
         elif ch == WelcomeDialog.unpack:
             self._open_tzr()
 
