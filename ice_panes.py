@@ -881,6 +881,9 @@ class GeometryWindow(QWidget):
         self.txt_shape = QLineEdit(self)
         self.txt_shape.setReadOnly(True)
         v.addWidget(self.txt_shape)
+        self.btn_copy_from = QPushButton("Copy from...", self)
+        self.btn_copy_from.clicked.connect(self._copy_from)
+        v.addWidget(self.btn_copy_from)
         self._rows = {}
         grid = QGridLayout()
         grid.setSpacing(3)
@@ -898,14 +901,18 @@ class GeometryWindow(QWidget):
                 btn.clicked.connect(lambda _=False, k=key: self._axis(k))
                 grid.addWidget(btn, r, c + 0)
                 box = QLineEdit(self)
-                box.setReadOnly(True)
                 box.setMinimumWidth(56)
                 grid.addWidget(box, r, c + 3)
                 self._rows[key] = box
         v.addLayout(grid)
+        row_btns = QHBoxLayout()
+        self.btn_apply = QPushButton("Apply", self)
+        self.btn_apply.clicked.connect(self._apply_geo)
         self.btn_edit = QPushButton("Edit...", self)
         self.btn_edit.clicked.connect(self._edit)
-        v.addWidget(self.btn_edit)
+        row_btns.addWidget(self.btn_apply)
+        row_btns.addWidget(self.btn_edit)
+        v.addLayout(row_btns)
         v.addStretch(1)
         self._object = None
 
@@ -936,6 +943,40 @@ class GeometryWindow(QWidget):
         for key in ("xS", "yS", "zS", "xE", "yE", "zE"):
             self._rows[key].setText(str(coord.get(key, "")))
         self.lbl_title.setText("Geometry — %s" % name)
+
+    def _apply_geo(self):
+        """Dual-write: GeometryWindow <-> object shape (orange engine)."""
+        if self._object is None:
+            return
+        sh = getattr(self._object, "shape", None)
+        if sh is None:
+            return
+        p1 = [self._rows["xS"].text() or "0",
+              self._rows["yS"].text() or "0",
+              self._rows["zS"].text() or "0"]
+        p2 = [self._rows["xE"].text() or "0",
+              self._rows["yE"].text() or "0",
+              self._rows["zE"].text() or "0"]
+        try:
+            p1 = [float(x) for x in p1]
+            p2 = [float(x) for x in p2]
+        except ValueError:
+            return
+        sh.setvals["point1"] = p1
+        sh.setvals["point2"] = p2
+        parent = self.window()
+        mark = getattr(parent, "_mark_dirty", None)
+        if mark is not None:
+            mark("Geometry applied")
+        refresh = getattr(parent, "_refresh", None)
+        if refresh is not None:
+            refresh()
+
+    def _copy_from(self):
+        parent = self.window()
+        fn = getattr(parent, "_copy_from_dialog", None)
+        if fn is not None and self._object is not None:
+            fn(self._object)
 
     def _edit(self):
         obj = self._object

@@ -287,3 +287,83 @@ def make_display_actors(renderer, bounds, prefix="_ice_lay"):
     mesh.SetPickable(0)
     add_actor("mesh", mesh)
     return out
+
+
+# --------------------------------------------------------------------------- #
+# P3b: interactive alignment session (red/yellow, MMB accept, RMB finish)
+# --------------------------------------------------------------------------- #
+
+class AlignSession(object):
+    """Two-pick alignment state machine (Icepak Alignment toolbar)."""
+
+    PICK_SOURCE = "pick_source"
+    PICK_TARGET = "pick_target"
+
+    def __init__(self, op="align_centers"):
+        self.op = op
+        self.state = None
+        self.source = None      # bounds tuple (lo, hi)
+        self.target = None
+
+    def reset(self):
+        self.state = None
+        self.source = None
+        self.target = None
+
+    def start(self, op):
+        self.op = op
+        self.reset()
+        self.state = self.PICK_SOURCE
+
+    def pick(self, bounds, point=None):
+        """Feed next pick. Returns ('pick_source'|'pick_target'|'applied'|'ignored', result)."""
+        if self.state is None:
+            return ("ignored", None)
+        if self.state == self.PICK_SOURCE:
+            self.source = bounds
+            self.state = self.PICK_TARGET
+            return ("pick_source", None)
+        if self.state == self.PICK_TARGET:
+            self.target = bounds
+            result = self.apply()
+            op = self.op
+            self.reset()
+            self.state = self.PICK_SOURCE
+            self.op = op
+            return ("applied", result if result is not None else self.source)
+        return ("ignored", None)
+
+    def apply(self):
+        from ice_view3d import (align_face_move, align_face_stretch,
+                                align_centers, match_face)
+        if not self.source or not self.target:
+            return None
+        a, b = self.source, self.target
+        if self.op == "align_centers":
+            return align_centers(a, b)
+        fa = _face_toward(a, _mid(b))
+        fb = _face_toward(b, _mid(a))
+        if self.op == "align_face_centers":
+            return align_face_move(a, fa, b, fb)
+        if self.op == "align_face_stretch":
+            return align_face_stretch(a, fa, b, fb)
+        if self.op == "align_face_move" or self.op == "match_edge":
+            return align_face_move(a, fa, b, fb)
+        if self.op == "match_face":
+            return match_face(a, fa, b, fb)
+        return None
+
+
+def _face_toward(bounds, other_mid):
+    """Choose the box face (axis, sign) facing the other box's center."""
+    lo, hi = bounds
+    my = _mid(bounds)
+    d = [other_mid[i] - my[i] for i in range(3)]
+    axis = max(range(3), key=lambda i: abs(d[i]))
+    sign = 1 if d[axis] >= 0 else -1
+    return (axis, sign)
+
+
+def _mid(bounds):
+    lo, hi = bounds
+    return tuple((lo[i] + hi[i]) / 2.0 for i in range(3))

@@ -63,6 +63,7 @@ try:  # pragma: no cover - 运行环境判断
         snap_value, make_display_actors, nearest_face, face_center,
         align_face_move, align_face_stretch, align_centers, match_face,
     )
+    from ice_editors import CopyFromDialog, ObjectEditDialog
     from ice_panes import (
         DetailsDialog, EditToolbarsDialog, GeometryWindow, LibraryTree,
         MessageWindow, NewProjectDialog, PROJECT_NODES, ProjectTree,
@@ -503,6 +504,9 @@ class IceGui(QMainWindow):
         self._motion_axes = [True, True, True]
         self._snap_step = None          # None = off; else cabinet/100
         self._restrict_to_cabinet = True
+        self._dirty = False
+        self._align_session = None
+        self._align_picked = []
         self._bg_style = "gradient"
         self._bg_color1 = "#9ec8e8"
         self._bg_color2 = "#f4f7fb"
@@ -742,6 +746,39 @@ class IceGui(QMainWindow):
         dlg = EditToolbarsDialog(self)
         dlg.exec_()
 
+    def _start_align(self, op):
+        """Alignment toolbar: start red/yellow two-pick session."""
+        from ice_view3d import AlignSession
+        if self._align_session is None:
+            self._align_session = AlignSession(op)
+        self._align_session.start(op)
+        self._align_picked = []
+        self.log("Align %s: select source (Red), then target (Yellow), "
+                 "middle-click to accept" % op)
+
+    def _align_pick_object(self, obj):
+        if self._align_session is None or                 self._align_session.state is None:
+            return False
+        bounds = self._object_bounds(obj)
+        if bounds is None:
+            return False
+        self._align_picked.append(obj)
+        action, result = self._align_session.pick(bounds)
+        if action == "pick_source":
+            self.log("Align source (Red): %s" % obj.name)
+        elif action == "pick_target":
+            self.log("Align target (Yellow): %s" % obj.name)
+        elif action == "applied" and result is not None:
+            lo, hi = result
+            sh = getattr(self._align_picked[0], "shape", None)
+            if sh is not None:
+                sh.setvals["point1"] = list(lo)
+                sh.setvals["point2"] = list(hi)
+            self._mark_dirty("Align %s" % self._align_session.op)
+            self.log("Align applied: %s" % self._align_picked[0].name)
+            self._refresh()
+        return True
+
     def _ensure_display_actors(self):
         """Create/recreate the View->Display overlay actors for current bounds."""
         if not self._enable_3d or self.renderer is None:
@@ -873,6 +910,110 @@ class IceGui(QMainWindow):
         from ice_panes import ViewOptionsDialog
         dlg = ViewOptionsDialog(self)
         dlg.exec_()
+
+    def _mark_dirty(self, msg="Modified"):
+        self._dirty = True
+        title = self.windowTitle().split(" *")[0]
+        self.setWindowTitle(title + " *")
+        self.log(msg, "DEBUG")
+
+    def _object_edit_applied(self, obj):
+        self._mark_dirty("Edited %s" % getattr(obj, "name", "?"))
+        if hasattr(self, "geometry_win"):
+            self.geometry_win.set_object(obj)
+        self._refresh()
+
+    def _write_project_models(self):
+        """Encode + write model file back to the project directory (P4)."""
+        from icepak_parser.decoder import encode_text
+        from ice_create import serialize_model
+        proj = self.project
+        if proj is None:
+            return None
+        path = getattr(proj, "path", None)
+        name = getattr(proj, "name", None) or "untitled"
+        if not path and self.root_path:
+            path = os.path.join(self.root_path, name)
+        if not path:
+            return None
+        if not os.path.isdir(path):
+            try:
+                os.makedirs(path)
+            except OSError:
+                return None
+        model_text = encode_text(serialize_model(proj.model))
+        mpath = os.path.join(path, "model")
+        try:
+            with open(mpath, "w", encoding="latin-1") as fh:
+                fh.write(model_text)
+        except OSError as err:
+            self.log("Save model failed: %r" % err, "ERROR")
+            return None
+        # trace timestamps like Icepak does
+        for fn, content in (("model_timestamp", "1"),):
+            with open(os.path.join(path, fn), "w", encoding="utf-8") as fh:
+                fh.write(content)
+        self.log("Saved model -> %s" % mpath)
+        return path
+
+    def _geometry_axis_align(self, key):
+        """Orange xS..zE buttons: stretch/align object face to cabinet face."""
+        from ice_view3d import stretch_box_to_face, translate_box
+        obj = self.geometry_win._object if hasattr(self, "geometry_win") else None
+        if obj is None or self.project is None:
+            return
+        model = self.project.model
+        cab = model.object_by_name("cabinet") if model is not None else None
+        axis = "xyz".index(key[0].lower())
+        sign = -1 if key[1] == "S" else 1
+        bounds = self._object_bounds(obj)
+        if bounds is None:
+            return
+        target = None
+        if cab is not None:
+            cb = self._object_bounds(cab)
+            if cb is not None:
+                target = cb[0][axis] if sign < 0 else cb[1][axis]
+        if target is None:
+            return
+        lo, hi = stretch_box_to_face(bounds, axis, sign, target)
+        sh = getattr(obj, "shape", None)
+        if sh is not None:
+            sh.setvals["point1"] = list(lo)
+            sh.setvals["point2"] = list(hi)
+        self._mark_dirty("Align %s -> %s" % (key, target))
+        self.geometry_win.set_object(obj)
+        self._refresh()
+
+    def _object_bounds(self, obj):
+        lo = hi = None
+        sh = getattr(obj, "shape", None)
+        if sh is None:
+            return None
+        p1 = sh.setvals.get("point1")
+        p2 = sh.setvals.get("point2")
+        if isinstance(p1, (list, tuple)) and isinstance(p2, (list, tuple)):
+            lo = [float(x) for x in p1]
+            hi = [float(x) for x in p2]
+            return (tuple(lo), tuple(hi))
+        return None
+
+    def closeEvent(self, ev):
+        """Headless tests skip the interactive save prompt."""
+        if self._dirty and self._enable_3d:
+            from PyQt5.QtWidgets import QMessageBox
+            ret = QMessageBox.question(
+                self, "Unsaved changes",
+                "Project has unsaved changes. Save before closing?",
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+            if ret == QMessageBox.Save:
+                if not getattr(self, "_save", lambda: None)():
+                    ev.ignore()
+                    return
+            elif ret == QMessageBox.Cancel:
+                ev.ignore()
+                return
+        super().closeEvent(ev)
 
     def _tb(self, name, row=0):
         tb = QToolBar(name, self)
@@ -1031,11 +1172,44 @@ class IceGui(QMainWindow):
         if self.project is not None:
             self.open_path(getattr(self.project, "path", None) or "")
 
-    def _save(self):
-        self._nyi("Save project")
+    def _save(self, path=None):
+        """Save model (and timestamp) back to the project directory."""
+        if self.project is None:
+            self.log("No project to save", "WARN")
+            return False
+        if path is None:
+            path = self._write_project_models()
+            if path is None and self.root_path:
+                path = self._write_project_models()
+        else:
+            from icepak_parser.decoder import encode_text
+            from ice_create import serialize_model
+            try:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w", encoding="latin-1") as fh:
+                    fh.write(encode_text(serialize_model(self.project.model)))
+                self.log("Saved model -> %s" % path)
+            except OSError as err:
+                self.log("Save failed: %r" % err, "ERROR")
+                return False
+        if path:
+            self.root_path = getattr(self.project, "path", None) or self.root_path
+            self._dirty = False
+            self.setWindowTitle(ICEPAK_TITLE + " — " +
+                                (self.project.name or "untitled"))
+            return True
+        return False
 
     def _save_as(self):
-        self._nyi("Save project as")
+        if self.project is None:
+            self.log("No project to save", "WARN")
+            return None
+        suggested = (self.project.name or "project") + ".model"
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save project as", suggested, "Icepak model (*.model)")
+        if path:
+            return self._save(path)
+        return None
 
     def _pack_project(self):
         if self.project is None:
@@ -1167,6 +1341,10 @@ class IceGui(QMainWindow):
 
     # ------------------------------------------------------------- tree
     def _on_object_selected(self, o):
+        if self._align_session is not None and \
+                self._align_session.state is not None:
+            self._align_pick_object(o)
+            return
         self._highlight_object(o.name)
         if hasattr(self, "geometry_win"):
             self.geometry_win.set_object(o)
@@ -1226,10 +1404,17 @@ class IceGui(QMainWindow):
         dlg.exec_()
 
     def _edit_current(self):
-        obj = self._current_object()
-        if obj is not None:
-            self._show_object_dialog(obj)
-
+        """Ctrl-E / Edit: single -> object editor; multi -> spreadsheet."""
+        items = self.project_tree.selected_object_items()
+        if len(items) > 1:
+            self._open_spreadsheet()
+            return
+        current = self._current_object()
+        if current is not None:
+            if hasattr(self, "geometry_win"):
+                self.geometry_win.set_object(current)
+            dlg = ObjectEditDialog(self, obj=current, project=self.project)
+            dlg.exec_()
     def _current_object(self):
         if self.project is not None and self.project.model is not None and self.selected:
             o = self.project.model.object_by_name(self.selected)

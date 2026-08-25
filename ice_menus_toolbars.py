@@ -17,6 +17,17 @@ from ice_actions import (
     CommandRegistry, icon_for_command, resolve_slot, SLOT_MAP, STATE_ONLY,
 )
 
+ALIGN_OPS = {
+    "Align and morph faces": "align_face_stretch",
+    "Align faces - move only": "align_face_move",
+    "Align and morph edges": "match_edge",
+    "Align and morph vertices": "align_centers",
+    "Align object centers": "align_centers",
+    "Align face centers": "align_face_centers",
+    "Morph faces": "match_face",
+    "Morph edges": "match_edge",
+}
+
 # menu labels that are not command entries but dynamic/decorative menus
 WHITELIST = {"User views", "Edit toolbars", "Message", "Project", "Macros"}
 
@@ -259,9 +270,8 @@ def build_toolbars(gui):
                 continue
             icon_key = reg.icon_key(label)
             slot = None
-            if label in ("Align and morph faces", "Align and morph edges",
-                         "Align and morph vertices", "Align object centers",
-                         "Align face centers", "Morph faces", "Morph edges"):
-                slot = None
+            if label in ALIGN_OPS and hasattr(gui, "_start_align"):
+                slot = (lambda _=False, op=ALIGN_OPS[label]:
+                        gui._start_align(op))
             gui._tb_act(tb, label, slot, icon=icon_for_command(icon_key))
         seq += 1
