@@ -1101,3 +1101,72 @@ class SpreadsheetDialog(QDialog):
     def _apply_and_close(self):
         self._apply()
         self.accept()
+
+
+# ---------------------------------------------------------------------------
+# P3 — View->Lights dialog: tdv_lights_edit + background style
+# ---------------------------------------------------------------------------
+
+class ViewOptionsDialog(QDialog):
+    """Edit viewer lights (ambient/light1-4) and background style."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Lights")
+        v = QVBoxLayout(self)
+        v.setContentsMargins(10, 10, 10, 10)
+        v.setSpacing(6)
+        form = QFormLayout()
+        self._hex = {}
+        for name in ("ambient", "light1", "light2", "light3", "light4"):
+            ed = QLineEdit("#ffffff", self)
+            ed.setMaximumWidth(120)
+            form.addRow(QLabel(name, self), ed)
+            self._hex[name] = ed
+        v.addLayout(form)
+        from PyQt5.QtWidgets import QComboBox
+        self.cmb_bg = QComboBox(self)
+        self.cmb_bg.addItems(["Gradient", "Solid"])
+        row_bg = QHBoxLayout()
+        row_bg.addWidget(QLabel("Background style:", self))
+        row_bg.addWidget(self.cmb_bg)
+        self.btn_c1 = QPushButton("#9ec8e8", self)
+        self.btn_c2 = QPushButton("#f4f7fb", self)
+        self.btn_c1.setStyleSheet("background:%s;" % self.btn_c1.text())
+        self.btn_c2.setStyleSheet("background:%s;" % self.btn_c2.text())
+        self.btn_c1.clicked.connect(lambda: self._pick(self.btn_c1))
+        self.btn_c2.clicked.connect(lambda: self._pick(self.btn_c2))
+        row_bg.addWidget(self.btn_c1)
+        row_bg.addWidget(self.btn_c2)
+        row_bg.addStretch(1)
+        v.addLayout(row_bg)
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        ok_btn = QPushButton("Apply", self)
+        ok_btn.setDefault(True)
+        ok_btn.clicked.connect(self._apply)
+        cancel = QPushButton("Cancel", self)
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(ok_btn)
+        btns.addWidget(cancel)
+        v.addLayout(btns)
+
+    def _pick(self, btn):
+        from PyQt5.QtWidgets import QColorDialog
+        from PyQt5.QtGui import QColor
+        c = QColorDialog.getColor(QColor(btn.text()), self)
+        if c.isValid():
+            btn.setText(c.name())
+            btn.setStyleSheet("background:%s;" % c.name())
+
+    def _apply(self):
+        parent = self.window()
+        if not hasattr(parent, "_lights"):
+            parent._lights = {}
+        for name, ed in self._hex.items():
+            parent._lights[name] = ed.text()
+        style = "solid" if self.cmb_bg.currentIndex() == 1 else "gradient"
+        set_bg = getattr(parent, "_set_background", None)
+        if set_bg is not None:
+            set_bg(style, self.btn_c1.text(), self.btn_c2.text())
+        self.accept()

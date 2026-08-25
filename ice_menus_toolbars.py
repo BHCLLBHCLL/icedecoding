@@ -59,9 +59,13 @@ def make_action(gui, text, parent, icon_key=None, shortcut=None,
     if slot is None:
         slot = resolve_slot(gui, text)
     if slot is None:
-        # state-only toggle: remember display state, wire a no-op handler
-        def _state(_=False, t=text):
-            gui._display_state[t] = not gui._display_state.get(t, False)
+        # state-only toggle -> display layer handler when present
+        def _state(chk=False, t=text):
+            fn = getattr(gui, "_toggle_display_layer", None)
+            if fn is not None:
+                fn(t, bool(chk))
+            else:
+                gui._display_state[t] = bool(chk)
         a.triggered.connect(_state)
     elif callable(slot):
         a.triggered.connect(slot)

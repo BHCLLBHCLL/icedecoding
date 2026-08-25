@@ -129,4 +129,4 @@ icedecoding/
 ### 下一步（P1 -> P4）
 
 P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welcome 流补齐、New Project 面板、Edit toolbars 行为、Windows 动态菜单；P2 树与导航；P3 3D 完整化；P4 Form 引擎 + 18 类对象编辑器。
- + JSON.stringify(addition) + 
+ + JSON.stringify(addition) +  + JSON.stringify(addition) + 

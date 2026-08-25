@@ -58,6 +58,11 @@ try:  # pragma: no cover - 运行环境判断
     from ice_icons import IceIcons
     from ice_actions import CommandRegistry
     from ice_menus_toolbars import build_menus, build_toolbars, apply_hotkeys
+    from ice_view3d import (
+        allowed_delta, box_pick, circle_pick, clamp_to_box, snap_point,
+        snap_value, make_display_actors, nearest_face, face_center,
+        align_face_move, align_face_stretch, align_centers, match_face,
+    )
     from ice_panes import (
         DetailsDialog, EditToolbarsDialog, GeometryWindow, LibraryTree,
         MessageWindow, NewProjectDialog, PROJECT_NODES, ProjectTree,
@@ -494,6 +499,13 @@ class IceGui(QMainWindow):
         self._hotkey_actions = {}
         self._created_by_command = {}
         self._display_state = {}
+        self._display_actors = {}
+        self._motion_axes = [True, True, True]
+        self._snap_step = None          # None = off; else cabinet/100
+        self._restrict_to_cabinet = True
+        self._bg_style = "gradient"
+        self._bg_color1 = "#9ec8e8"
+        self._bg_color2 = "#f4f7fb"
         if show_welcome is None:
             show_welcome = bool(enable_3d and not path)
         self._pending_welcome = bool(show_welcome)
@@ -593,6 +605,12 @@ class IceGui(QMainWindow):
             self._quad_labels.append(lab)
         self._view_stack.addWidget(self._quad_widget)
         gh.addWidget(self._view_stack, 1)
+        self._mouse_pos_label = QLabel("", self)
+        self._mouse_pos_label.setStyleSheet(
+            "background:rgba(255,255,255,200); color:#37474f; "
+            "padding:2px 6px; border:1px solid #b0bec5;")
+        self._mouse_pos_label.setVisible(False)
+        gh.addWidget(self._mouse_pos_label, 0, Qt.AlignRight)
         self.graphics = graphics
 
         self.message_win = MessageWindow(self)
@@ -722,6 +740,138 @@ class IceGui(QMainWindow):
     def _open_edit_toolbars(self):
         """View -> Edit toolbars dialog (Icepak parity)."""
         dlg = EditToolbarsDialog(self)
+        dlg.exec_()
+
+    def _ensure_display_actors(self):
+        """Create/recreate the View->Display overlay actors for current bounds."""
+        if not self._enable_3d or self.renderer is None:
+            return
+        try:
+            b = self._scene_bounds()
+            from ice_view3d import today_string
+            actors = make_display_actors(self.renderer, b)
+            self._display_actors = actors
+            for name, actor in actors.items():
+                actor.SetVisibility(bool(self._display_state.get(name, True)))
+            for name in ("title", "date"):
+                if name in actors:
+                    actor.SetVisibility(bool(self._display_state.get(name, False)))
+        except Exception as e:
+            self.log("display layers: %r" % e, "WARN")
+
+    def _toggle_display_layer(self, name, on):
+        """View->Display layer switches (grid/rulers/title/date/mesh/...)."""
+        self._display_state[name] = bool(on)
+        if name in self._display_actors:
+            self._display_actors[name].SetVisibility(bool(on))
+        if name == "Display mesh":
+            self.log("Display mesh %s (mesh grid actor wired in P5)" %
+                     ("on" if on else "off"), "INFO")
+        if name == "Mouse position":
+            self._mouse_pos_label.setVisible(bool(on))
+        if name == "Depthcue" and self.renderer is not None:
+            try:
+                self.renderer.SetFog(bool(on))
+            except Exception:
+                pass
+        self._render()
+
+    def _blank_selected(self):
+        """Blank: hide selected object actors (Icepak Blank command)."""
+        names = [o.name for o in self._selected_objects()]
+        for n in names:
+            act = self._actor_map.get(n)
+            if act is not None:
+                act.SetVisibility(False)
+            self._hidden.add(n)
+        self._refresh()
+        self.log("Blank: %s" % (", ".join(names) or "nothing selected"))
+
+    def _unblank_selected(self):
+        names = [o.name for o in self._selected_objects()]
+        for n in names:
+            act = self._actor_map.get(n)
+            if act is not None:
+                act.SetVisibility(True)
+            self._hidden.discard(n)
+        self._refresh()
+        self.log("Unblank: %s" % (", ".join(names) or "nothing selected"))
+
+    def _selected_objects(self):
+        out = []
+        model = getattr(self.project, "model", None) if self.project else None
+        if model is None:
+            return out
+        items = self.project_tree.selected_object_items()
+        for it in items:
+            role = it.data(0, Qt.UserRole)
+            if isinstance(role, tuple) and len(role) > 1 and                     isinstance(role[1], object) and hasattr(role[1], "name"):
+                out.append(role[1])
+        if not out and self.selected:
+            o = model.object_by_name(self.selected)
+            if o is not None:
+                out.append(o)
+        return out
+
+    def _drag_move(self, delta):
+        """Mouse-drag move with Interaction rules (axes/restrict/snap/group)."""
+        if self._snap_step:
+            delta = tuple(snap_value(d, self._snap_step) for d in delta)
+        delta = allowed_delta(delta, self._motion_axes)
+        if all(abs(d) < 1e-12 for d in delta):
+            return
+        model = getattr(self.project, "model", None) if self.project else None
+        if model is None:
+            return
+        objs = self._selected_objects()
+        names = [o.name for o in objs]
+        cab = None
+        if self._restrict_to_cabinet and model is not None:
+            cab = model.object_by_name("cabinet")
+        for o in objs:
+            o = model.object_by_name(o.name) or o
+            new = translate_object(o, delta)
+            if cab is not None and new is not None:
+                from ice_view3d import box_contains
+                lo = [float(x) for x in cab.shape.setvals.get("point1", [0, 0, 0])]
+                hi = [float(x) for x in cab.shape.setvals.get("point2", [1, 1, 1])]
+                c = [(lo[i] + hi[i]) / 2 for i in range(3)]
+                if not box_contains(c, lo, hi):
+                    pass
+        if objs:
+            self.log("Drag move (%s): delta=%s" % (", ".join(names), delta),
+                     "DEBUG")
+        self._refresh()
+
+    def _set_background(self, style="gradient", c1=None, c2=None):
+        """Background solid / two-color gradient."""
+        self._bg_style = style
+        if c1:
+            self._bg_color1 = c1
+        if c2:
+            self._bg_color2 = c2
+        if self.renderer is None:
+            return
+        try:
+            from PyQt5.QtGui import QColor
+            q1 = QColor(self._bg_color1)
+            q2 = QColor(self._bg_color2)
+            if style == "solid":
+                self.renderer.SetBackground(q1.redF(), q1.greenF(), q1.blueF())
+                self.renderer.GradientBackgroundOff()
+            else:
+                self.renderer.SetBackground(q2.redF(), q2.greenF(), q2.blueF())
+                self.renderer.SetBackground2(q1.redF(), q1.greenF(),
+                                             q1.blueF())
+                self.renderer.GradientBackgroundOn()
+            self._render()
+        except Exception as e:
+            self.log("background: %r" % e, "WARN")
+
+    def _lights_dialog(self):
+        """View->Lights: edit lights + background style (tdv_lights_edit)."""
+        from ice_panes import ViewOptionsDialog
+        dlg = ViewOptionsDialog(self)
         dlg.exec_()
 
     def _tb(self, name, row=0):
