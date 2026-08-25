@@ -608,6 +608,18 @@ class IceGui(QMainWindow):
             qg.addWidget(lab, i // 2, i % 2)
             self._quad_labels.append(lab)
         self._view_stack.addWidget(self._quad_widget)
+        self._two_widget = QWidget(self)
+        tw = QHBoxLayout(self._two_widget)
+        tw.setContentsMargins(1, 1, 1, 1)
+        tw.setSpacing(1)
+        self._two_labels = []
+        for name in ("-X/+Y", "Iso"):
+            lab = QLabel(name, self._two_widget)
+            lab.setAlignment(Qt.AlignCenter)
+            lab.setStyleSheet("background:#9ec8e8; color:#234;")
+            tw.addWidget(lab)
+            self._two_labels.append(lab)
+        self._view_stack.addWidget(self._two_widget)
         gh.addWidget(self._view_stack, 1)
         self._mouse_pos_label = QLabel("", self)
         self._mouse_pos_label.setStyleSheet(
@@ -1340,7 +1352,57 @@ class IceGui(QMainWindow):
         self.statusBar().showMessage(proj.name)
 
     # ------------------------------------------------------------- tree
+    def _measure_start(self, kind):
+        self._measure_kind = kind
+        self._measure_picks = []
+        self.log("Measure %s: select two objects/points" % kind)
+
+    def _measure_pick(self, obj):
+        if not hasattr(self, "_measure_picks"):
+            self._measure_picks = []
+        self._measure_picks.append(obj)
+        if len(self._measure_picks) < 2:
+            self.log("Measure %s: point %d (%s)" %
+                     (self._measure_kind, len(self._measure_picks), obj.name))
+            return
+        a = self._object_bounds(self._measure_picks[0])
+        b = self._object_bounds(self._measure_picks[1])
+        if a is None or b is None:
+            self.log("Measure skipped: object without bounds", "WARN")
+            self._measure_kind = None
+            return
+        kind = self._measure_kind
+        self._measure_kind = None
+        ca = [(a[0][i] + a[1][i]) / 2 for i in range(3)]
+        cb = [(b[0][i] + b[1][i]) / 2 for i in range(3)]
+        if kind == "Distance":
+            d = sum((cb[i] - ca[i]) ** 2 for i in range(3)) ** 0.5
+            self.log("Distance = %.6g" % d)
+        elif kind == "Location":
+            self.log("Location = (%.6g, %.6g, %.6g)" % (cb[0], cb[1], cb[2]))
+        elif kind == "Angle":
+            import math as _m
+            v = [cb[i] - ca[i] for i in range(3)]
+            self.log("Angle = %.3g deg" % _m.degrees(_m.atan2(
+                (v[0] ** 2 + v[1] ** 2) ** 0.5, v[2])))
+        elif kind == "Bounding box":
+            lo = tuple(min(a[0][i], b[0][i]) for i in range(3))
+            hi = tuple(max(a[1][i], b[1][i]) for i in range(3))
+            self.log("Bounding box = %s .. %s" % (lo, hi))
+        if not hasattr(self, "_markers"):
+            self._markers = []
+        self._markers.append((cb[0], cb[1], cb[2]))
+        self.log("Marker added", "DEBUG")
+
+    def _marker_clear(self):
+        self._markers = []
+        self._rubber_bands = []
+        self.log("Markers/Rubber bands cleared")
+
     def _on_object_selected(self, o):
+        if getattr(self, "_measure_kind", None):
+            self._measure_pick(o)
+            return
         if self._align_session is not None and \
                 self._align_session.state is not None:
             self._align_pick_object(o)
@@ -1866,7 +1928,13 @@ class IceGui(QMainWindow):
             m.setExpanded(not m.isExpanded())
 
     def _set_view_panes(self, n):
-        self._view_panes = 4 if int(n) == 4 else 1
+        n = int(n)
+        if n == 2 and self._view_stack.count() > 2:
+            self._view_stack.setCurrentIndex(2)
+            self._view_panes = 2
+            self.log("Two viewing windows")
+            return
+        self._view_panes = 4 if n == 4 else 1
         if self._enable_3d:
             self._apply_viewports()
             self._rebuild_scene()
