@@ -190,3 +190,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - 新增 fluent_grid.py：ASCII Fluent/Icepak 网格计数解析（(10 (0 1 N 0))/(12 (0 1 M 0))，与我们的 write_grid_output_ascii 自往返一致）；二进制异构分析器（探测到 Icepak 19.5 grid_output 为 **大端** SGI 布局：头 4/1/2/0 + 长度+描述串，节点记录呈现 [BE marker 0x6baf1c32, BE counter, double x/y/z] 32 字节步长；已记录边界/记录假设于诊断中，精确分区边界解析为后续项）。
 - ecad_oracle_probe.py 扩展：analyze_real_grids（扫 D:/training/icepak 全部工程 grid_output 分析 + transient00.overview 解析——真实最大温度/功率：10-1transient 14 个对象温度样本 source.1=37.3571C 等）+ parse_overview。报告 tools/probe_work/oracle_report.json（mesher 探针仍返回码 1=许可上下文，13 个真实 grid_output 已分析，overview 统计已入档）。
 - 测试 tests/test_p11_oracle.py（4 项：ASCII 解析/自写往返计数（120 单元）/合成 BE 分析器冒烟/ASCII 文件计数）；全套 126 项通过。
+
+### P12 — 二进制 grid_output 精解与 oracle 端到端比对 完成
+
+- fluent_grid.py：① ASCII 解析升级为 **hex 兼容**（Fluent zone 计数为十六进制：f4a2=62626、e61c=58908），节点/单元/面 zone（(10/(12/(18 (0 1 N [01]))) 全支持；② _num 双进制解析；③ analyze_binary 记录 BE 布局诊断（头 4/1/2/0+描述串；节点记录 28B=[BE marker 0x6baf1c32][BE counter][double x/y/z]，真实文件定位 marker+0=614 处、91 条记录 66 组 run——判定 grid_output 为显示/边界点簇文件，主网格计数转由 cas 提取）。
+- probe 端到端（ecad_oracle_probe.py）：oracle_counts_of_job（**transient00.cas zone 计数 + nodemap 行数 + fmap 面数**，三重交叉验证）；our_counts_of_job（默认 10³ 网格 + 按 grid_params 间距推导网格）。
+- **真实比对（10-1transient）**：oracle nodes=**62626**（cas=nodemap 双向一致）、cells=**58908**、fmap 面 80 行；ours default 1331/1000、spacing 推导 14355/12320 —— 差异为笛卡尔精细度（等间距无局部加密），结构与计数口径一致。
+- 测试 tests/test_p12_oracle_golden.py（4 项，其中 2 项 golden 钉死 62626/58908，oracle 缺失自动跳过）；全套 **130 项通过**。

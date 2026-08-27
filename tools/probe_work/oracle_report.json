@@ -25,7 +25,7 @@
    "model",
    "problem"
   ],
-  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_xuibs6x1",
+  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_krwi9bwb",
   "our_nodes": 1331,
   "our_cells": 1000
  },
@@ -56,6 +56,24 @@
      "contiguous_node_records": 1
     },
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "oracle_counts": {
+    "cas": {
+     "nodes": 62626,
+     "cells": 58908
+    },
+    "nodemap_lines": 62626,
+    "fmap_lines": 80
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
    },
    "overview_temps": 14,
    "overview_sample": [
@@ -98,6 +116,21 @@
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
+   },
    "overview_temps": 0,
    "overview_sample": []
   },
@@ -121,6 +154,21 @@
     "desc": "\u0000ñaØ\u0000\u0003½\u0018\u0000\u0000\u0000\u0002\u0000ñaÈ\u0000\u0000\u0000\u0000¿rï%½(êÛ¿ºÎÌMrz?AÂ # x\u0000\u0000\u0000\u0000?uÙ\u001a¸èê:¿ºÎÌ",
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
    },
    "overview_temps": 0,
    "overview_sample": []
@@ -146,6 +194,21 @@
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
+   },
    "overview_temps": 0,
    "overview_sample": []
   },
@@ -169,6 +232,21 @@
     "desc": "\u0000~h\u0000\u0002^x\u0000\u0000\u0000\u0002\u0000~X\u0000\u0000\u0000\u0000?¾Ú\rw/-v?µÃL-!,\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000?¿«À1 ?µvÍ",
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
    },
    "overview_temps": 0,
    "overview_sample": []
@@ -194,6 +272,21 @@
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
+   },
    "overview_temps": 0,
    "overview_sample": []
   },
@@ -217,6 +310,21 @@
     "desc": "\u0000%\tÀ\u0000\u0000\u0000\u0000\u0000\u0002\u0000%\t°\u0000\u0000\u0000\u0000¿¾¸Që\u001e¸",
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
    },
    "overview_temps": 0,
    "overview_sample": []
@@ -242,6 +350,21 @@
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
+   },
    "overview_temps": 0,
    "overview_sample": []
   },
@@ -265,6 +388,21 @@
     "desc": "\u0000\rvx\u0000\u0000<x\u0000\u0000\u0000\u0002\u0000\rvh\u0000\u0000",
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
    },
    "overview_temps": 0,
    "overview_sample": []
@@ -290,6 +428,21 @@
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
+   },
    "overview_temps": 0,
    "overview_sample": []
   },
@@ -313,6 +466,21 @@
     "desc": "\u0000\u00173Ð\u0000\u0000c\u0006\u0000\u0000\u0000\u0002\u0000\u00173À\u0000\u0000\u0000\u0000?§\n=p£×\n?tzáG®\u0014{",
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
    },
    "overview_temps": 0,
    "overview_sample": []
@@ -338,6 +506,21 @@
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
+   },
    "overview_temps": 0,
    "overview_sample": []
   },
@@ -361,6 +544,21 @@
     "desc": "\u0000\"*\u0018\u0000\u0000|\u0014\u0000\u0000\u0000\u0006\u0000\")è\u0000\u0000\u0000\u0000¿´Z\u001c¬\b1'\u0000\u0000\u0000\u0000",
     "record_hypothesis": {},
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "oracle_counts": {
+    "cas": null,
+    "nodemap_lines": null,
+    "fmap_lines": null
+   },
+   "our_counts": {
+    "default": {
+     "nodes": 1331,
+     "cells": 1000
+    },
+    "spacing": {
+     "nodes": 14355,
+     "cells": 12320
+    }
    },
    "overview_temps": 0,
    "overview_sample": []

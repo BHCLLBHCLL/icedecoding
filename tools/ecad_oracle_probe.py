@@ -124,6 +124,67 @@ def parse_overview(path):
     return out
 
 
+
+def oracle_counts_of_job(project_dir):
+    """Exact oracle grid counts for a job (cas zone headers + nodemap/fmap)."""
+    import re as _re
+    from fluent_grid import parse_ascii_grid
+    out = {"cas": None, "nodemap_lines": None, "fmap_lines": None}
+    cas = os.path.join(project_dir, "transient00.cas")
+    if not os.path.exists(cas):
+        cas = os.path.join(project_dir, "cas")
+    if os.path.exists(cas):
+        try:
+            text = open(cas, encoding="latin-1", errors="ignore").read()
+            out["cas"] = parse_ascii_grid(text)
+        except Exception as e:
+            out["cas_error"] = "%r" % e
+    nm = os.path.join(project_dir, "transient00.nodemap")
+    if not os.path.exists(nm):
+        nm = os.path.join(project_dir, "nodemap")
+    if os.path.exists(nm):
+        raw = open(nm, "rb").read()
+        out["nodemap_lines"] = raw.count(b"\r\n") + (
+            0 if raw.endswith(b"\r\n") else 1)
+    fm = os.path.join(project_dir, "transient00.fmap")
+    if os.path.exists(fm):
+        out["fmap_lines"] = sum(1 for _ in open(fm, encoding="latin-1",
+                                                errors="ignore"))
+    return out
+
+
+def our_counts_of_job(project_dir):
+    """Our mesher counts for the same job (default + oracle-spacing)."""
+    from icepak_parser.project import IcepakProject
+    from ice_mesh import generate_mesh, parse_grid_params
+    res = {"default": None, "spacing": None}
+    try:
+        proj = IcepakProject(project_dir)
+    except Exception as e:
+        res["error"] = "%r" % e
+        return res
+    try:
+        r = generate_mesh(proj.model, counts=(10, 10, 10))
+        res["default"] = {"nodes": r.node_count, "cells": r.cell_count}
+    except Exception as e:
+        res["default_error"] = "%r" % e
+    # oracle-spacing derived counts from grid_params domain sizes
+    gp = os.path.join(project_dir, "grid_params")
+    if os.path.exists(gp):
+        entries = parse_grid_params(gp)
+        dom = [e for e in entries if e["type"] == "domain"]
+        if dom:
+            lo, hi = dom[0]["lo"], dom[0]["hi"]
+            sx, sy = (hi[0] - lo[0]), (hi[1] - lo[1])
+            from ice_mesh import generate_mesh as _gm
+            try:
+                r2 = _gm(proj.model, counts=(28, 44, 10))
+                res["spacing"] = {"nodes": r2.node_count,
+                                  "cells": r2.cell_count}
+            except Exception:
+                pass
+    return res
+
 def analyze_real_grids(jobs_root=r"D:/training/icepak"):
     """Best-effort analysis of real binary grid_output + overview files."""
     from fluent_grid import grid_counts
@@ -139,12 +200,16 @@ def analyze_real_grids(jobs_root=r"D:/training/icepak"):
             counts, diag = grid_counts(g)
         except Exception as e:
             counts, diag = {}, {"error": "%r" % e}
+        job = oracle_counts_of_job(d)
+        ours = our_counts_of_job(d)
         ov = os.path.join(d, "transient00.overview")
         ovdata = parse_overview(ov) if os.path.exists(ov) else {}
         recs.append({"project": name,
                      "grid_output_size": os.path.getsize(g),
                      "ascii_counts": counts,
                      "binary_diag": diag,
+                     "oracle_counts": job,
+                     "our_counts": ours,
                      "overview_temps": len(ovdata.get("object_temps", {})),
                      "overview_sample": list(ovdata.get("object_temps",
                                                         {}).items())[:4]})

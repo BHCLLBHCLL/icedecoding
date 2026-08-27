@@ -8,11 +8,28 @@ import re
 import struct
 
 
+def _num(tok):
+    """Fluent writes zone counts in hex (e.g. f4a2 = 62626) or decimal."""
+    tok = tok.strip()
+    if tok.lower().startswith("0x"):
+        return int(tok, 16)
+    if any(c in tok.lower() for c in "abcdef"):
+        try:
+            return int(tok, 16)
+        except ValueError:
+            try:
+                return int(tok, 10)
+            except ValueError:
+                return 0
+    return int(tok, 10)
+
+
 def parse_ascii_grid(text):
     out = {}
-    pat = re.compile(r'\(\s*(10|12|18)\s+\(\s*0\s+1\s+(\d+)\s+0\s*\)')
+    pat = re.compile(
+        r'\(\s*(10|12|18)\s+\(\s*0\s+1\s+([0-9a-fA-F]+)\s+[01]\s*\)')
     for m in pat.finditer(text):
-        kind, cnt = int(m.group(1)), int(m.group(2))
+        kind, cnt = int(m.group(1)), _num(m.group(2))
         if kind == 10:
             out["nodes"] = cnt
         elif kind == 12:
