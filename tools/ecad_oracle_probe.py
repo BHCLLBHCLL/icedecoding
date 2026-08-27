@@ -10,6 +10,7 @@ unavailable (missing license / install) — CI must not depend on it.
 """
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -95,6 +96,60 @@ def run_mesher_probe():
         return {"available": True, "error": "%r" % e}
 
 
+
+def parse_overview(path):
+    """Parse a transient00.overview file: object power/heat + max temps."""
+    out = {"object_temps": {}, "object_power": {}}
+    cur = None
+    if not path or not os.path.exists(path):
+        return out
+    with open(path, encoding="latin-1", errors="replace") as fh:
+        for line in fh:
+            s = line.strip()
+            if "Maximum temperatures:" in s:
+                cur = "temps"
+                continue
+            if "Heat flows for objects" in s:
+                cur = "power"
+                continue
+            m = re.match(r'^\s*(\S+)\s+([\d.eE+ ]+?)\s*([\d.eE+-]+|\d+[ Ee]?)(?:\s+W)?\s+(\S+)?\s*$', s)
+            m2 = re.match(r'^\s*(\S+)\s+([\d.eE+-]+)\s*C\s*$', s)
+            if cur == "temps" and m2:
+                out["object_temps"][m2.group(1)] = float(m2.group(2))
+            elif cur == "power":
+                m3 = re.match(r'^\s*(\S+)\s+([\d.eE+-]+)\s+W\s+'
+                              r'([\d.eE+-]+)\s*W?', s)
+                if m3:
+                    out["object_power"][m3.group(1)] = float(m3.group(2))
+    return out
+
+
+def analyze_real_grids(jobs_root=r"D:/training/icepak"):
+    """Best-effort analysis of real binary grid_output + overview files."""
+    from fluent_grid import grid_counts
+    recs = []
+    if not os.path.isdir(jobs_root):
+        return recs
+    for name in sorted(os.listdir(jobs_root)):
+        d = os.path.join(jobs_root, name)
+        g = os.path.join(d, "grid_output")
+        if not os.path.isfile(g):
+            continue
+        try:
+            counts, diag = grid_counts(g)
+        except Exception as e:
+            counts, diag = {}, {"error": "%r" % e}
+        ov = os.path.join(d, "transient00.overview")
+        ovdata = parse_overview(ov) if os.path.exists(ov) else {}
+        recs.append({"project": name,
+                     "grid_output_size": os.path.getsize(g),
+                     "ascii_counts": counts,
+                     "binary_diag": diag,
+                     "overview_temps": len(ovdata.get("object_temps", {})),
+                     "overview_sample": list(ovdata.get("object_temps",
+                                                        {}).items())[:4]})
+    return recs
+
 def main():
     os.makedirs(PROBE_WORK, exist_ok=True)
     report = {"binaries": {}, "mesher_probe": None}
@@ -102,6 +157,7 @@ def main():
     for name, path in found.items():
         report["binaries"][name] = {"path": path, "size": bin_size(path)}
     report["mesher_probe"] = run_mesher_probe()
+    report["real_grids"] = analyze_real_grids()
     out = os.path.join(PROBE_WORK, "oracle_report.json")
     with open(out, "w", encoding="utf-8") as fh:
         json.dump(report, fh, ensure_ascii=False, indent=1)

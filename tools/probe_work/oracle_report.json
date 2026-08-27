@@ -25,8 +25,345 @@
    "model",
    "problem"
   ],
-  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_b5qrit46",
+  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_xuibs6x1",
   "our_nodes": 1331,
   "our_cells": 1000
- }
+ },
+ "real_grids": [
+  {
+   "project": "10-1transient",
+   "grid_output_size": 4696177,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 4696177,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     58,
+     4403136,
+     62626,
+     2
+    ],
+    "desc_len": 58,
+    "desc": "\u0000C/À\u0000\u0000ô¢\u0000\u0000\u0000\u0002\u0000C/°\u0000\u0000\u0000\u0000?ÂTÃpÌÔU?Ï!=¡\"?À\u0018°k¯\u001c2\u0000\u0000\u0000\u0000?Â!Þøµ¤?Ï",
+    "record_hypothesis": {
+     "offset": 60,
+     "first_counter": 0,
+     "stride_bytes": 32,
+     "record": "[BE marker 0x6baf1c32, BE counter, double x, double y, double z]",
+     "contiguous_node_records": 1
+    },
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 14,
+   "overview_sample": [
+    [
+     "source.1",
+     37.3571
+    ],
+    [
+     "source.1.1",
+     37.0411
+    ],
+    [
+     "source.1.1.1",
+     37.3693
+    ],
+    [
+     "source.1.2",
+     37.0787
+    ]
+   ]
+  },
+  {
+   "project": "11-2BGA-package",
+   "grid_output_size": 13618439,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 13618439,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     1969,
+     12425756,
+     162053,
+     5
+    ],
+    "desc_len": 1969,
+    "desc": "\u0000½\u001c\u0000\u0002y\u0005\u0000\u0000\u0000\u0005\u0000½ô\u0000\u0000\u0000\u0000¿w«¸\u000e®\u0019?v4TbÇu¿EÂ\t$kð\u0013\u0000\u0000\u0000\u0000¿vñ\u0012ý2Æ&?v4T",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "11-3joule-heating",
+   "grid_output_size": 16906142,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 16906142,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     196,
+     15819224,
+     245016,
+     2
+    ],
+    "desc_len": 196,
+    "desc": "\u0000ñaØ\u0000\u0003½\u0018\u0000\u0000\u0000\u0002\u0000ñaÈ\u0000\u0000\u0000\u0000¿rï%½(êÛ¿ºÎÌMrz?AÂ # x\u0000\u0000\u0000\u0000?uÙ\u001a¸èê:¿ºÎÌ",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "12-1datacenter",
+   "grid_output_size": 11125489,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 11125489,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     764,
+     10362840,
+     154102,
+     2
+    ],
+    "desc_len": 764,
+    "desc": "\u0000\u001fØ\u0000\u0002Yö\u0000\u0000\u0000\u0002\u0000\u001fÈ\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000?ÝBÃº99\u001b\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000?Ã×Ñ{{g?ÝBÃ",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "12-2avonics",
+   "grid_output_size": 8861431,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 8861431,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     338,
+     8295272,
+     155256,
+     2
+    ],
+    "desc_len": 338,
+    "desc": "\u0000~h\u0000\u0002^x\u0000\u0000\u0000\u0002\u0000~X\u0000\u0000\u0000\u0000?¾Ú\rw/-v?µÃL-!,\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000?¿«À1 ?µvÍ",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "5-1fin",
+   "grid_output_size": 7201575,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 7201575,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     99,
+     6727192,
+     94756,
+     2
+    ],
+    "desc_len": 99,
+    "desc": "\u0000f¦\u0018\u0000\u0001r$\u0000\u0000\u0000\u0002\u0000f¦\b\u0000\u0000\u0000\u0000?xt¼j~ú?ÌÝ/\u001a¾w?ÖÈ´9X\u0010b\u0000\u0000\u0000\u0000?xt¼j~ú?ÍxÔ",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "7-1hsink-rad",
+   "grid_output_size": 2607124,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 2607124,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     28,
+     2427328,
+     36482,
+     2
+    ],
+    "desc_len": 28,
+    "desc": "\u0000%\tÀ\u0000\u0000\u0000\u0000\u0000\u0002\u0000%\t°\u0000\u0000\u0000\u0000¿¾¸Që\u001e¸",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "7-2Heat-pipe",
+   "grid_output_size": 8040733,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 8040733,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     59,
+     7627412,
+     140029,
+     2
+    ],
+    "desc_len": 59,
+    "desc": "\u0000tb\u0000\u0002\"ý\u0000\u0000\u0000\u0002\u0000tb\u0000\u0000\u0000\u0000?©?Ð\u0000\u0000\u0000\u0000\u0000\u0000?©\u0000\u0000\u0000\u0000?©?Ñ&",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "8-1cold-plate",
+   "grid_output_size": 939206,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 939206,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     18,
+     882296,
+     15480,
+     2
+    ],
+    "desc_len": 18,
+    "desc": "\u0000\rvx\u0000\u0000<x\u0000\u0000\u0000\u0002\u0000\rvh\u0000\u0000",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "8-2yyhh",
+   "grid_output_size": 418544,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 418544,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     48,
+     380384,
+     5022,
+     2
+    ],
+    "desc_len": 48,
+    "desc": "\u0000\u0005Íà\u0000\u0000\u0013\u0000\u0000\u0000\u0002\u0000\u0005ÍÐ\u0000\u0000\u0000\u0000?Ù?Øt¼j~ú?Ü(õÂ\\)\u0000\u0000\u0000\u0000",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "9-1FAN_Location",
+   "grid_output_size": 1619192,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 1619192,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     36,
+     1520592,
+     25350,
+     2
+    ],
+    "desc_len": 36,
+    "desc": "\u0000\u00173Ð\u0000\u0000c\u0006\u0000\u0000\u0000\u0002\u0000\u00173À\u0000\u0000\u0000\u0000?§\n=p£×\n?tzáG®\u0014{",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "9-2Optimization",
+   "grid_output_size": 2485051,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 2485051,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     57,
+     2320276,
+     36921,
+     2
+    ],
+    "desc_len": 57,
+    "desc": "\u0000#g\u0000\u00009\u0000\u0000\u0000\u0002\u0000#g\u0000\u0000\u0000\u0000?É2a{<n?Qm*¥Å÷Æ?\u0002u%F\n¦\u0000\u0000\u0000\u0000?É2a{<n?",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  },
+  {
+   "project": "9-3Loss_coefficient",
+   "grid_output_size": 2411854,
+   "ascii_counts": {},
+   "binary_diag": {
+    "size": 2411854,
+    "header_ints": [
+     4,
+     1,
+     2,
+     0,
+     32,
+     2239000,
+     31764,
+     6
+    ],
+    "desc_len": 32,
+    "desc": "\u0000\"*\u0018\u0000\u0000|\u0014\u0000\u0000\u0000\u0006\u0000\")è\u0000\u0000\u0000\u0000¿´Z\u001c¬\b1'\u0000\u0000\u0000\u0000",
+    "record_hypothesis": {},
+    "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
+   },
+   "overview_temps": 0,
+   "overview_sample": []
+  }
+ ]
 }

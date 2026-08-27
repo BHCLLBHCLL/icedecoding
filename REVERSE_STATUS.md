@@ -184,3 +184,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 1) 真实工程 3D 交互回归（桌面 GL）：tools/regression_3d_real.py 对 19 个真实工程逐一打开/重建/交互/截图，结果 20/20 通过（datacenter 259 actors、6-1IDF 113、avonics 80 等与解析对象数一致）；产物 _report/screenshots/*.png + _report/3d_regression_summary.json。
 2) 真实求解器内核：heat_solver.py（结构化网格稳态热传导 FVM+SOR、材料导热表、体源、Cabinet Dirichlet 20C）；Run solution 有网格时走真实求解（残差真实、写入 resd、Post/曲线/报告使用真实场）；1D 解析解验证误差 <5%；tests/test_p10_solver.py（3 项）；全套 122 项通过。
 3) ECAD 端到端 oracle 探针：tools/ecad_oracle_probe.py（定位 iceecad/ecxml/mesher/hdm，构造最小 job 调用真实 mesher——本次返回码 1 需许可上下文，优雅记录；我方同 job 网格计数 nodes 1331/cells 1000）；报告 tools/probe_work/oracle_report.json；CI 不依赖。
+
+### P11 — oracle 基础设施（binary 分析器 + 真实工程证据）完成
+
+- 新增 fluent_grid.py：ASCII Fluent/Icepak 网格计数解析（(10 (0 1 N 0))/(12 (0 1 M 0))，与我们的 write_grid_output_ascii 自往返一致）；二进制异构分析器（探测到 Icepak 19.5 grid_output 为 **大端** SGI 布局：头 4/1/2/0 + 长度+描述串，节点记录呈现 [BE marker 0x6baf1c32, BE counter, double x/y/z] 32 字节步长；已记录边界/记录假设于诊断中，精确分区边界解析为后续项）。
+- ecad_oracle_probe.py 扩展：analyze_real_grids（扫 D:/training/icepak 全部工程 grid_output 分析 + transient00.overview 解析——真实最大温度/功率：10-1transient 14 个对象温度样本 source.1=37.3571C 等）+ parse_overview。报告 tools/probe_work/oracle_report.json（mesher 探针仍返回码 1=许可上下文，13 个真实 grid_output 已分析，overview 统计已入档）。
+- 测试 tests/test_p11_oracle.py（4 项：ASCII 解析/自写往返计数（120 单元）/合成 BE 分析器冒烟/ASCII 文件计数）；全套 126 项通过。
