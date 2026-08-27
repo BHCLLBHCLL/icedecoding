@@ -129,4 +129,58 @@ icedecoding/
 ### 下一步（P1 -> P4）
 
 P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welcome 流补齐、New Project 面板、Edit toolbars 行为、Windows 动态菜单；P2 树与导航；P3 3D 完整化；P4 Form 引擎 + 18 类对象编辑器。
- + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) +  + JSON.stringify(addition) + 
+### P3 — 3D 视区完整化（核心完成，交互层 P3b 待续）
+
+- 新增 ice_view3d.py：对齐/匹配数学引擎（nearest_face/face_center/align_face_move/align_face_stretch/align_centers/match_face）、吸附（snap_value 等）与 Interaction 规则、box/circle pick 数学、显示层 actor 工厂。
+- 接线 ice_gui.py：_ensure_display_actors/_toggle_display_layer/_blank_selected/_unblank_selected/_drag_move/_set_background/_lights_dialog；左下 Mouse position 标签。
+- 新增 tests/test_p3_view3d.py（10 项）；全套 56 项通过（headless）。
+
+
+### P3b — 交互式对齐会话 + P4 — Form 引擎/对象编辑器/写回 完成
+
+- P3b：AlignSession（source/target 双拾取状态机 + _face_toward + 各对齐操作分派）；Alignment 工具栏按钮接入；对象选中自动路由；tests/test_p3b_align.py 4 项。
+- P4：ice_forms.py（Form 引擎）+ ice_editors.py（ObjectEditDialog Info/Properties/Geometry 三页签 + 18 类字段表 + CopyFromDialog）；GeometryWindow 双写 + 橙色 xS..zE 按钮；_edit_current 多选→Spreadsheet；脏标记 + 标题 * + 关闭提示；_save/_save_as 写回 model。
+- 全套 66 项测试通过。
+
+
+### P3c — 2 窗 + 测量/标记 完成；P0–P4 验收
+
+- P3c：Two viewing windows；测量会话（Location/Distance/Angle/Unit vector/normal/Bounding box 双选→Message+Marker）；Clear markers/rubber bands；P0–P4 验收汇总表；全套 68 项通过。
+
+
+### P5 — 网格（AutoHex 六页签 + 生成管线 + 显示 + probe→golden）完成
+
+- ice_mesh.py：PARAMS_DEFAULTS 全表（params_auto.tcl 实测 + 逆向字段表）、class_of_params_from_tcl 探针、geometric_coords 黄金公式（g0=L*(1-q)/(1-q**n)）、build_axes、classify_cells 占用、MeshResult、write_grid_params/parse_grid_params（与 oracle grid_params 逐字段对照）、write_grid_output_ascii（Fluent 风格 ASCII 子集）。
+- ice_panes.AutoHexDialog 六页签 + Large mesh/Generate mesh/Cancel meshing；ice_gui Generate mesh → _run_mesh（统计日志/网格线 actor/作业文件写回）。
+- tests/test_p5_mesh.py（10 项）；全套 78 项通过。
+
+
+### P6 — 求解与后处理 完成
+
+- ice_solve.py（BASIC/ADVANCED/PARALLEL 字段表与 oracle problem 键核对、simulate_residuals/write_resd/read_resd、POST_SPECS、synthetic_cell_temps/plane_cut_points/iso_points/sample_along/trials_from_problem）；ice_solve_gui.py（SolveSettingsDialog/RunSolutionDialog/PatchTemperaturesDialog/PlotWindow/ResidualMonitorWindow）；ice_report.py（html_report/summary_data）；ice_gui 全接线（设置三面板、Run solution→残差→Solution monitor、Post 六对象→视区数据、6 类曲线、报告）。
+- tests/test_p6_solve.py（13 项）；全套 91 项通过。
+
+
+### P7 — 宏（动态三级注册 + 向导壳 + 内置宏参数化移植）完成
+
+- ice_macros.py：BUILTIN_MACROS（angled_fin/bga/tec/sot/blower 含名称/子类/子子类/参数表）、scan_macro_dir/scan_macros（*.macro.json 描述符，system→user→project 覆盖）、参数化构建器 build_*、build_macro 分发、avail_macros_system_names。
+- ice_macros_gui.py：MacroWizard（左导航树+QStackedWidget+页注册表）；ice_gui _rebuild_macros_menu/_run_macro/_run_builtin_macro。
+- tests/test_p7_macros.py（10 项）；全套 101 项通过。
+
+
+### P8 — ECAD 完成（P5–P8 目标清单全部落地）
+
+- ice_ecad.py：ECXML（parse/register/export 与 cabdecoding/ecxml.py 同构，mm→m）、IDF/IDX（parse/import/export）、Networks（parse/register/export）、JEDEC PTD/JEP30（parse/register/export）、Powermaps 五格式（tab/i2p/ctm/sentinel/apache）、EM Mapping（apply_em_mapping）、ICB（parse_icb + icb_metal_fractions）。
+- GUI 接线：全部菜单项落到真实处理器；tests/test_p8_ecad.py（12 项）；全套 111 项通过。
+
+
+### P9 — 收尾 完成（P0–P9 全部落地）
+
+- ice_i18n.py（tr(key,lang) EN 恒等 + ZH 自译约 80 键，ICE_LANG 驱动）；ice_prefs.py（PREFS_SPEC 七页签 + DEFAULTS + PrefsStore JSON 持久化 + load_legacy/save_legacy '.icepak_config' set 文本双向兼容）；ice_prefs_gui.py（PreferencesDialog 七页 + AnnotationsDialog）；ice_gui 接线（Edit→Preferences/Annotations、_apply_prefs 即时应用、启动横幅版权行）；tests/test_p9_prefs.py（8 项）；全套 119 项通过；README 更新。
+
+
+### P10 — 真实工程验证与增强 完成
+
+1) 真实工程 3D 交互回归（桌面 GL）：tools/regression_3d_real.py 对 19 个真实工程逐一打开/重建/交互/截图，结果 20/20 通过（datacenter 259 actors、6-1IDF 113、avonics 80 等与解析对象数一致）；产物 _report/screenshots/*.png + _report/3d_regression_summary.json。
+2) 真实求解器内核：heat_solver.py（结构化网格稳态热传导 FVM+SOR、材料导热表、体源、Cabinet Dirichlet 20C）；Run solution 有网格时走真实求解（残差真实、写入 resd、Post/曲线/报告使用真实场）；1D 解析解验证误差 <5%；tests/test_p10_solver.py（3 项）；全套 122 项通过。
+3) ECAD 端到端 oracle 探针：tools/ecad_oracle_probe.py（定位 iceecad/ecxml/mesher/hdm，构造最小 job 调用真实 mesher——本次返回码 1 需许可上下文，优雅记录；我方同 job 网格计数 nodes 1331/cells 1000）；报告 tools/probe_work/oracle_report.json；CI 不依赖。
