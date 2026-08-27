@@ -1397,6 +1397,173 @@ class IceGui(QMainWindow):
         self.log("Network block values: %s" %
                  trials_from_problem(getattr(self.project, "problem", None)))
 
+    def _file_dialog_open(self, title, flt, ext):
+        path, _ = QFileDialog.getOpenFileName(self, title,
+                                              self.root_path or os.getcwd(),
+                                              flt)
+        return path if path else None
+
+    def _import_ecxml(self):
+        if self.project is None:
+            self.log("Import ECXML: no project", "WARN")
+            return
+        path = self._file_dialog_open("Import Electronics Cooling XML",
+                                      "ECXML (*.xml *.ecxml)")
+        if not path:
+            return
+        from ice_ecad import import_ecxml_path, register_components
+        comps = import_ecxml_path(path)
+        names = register_components(self.project.model, comps)
+        self._mark_dirty("Imported ECXML: %d components" % len(names))
+        self.log("ECXML import: %s" % ", ".join(names[:8]))
+        self._refresh()
+
+    def _export_ecxml(self):
+        if self.project is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export Electronics Cooling XML", "components.xml",
+            "ECXML (*.xml *.ecxml)")
+        if not path:
+            return
+        from ice_ecad import write_ecxml
+        write_ecxml(path, self.project.model)
+        self.log("ECXML export -> %s" % path)
+
+    def _import_idf(self):
+        if self.project is None:
+            self.log("Import IDF: no project", "WARN")
+            return
+        path = self._file_dialog_open("Import IDF file", "IDF (*.idf *.emn)")
+        if not path:
+            return
+        from ice_ecad import import_idf_path
+        created, data = import_idf_path(path, self.project.model)
+        self._mark_dirty("Imported IDF: %d objects" % len(created))
+        self.log("IDF import: board=%s components=%d" %
+                 (bool(data.get("board")), len(data.get("components", []))))
+        self._refresh()
+
+    def _export_idf(self):
+        if self.project is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(self, "Export IDF file",
+                                              "board.idf", "IDF (*.idf)")
+        if not path:
+            return
+        from ice_ecad import export_idf
+        export_idf(path, self.project.model)
+        self.log("IDF export -> %s" % path)
+
+    def _import_networks(self):
+        if self.project is None:
+            return
+        path = self._file_dialog_open("Import Networks", "Network (*.txt *.net)")
+        if not path:
+            return
+        from ice_ecad import parse_networks, register_networks
+        with open(path, encoding="latin-1", errors="replace") as fh:
+            data = parse_networks(fh.read())
+        obj = register_networks(self.project.model,
+                                os.path.splitext(os.path.basename(path))[0],
+                                data)
+        self._mark_dirty("Imported network %s" % obj.name)
+        self._refresh()
+
+    def _export_networks(self):
+        if self.project is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export Networks", "networks.txt", "Network (*.txt *.net)")
+        if not path:
+            return
+        from ice_ecad import export_networks
+        export_networks(path, self.project.model)
+        self.log("Networks export -> %s" % path)
+
+    def _import_jedec(self):
+        if self.project is None:
+            return
+        path = self._file_dialog_open("Import JEDEC PTD/JEP30",
+                                      "JEDEC (*.ptd *.txt)")
+        if not path:
+            return
+        from ice_ecad import parse_jedec, register_jedec
+        with open(path, encoding="latin-1", errors="replace") as fh:
+            entries = parse_jedec(fh.read())
+        obj = register_jedec(self.project.model, entries)
+        self._mark_dirty("Imported JEDEC %s (%d entries)" %
+                         (obj.name, len(entries)))
+        self._refresh()
+
+    def _export_jedec(self):
+        if self.project is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export JEDEC PTD/JEP30", "pkg.ptd", "JEDEC (*.ptd)")
+        if not path:
+            return
+        from ice_ecad import export_jedec
+        export_jedec(path, self.project.model)
+        self.log("JEDEC export -> %s" % path)
+
+    def _import_powermap(self, fmt):
+        if self.project is None:
+            return
+        path = self._file_dialog_open("Import powermap (%s)" % fmt,
+                                      "Powermap (*.txt *.csv *.i2p *.ctm)")
+        if not path:
+            return
+        from ice_ecad import parse_powermap, powermap_extent
+        rows = parse_powermap(path, fmt)
+        if not rows:
+            self.log("Powermap %s: no rows parsed" % fmt, "WARN")
+            return
+        if not hasattr(self, "_powermaps"):
+            self._powermaps = []
+        self._powermaps.append({"fmt": fmt, "file": path, "rows": rows,
+                                "extent": powermap_extent(rows)})
+        self._mark_dirty("Imported powermap %s (%d rows)" % (fmt, len(rows)))
+        self.log("Powermap %s: %d rows, extent=%s" %
+                 (fmt, len(rows), self._powermaps[-1]["extent"]))
+
+    def _show_powermap(self):
+        pm = getattr(self, "_powermaps", None) or []
+        if not pm:
+            self.log("No powermap imported", "WARN")
+            return
+        for p in pm[-1:]:
+            self.log("Powermap %s: extent=%s rows=%d" %
+                     (p["fmt"], p["extent"], len(p["rows"])))
+
+    def _em_mapping(self, kind):
+        if self.project is None:
+            return
+        from ice_ecad import apply_em_mapping
+        losses = {}
+        for o in self.project.model._all_objects():
+            sv = getattr(o, "setvals", None) or {}
+            if "power" in sv:
+                try:
+                    losses[o.name] = float(sv["power"][0])
+                except (TypeError, ValueError, IndexError):
+                    pass
+        created = apply_em_mapping(self.project.model, losses, kind)
+        self._mark_dirty("EM Mapping %s: %d sources" % (kind, len(created)))
+        self.log("EM Mapping (%s): %s" % (kind, ", ".join(
+            o.name for o in created[:8])))
+
+    def _show_metal_fractions(self):
+        from ice_ecad import parse_icb, icb_metal_fractions
+        fracs = None
+        for o in self.project.model._all_objects() if self.project else []:
+            sv = getattr(o, "setvals", None) or {}
+            if "icb" in sv:
+                fracs = icb_metal_fractions(parse_icb(sv["icb"][0]))
+                self.log("Metal fractions: %s" % fracs)
+                return
+        self.log("No ECAD/ICB data loaded (use IDF/ICB import)", "WARN")
+
     def _tb(self, name, row=0):
         tb = QToolBar(name, self)
         tb.setMovable(False)
