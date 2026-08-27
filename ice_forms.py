@@ -35,7 +35,9 @@ class Row(object):
         if kind in ("spin", "int"):
             if kind == "spin":
                 self.widget.setDecimals(decimals)
-            self.widget.setRange(minimum, maximum)
+                self.widget.setRange(minimum, maximum)
+            else:
+                self.widget.setRange(int(minimum), int(maximum))
             if kind == "spin":
                 self.widget.setSingleStep(step)
             if value is not None:

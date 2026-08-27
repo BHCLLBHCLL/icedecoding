@@ -1211,3 +1211,170 @@ class ViewOptionsDialog(QDialog):
         if set_bg is not None:
             set_bg(style, self.btn_c1.text(), self.btn_c2.text())
         self.accept()
+
+# ---------------------------------------------------------------------------
+# P5 - AutoHex six-tab dialog (imports ice_mesh lazily inside __init__)
+# ---------------------------------------------------------------------------
+
+class AutoHexDialog(QDialog):
+    """Icepak Complete Hex Mesher: Basic/Parameter/Detail/Edit/Deletion/Others."""
+
+    TABS = ("Basic", "Parameter", "Detail", "Edit", "Deletion", "Others")
+
+    def __init__(self, parent=None, model=None):
+        super().__init__(parent)
+        from ice_mesh import PARAMS_DEFAULTS
+        self.setWindowTitle("Complete Hex Mesher")
+        self.setMinimumSize(640, 480)
+        self._model = model
+        self._params = dict(PARAMS_DEFAULTS)
+        v = QVBoxLayout(self)
+        v.setContentsMargins(8, 8, 8, 8)
+        self.tabs = QTabWidget(self)
+        v.addWidget(self.tabs, 1)
+        self._pages = {}
+        self._build_tabs(PARAMS_DEFAULTS)
+        row = QHBoxLayout()
+        row.addStretch(1)
+        self.btn_large_mesh = QPushButton("Large mesh", self)
+        self.btn_large_mesh.setToolTip(
+            "Enforce grid_max_elements before meshing")
+        self.btn_large_mesh.clicked.connect(self._large_mesh)
+        self.btn_cancel = QPushButton("Cancel meshing", self)
+        self.btn_cancel.clicked.connect(self.reject)
+        self.btn_gen = QPushButton("Generate mesh", self)
+        self.btn_gen.setDefault(True)
+        self.btn_gen.clicked.connect(self._collect_and_accept)
+        row.addWidget(self.btn_large_mesh)
+        row.addWidget(self.btn_cancel)
+        row.addWidget(self.btn_gen)
+        v.addLayout(row)
+
+    def _build_tabs(self, D):
+        from ice_forms import FormPage
+        basic = FormPage(self, "Basic")
+        f = basic.section("Size control")
+        for ax in ("i", "j", "k"):
+            basic.add_row(f, "grid_gcount_%s" % ax,
+                          "%s divisions" % ax.upper(), "int", 10,
+                          minimum=1, maximum=100000)
+        basic.add_row(f, "grid_gtype", "Growth", "combo", "unif",
+                      options=["unif", "geom"])
+        basic.add_row(f, "grid_gr_ratio", "Ratio", "spin", 1.0,
+                      minimum=1.0, maximum=100.0)
+        for ax in ("x", "y", "z"):
+            basic.add_row(f, "grid_size_%s" % ax,
+                          "%s size (m)" % ax.upper(), "spin", 1.0)
+        f = basic.section("Limits")
+        basic.add_row(f, "grid_max_elements", "Max elements", "int",
+                      25000000, minimum=100)
+        for ax in ("x", "y", "z"):
+            basic.add_row(f, "grid_sep_%s" % ax,
+                          "Separation %s" % ax.upper(), "spin", 0.001,
+                          minimum=0.0)
+        self._pages["Basic"] = basic
+        self.tabs.addTab(basic, "Basic")
+
+        param = FormPage(self, "Parameter")
+        f = param.section("Per-axis limits")
+        for ax in ("i", "j", "k"):
+            param.add_row(f, "grid_gmax_%s" % ax,
+                          "Max %s" % ax.upper(), "int", 0, minimum=0)
+        for ax in ("i", "j", "k"):
+            param.add_row(f, "grid_gmin_%s" % ax,
+                          "Min %s" % ax.upper(), "int", 0, minimum=0)
+        param.add_row(f, "grid_ratios", "Auto ratios", "check", 0)
+        self._pages["Parameter"] = param
+        self.tabs.addTab(param, "Parameter")
+
+        detail = FormPage(self, "Detail")
+        f = detail.section("Hex mesher preset")
+        detail.add_row(f, "grid_settings_type", "Settings", "combo",
+                       "normal", options=["normal", "coarse", "null"])
+        detail.add_row(f, "min_elements_gap", "Min elements in gap",
+                       "int", 3, minimum=0)
+        detail.add_row(f, "min_elements_block", "Min elements in block",
+                       "int", 2, minimum=0)
+        detail.add_row(f, "max_ratio", "Max ratio", "spin", 2.0,
+                       minimum=1.0)
+        f = detail.section("Tetra")
+        detail.add_row(f, "grid_tetra_settings_type", "Tetra settings",
+                       "combo", "normal", options=["normal", "coarse"])
+        detail.add_row(f, "n_cells_in_gap", "Cells in gap", "int", 2,
+                       minimum=0)
+        detail.add_row(f, "natural_size_refinement",
+                       "Natural size refinement", "int", 32, minimum=0)
+        f = detail.section("Mesher-HD")
+        detail.add_row(f, "grid_hdm_feature_angle", "Feature angle",
+                       "int", 40, minimum=0, maximum=90)
+        detail.add_row(f, "grid_hdm_mlm_auto_levels", "Auto levels",
+                       "int", 2, minimum=0, maximum=6)
+        detail.add_row(f, "grid_hdm_icechip", "Ice-chip mode", "combo",
+                       "1", options=["0", "1"])
+        f = detail.section("Smoother")
+        detail.add_row(f, "grid_run_smoother", "Run smoother", "check", 0)
+        detail.add_row(f, "limit_bad_angle", "Limiting bad angle", "spin",
+                       35.0, minimum=0.0, maximum=90.0)
+        detail.add_row(f, "mth_local_sm", "Method", "combo", "Optimize",
+                       options=["Optimize", "Laplace"])
+        f = detail.section("Quality")
+        detail.add_row(f, "grid_qual", "Quality measure", "combo",
+                       "facealign",
+                       options=["facealign", "minangle", "orthogonal"])
+        detail.add_row(f, "bad_face_align", "Bad face alignment", "spin",
+                       0.05, minimum=0.0, maximum=1.0)
+        f = detail.section("Pipe")
+        detail.add_row(f, "pipe_mesh_on", "Pipe mesh", "check", 0)
+        detail.add_row(f, "ogrid_height", "O-grid height", "spin", 0.5,
+                       minimum=0.0, maximum=2.0)
+        self._pages["Detail"] = detail
+        self.tabs.addTab(detail, "Detail")
+
+        edit = FormPage(self, "Edit")
+        f = edit.section("Mesh line edit (grid edges)")
+        edit.add_row(f, "edge_eps", "Edge epsilon", "spin", 0.00015,
+                     minimum=0.0)
+        edit.add_row(f, "element_threshold", "Element threshold", "spin",
+                     0.9, minimum=0.0, maximum=1.0)
+        edit.add_row(f, "panel_block_face", "Panel/block face", "check", 0)
+        self._pages["Edit"] = edit
+        self.tabs.addTab(edit, "Edit")
+
+        deletion = FormPage(self, "Deletion")
+        f = deletion.section("Deletion targets")
+        deletion.add_row(f, "del_all_but_rough", "Delete all but rough",
+                         "check", 0)
+        deletion.add_row(f, "grid_include_all_gaps", "Include all gaps",
+                         "check", 0)
+        deletion.add_row(f, "grid_include_int_boundary",
+                         "Include internal boundary", "check", 0)
+        self._pages["Deletion"] = deletion
+        self.tabs.addTab(deletion, "Deletion")
+
+        others = FormPage(self, "Others")
+        f = others.section("Mesher options")
+        others.add_row(f, "check_scheme", "Check scheme", "check", 0)
+        others.add_row(f, "part_mesh_option", "Part mesh option",
+                       "combo", "0", options=["0", "1", "2"])
+        others.add_row(f, "grid_display_mesh_separately",
+                       "Display mesh separately", "check", 0)
+        others.add_row(f, "grid_cutouts", "Cutouts", "check", 1)
+        self._pages["Others"] = others
+        self.tabs.addTab(others, "Others")
+
+    def _large_mesh(self):
+        row = self.tabs.widget(0).row("grid_max_elements")
+        if row is not None:
+            self._params["grid_max_elements"] = int(row.get())
+        log = getattr(self.window(), "log", None)
+        if log:
+            log("Large mesh warning: max elements = %d" %
+                self._params["grid_max_elements"], "WARN")
+
+    def _collect_and_accept(self):
+        for name, page in self._pages.items():
+            self._params.update(page.values())
+        self.accept()
+
+    def params(self):
+        return dict(self._params)

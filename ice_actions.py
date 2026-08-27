@@ -211,6 +211,7 @@ SLOT_MAP = {
     "Write user views to file": "_write_user_views",
     "Read user views from file": "_read_user_views",
     # Model
+    "Generate mesh": "_generate_mesh",
     "Check model": "_check_model",
     # Solve
     "Basic settings": "_show_basic_settings",

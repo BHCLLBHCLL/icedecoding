@@ -364,6 +364,40 @@ def _face_toward(bounds, other_mid):
     return (axis, sign)
 
 
+def mesh_actor_from_lines(lines, color=(0.25, 0.45, 0.70), opacity=0.9):
+    """VTK actor for structured mesh line segments (returns None w/o vtk)."""
+    try:
+        import vtk
+        from vtk.util import numpy_support
+        import numpy as np
+    except Exception:
+        return None
+    pts = []
+    for x0, y0, z0, x1, y1, z1 in lines:
+        pts.append((x0, y0, z0))
+        pts.append((x1, y1, z1))
+    pd = vtk.vtkPolyData()
+    vpts = vtk.vtkPoints()
+    vpts.SetData(numpy_support.numpy_to_vtk(
+        np.asarray(pts, dtype=float), deep=True))
+    pd.SetPoints(vpts)
+    cells = vtk.vtkCellArray()
+    n = len(pts)
+    for i in range(0, n, 2):
+        cells.InsertNextCell(2)
+        cells.InsertCellPoint(i)
+        cells.InsertCellPoint(i + 1)
+    pd.SetLines(cells)
+    actor = vtk.vtkActor()
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputData(pd)
+    actor.SetMapper(mapper)
+    actor.GetProperty().SetColor(*color)
+    actor.GetProperty().SetOpacity(opacity)
+    actor.SetPickable(0)
+    return actor
+
+
 def _mid(bounds):
     lo, hi = bounds
     return tuple((lo[i] + hi[i]) / 2.0 for i in range(3))

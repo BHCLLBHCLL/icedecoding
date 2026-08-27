@@ -505,6 +505,9 @@ class IceGui(QMainWindow):
         self._snap_step = None          # None = off; else cabinet/100
         self._restrict_to_cabinet = True
         self._dirty = False
+        self._mesh_result = None
+        self._mesh_actor = None
+        self._mesh_params = {}
         self._align_session = None
         self._align_picked = []
         self._bg_style = "gradient"
@@ -814,8 +817,9 @@ class IceGui(QMainWindow):
         if name in self._display_actors:
             self._display_actors[name].SetVisibility(bool(on))
         if name == "Display mesh":
-            self.log("Display mesh %s (mesh grid actor wired in P5)" %
-                     ("on" if on else "off"), "INFO")
+            if self._mesh_actor is not None:
+                self._mesh_actor.SetVisibility(bool(on))
+            self.log("Display mesh %s" % ("on" if on else "off"), "INFO")
         if name == "Mouse position":
             self._mouse_pos_label.setVisible(bool(on))
         if name == "Depthcue" and self.renderer is not None:
@@ -967,6 +971,85 @@ class IceGui(QMainWindow):
                 fh.write(content)
         self.log("Saved model -> %s" % mpath)
         return path
+
+    def _run_mesh(self, params=None, write_files=True):
+        """Run structured hexa meshing over the cabinet (P5 pipeline)."""
+        from ice_mesh import generate_mesh, write_grid_output_ascii, \
+            write_grid_params
+        if self.project is None or self.project.model is None:
+            self.log("Generate mesh: no project", "WARN")
+            return None
+        params = params or {}
+        counts = (int(params.get("grid_gcount_i", 10)),
+                  int(params.get("grid_gcount_j", 10)),
+                  int(params.get("grid_gcount_k", 10)))
+        gtype = params.get("grid_gtype", "unif")
+        ratio = float(params.get("grid_gr_ratio", 1.0))
+        result = generate_mesh(self.project.model, counts=counts,
+                               gtype=gtype, ratio=ratio)
+        max_elems = int(params.get("grid_max_elements", 25000000))
+        if result.cell_count > max_elems:
+            self.log("Large mesh: %d cells > max %d" %
+                     (result.cell_count, max_elems), "WARN")
+        self._mesh_result = result
+        self._mesh_params = dict(params)
+        by_obj = result.counts_by_object()
+        self.log("Mesh: %d cells, %d nodes, %d objects meshed" %
+                 (result.cell_count, result.node_count, len(by_obj)))
+        for name, cnt in sorted(by_obj.items()):
+            self.log("  %-20s %6d cells" % (name, cnt), "DEBUG")
+        self._mesh_actor_update()
+        if write_files:
+            base = None
+            if getattr(self.project, "path", None):
+                base = self.project.path
+            elif self.root_path and getattr(self.project, "name", None):
+                base = os.path.join(self.root_path, self.project.name)
+            if base and os.path.isdir(base):
+                try:
+                    write_grid_params(os.path.join(base, "grid_params"),
+                                      self.project.model, params)
+                    write_grid_output_ascii(
+                        os.path.join(base, "grid_output"), result)
+                    self.log("Job files written: grid_params / grid_output")
+                    for fn in ("mesh_timestamp", "model_timestamp"):
+                        with open(os.path.join(base, fn), "w",
+                                  encoding="utf-8") as fh:
+                            fh.write("1")
+                except OSError as err:
+                    self.log("job write failed: %r" % err, "ERROR")
+        return result
+
+    def _generate_mesh(self):
+        from ice_panes import AutoHexDialog
+        dlg = AutoHexDialog(self, model=self.project.model
+                            if self.project is not None else None)
+        if dlg.exec_() == QDialog.Accepted:
+            self._run_mesh(dlg.params())
+        else:
+            self.log("Meshing cancelled")
+
+    def _mesh_actor_update(self):
+        """Replace the mesh display actor with the generated grid."""
+        if not self._enable_3d or self.renderer is None:
+            return
+        from ice_view3d import mesh_actor_from_lines
+        if getattr(self, "_mesh_actor", None) is not None:
+            try:
+                self.renderer.RemoveActor(self._mesh_actor)
+            except Exception:
+                pass
+            self._mesh_actor = None
+        if self._mesh_result is None:
+            self._toggle_display_layer("Display mesh", False)
+            return
+        actor = mesh_actor_from_lines(self._mesh_result.structured_lines())
+        if actor is not None:
+            self.renderer.AddActor(actor)
+            self._mesh_actor = actor
+            on = bool(self._display_state.get("Display mesh", False))
+            actor.SetVisibility(on)
+            self._render()
 
     def _geometry_axis_align(self, key):
         """Orange xS..zE buttons: stretch/align object face to cabinet face."""
