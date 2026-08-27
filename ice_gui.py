@@ -1186,6 +1186,24 @@ class IceGui(QMainWindow):
             return
         params = dlg.params()
         iters = int(params.get("iters", 100))
+        if getattr(self, "_mesh_result", None) is not None:
+            from heat_solver import solve_heat
+            temps, rows = solve_heat(self._mesh_result, self.project.model,
+                                     max_iter=iters)
+            self._field_temps = temps
+            self._residual_rows = rows
+            base = self._job_base()
+            if base:
+                write_resd(os.path.join(base, "%s.resd" % solve_id),
+                           solve_id, rows)
+            self._solution_id = solve_id
+            self._mark_dirty("Run solution %s (heat solver, %d iters)" %
+                             (solve_id, len(rows)))
+            self.log("Heat solver: %d iterations, max T = %.2f C" %
+                     (len(rows), max(temps.values())))
+            if params.get("solve_startmon", True):
+                self._open_solution_monitor()
+            return
         solve_id = str(params.get("solve_id", "transient00"))
         from ice_solve import simulate_residuals, write_resd
         rows = simulate_residuals(iters)
@@ -1238,6 +1256,19 @@ class IceGui(QMainWindow):
             self._patches = dlg.patches()
             self.log("Patched temperatures: %s" % self._patches)
 
+    def _current_temps(self):
+        """Real solver field when solved, else the synthetic fallback."""
+        if getattr(self, "_field_temps", None):
+            return dict(self._field_temps)
+        result = getattr(self, "_mesh_result", None)
+        if result is None:
+            return {}
+        from ice_report import obj_temperature_for
+        from ice_solve import synthetic_cell_temps
+        return synthetic_cell_temps(result, {
+            name: obj_temperature_for(result, name)
+            for name in set(result.cell_obj.values())})
+
     def _create_post(self, kind):
         """Post -> Object face/Plane cut/Isosurface/Point/Surface probe."""
         if self.project is None:
@@ -1272,12 +1303,8 @@ class IceGui(QMainWindow):
         result = getattr(self, "_mesh_result", None)
         if result is None:
             return None
-        from ice_solve import (iso_points, plane_cut_points, sample_along,
-                               synthetic_cell_temps)
-        from ice_report import obj_temperature_for
-        temps = synthetic_cell_temps(result, {
-            name: obj_temperature_for(result, name)
-            for name in set(result.cell_obj.values())})
+        from ice_solve import (iso_points, plane_cut_points, sample_along)
+        temps = self._current_temps()
         if kind == "Plane cut":
             return plane_cut_points(result, params.get("axis", "x"),
                                     float(params.get("offset", 0.0)), temps)
@@ -1323,9 +1350,7 @@ class IceGui(QMainWindow):
                              [(it, vals[3]) for it, vals in rows]],
                          title="Convergence", log_y=True)
         elif kind == "Variation" and result is not None:
-            temps = synthetic_cell_temps(result, {
-                name: obj_temperature_for(result, name)
-                for name in set(result.cell_obj.values())})
+            temps = self._current_temps()
             data = sample_along(result, (0.0, 0.0, 0.0),
                                 (result.nx * 0.05, 0.0, 0.0), temps, 31)
             win.set_data([data], title="Variation", xlabel="Distance")

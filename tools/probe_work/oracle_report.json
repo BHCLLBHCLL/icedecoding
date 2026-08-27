@@ -1,0 +1,32 @@
+{
+ "binaries": {
+  "mesher.exe": {
+   "path": "C:\\Program Files\\ANSYS Inc\\v195\\Icepak\\icepak19.5\\bin.win64_amd\\mesher.exe",
+   "size": 3637760
+  },
+  "ecxml.exe": {
+   "path": "C:\\Program Files\\ANSYS Inc\\v195\\Icepak\\icepak19.5\\bin.win64_amd\\extension\\ecxml.exe",
+   "size": 3139072
+  },
+  "iceecad.exe": {
+   "path": "C:\\Program Files\\ANSYS Inc\\v195\\Icepak\\icepak19.5\\bin.win64_amd\\extension\\iceecad.exe",
+   "size": 3179520
+  },
+  "hdm.exe": {
+   "path": "C:\\Program Files\\ANSYS Inc\\v195\\Icepak\\icepak19.5\\bin.win64_amd\\hdm.exe",
+   "size": 10457088
+  }
+ },
+ "mesher_probe": {
+  "available": true,
+  "returncode": 1,
+  "artifacts": [
+   "grid_params",
+   "model",
+   "problem"
+  ],
+  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_b5qrit46",
+  "our_nodes": 1331,
+  "our_cells": 1000
+ }
+}
