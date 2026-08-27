@@ -64,6 +64,9 @@ try:  # pragma: no cover - 运行环境判断
         align_face_move, align_face_stretch, align_centers, match_face,
     )
     from ice_editors import CopyFromDialog, ObjectEditDialog
+    from ice_solve_gui import (PatchTemperaturesDialog, PlotWindow,
+                               ResidualMonitorWindow, RunSolutionDialog,
+                               SolveSettingsDialog)
     from ice_panes import (
         DetailsDialog, EditToolbarsDialog, GeometryWindow, LibraryTree,
         MessageWindow, NewProjectDialog, PROJECT_NODES, ProjectTree,
@@ -1109,6 +1112,234 @@ class IceGui(QMainWindow):
                 ev.ignore()
                 return
         super().closeEvent(ev)
+
+    def _run_solution(self):
+        """Solve -> Run solution: panel + synthetic residual monitor."""
+        if self.project is None:
+            self.log("Run solution: no project", "WARN")
+            return
+        dlg = RunSolutionDialog(self, problem=getattr(self.project, "problem",
+                                                      None))
+        if dlg.exec_() != QDialog.Accepted:
+            return
+        params = dlg.params()
+        iters = int(params.get("iters", 100))
+        solve_id = str(params.get("solve_id", "transient00"))
+        from ice_solve import simulate_residuals, write_resd
+        rows = simulate_residuals(iters)
+        base = self._job_base()
+        if base:
+            write_resd(os.path.join(base, "%s.resd" % solve_id), solve_id,
+                       rows)
+        self.log("Run solution: %d iterations (synthetic monitor)" % iters)
+        self._residual_rows = rows
+        self._solution_id = solve_id
+        self._mark_dirty("Run solution %s" % solve_id)
+        if params.get("solve_startmon", True):
+            self._open_solution_monitor()
+
+    def _job_base(self):
+        base = None
+        if getattr(self.project, "path", None):
+            base = self.project.path
+        elif self.root_path and getattr(self.project, "name", None):
+            base = os.path.join(self.root_path, self.project.name)
+        if base and not os.path.isdir(base):
+            try:
+                os.makedirs(base)
+            except OSError:
+                return None
+        return base if os.path.isdir(base) else None
+
+    def _open_solution_monitor(self):
+        if getattr(self, "_monitor_win", None) is None:
+            self._monitor_win = ResidualMonitorWindow(self)
+        rows = getattr(self, "_residual_rows", None)
+        if rows is None:
+            base = self._job_base()
+            if base:
+                from ice_solve import read_resd
+                rows = read_resd(os.path.join(base, "%s.resd" %
+                                              getattr(self, "_solution_id",
+                                                      "transient00")))
+        if rows:
+            self._monitor_win.set_residuals(rows)
+        self._monitor_win.show()
+
+    def _patch_temperatures(self):
+        if self.project is None:
+            self.log("Patch temperatures: no project", "WARN")
+            return
+        dlg = PatchTemperaturesDialog(self, model=self.project.model,
+                                      patches=getattr(self, "_patches", {}))
+        if dlg.exec_() == QDialog.Accepted:
+            self._patches = dlg.patches()
+            self.log("Patched temperatures: %s" % self._patches)
+
+    def _create_post(self, kind):
+        """Post -> Object face/Plane cut/Isosurface/Point/Surface probe."""
+        if self.project is None:
+            self.log("Post object: no project", "WARN")
+            return
+        from ice_solve import POST_SPECS
+        spec = POST_SPECS.get(kind)
+        if spec is None:
+            self._nyi(kind)
+            return
+        from ice_forms import FormPage
+        page = FormPage(self)
+        f = page.section(kind)
+        for key, label, wtype, options, *rest in spec:
+            page.add_row(f, key, label, wtype, rest[0] if rest else None,
+                         options=options)
+        dlg = PlotWindow(self, title="post")  # simple host
+        dlg.setWindowTitle(kind)
+        dv = dlg.layout() if dlg.layout() else None
+        record = {"type": kind, "params": page.values()}
+        self.project.post.append(record)
+        data = self._post_display(kind, page.values())
+        if data is not None:
+            self.log("%s: %s (%d samples)" % (kind, record["params"],
+                                              len(data)))
+            self._post_data = data
+        self._mark_dirty("Added post object %s" % kind)
+        self._refresh()
+
+    def _post_display(self, kind, params):
+        """Compute display data from the mesh result (synthetic field)."""
+        result = getattr(self, "_mesh_result", None)
+        if result is None:
+            return None
+        from ice_solve import (iso_points, plane_cut_points, sample_along,
+                               synthetic_cell_temps)
+        from ice_report import obj_temperature_for
+        temps = synthetic_cell_temps(result, {
+            name: obj_temperature_for(result, name)
+            for name in set(result.cell_obj.values())})
+        if kind == "Plane cut":
+            return plane_cut_points(result, params.get("axis", "x"),
+                                    float(params.get("offset", 0.0)), temps)
+        if kind == "Isosurface":
+            return iso_points(result, float(params.get("value", 50.0)),
+                              temps)
+        if kind == "Point":
+            p = (float(params.get("x", 0.1)), float(params.get("y", 0.1)),
+                 float(params.get("z", 0.1)))
+            return [p]
+        if kind == "Object face (node)":
+            return [(r[0], r[1], r[2], r[3]) for r in
+                    plane_cut_points(result, "z", 0.0, temps)]
+        if kind == "Surface probe":
+            return [(r[0], r[1], r[2], r[3]) for r in
+                    plane_cut_points(result, "z", 0.0, temps)]
+        if kind == "Min/max locations":
+            objtemps = temps.values()
+            if not objtemps:
+                return None
+            return [(0.0, 0.0, 0.0, max(objtemps))]
+        return None
+
+    def _open_plot(self, kind):
+        from ice_solve import (read_resd, sample_along, simulate_history,
+                               trials_from_problem, synthetic_cell_temps)
+        from ice_report import obj_temperature_for
+        win = PlotWindow(self, title=kind)
+        result = getattr(self, "_mesh_result", None)
+        if kind == "Convergence":
+            rows = getattr(self, "_residual_rows", None)
+            if rows is None:
+                base = self._job_base()
+                if base:
+                    rows = read_resd(os.path.join(base, "%s.resd" %
+                                                  getattr(self, "_solution_id",
+                                                          "transient00")))
+            if rows is None:
+                from ice_solve import simulate_residuals
+                rows = simulate_residuals(100)
+            win.set_data([[ (it, v) for it, v in zip(r, r)] for r in []]
+                         or [[(it, vals[0]) for it, vals in rows],
+                             [(it, vals[3]) for it, vals in rows]],
+                         title="Convergence", log_y=True)
+        elif kind == "Variation" and result is not None:
+            temps = synthetic_cell_temps(result, {
+                name: obj_temperature_for(result, name)
+                for name in set(result.cell_obj.values())})
+            data = sample_along(result, (0.0, 0.0, 0.0),
+                                (result.nx * 0.05, 0.0, 0.0), temps, 31)
+            win.set_data([data], title="Variation", xlabel="Distance")
+        elif kind == "History":
+            pts = simulate_history("mon_pt", 20, 20.0, 85.0)
+            win.set_data([pts], title="History", xlabel="Time")
+        elif kind == "Trials":
+            tr = trials_from_problem(getattr(self.project, "problem", None)) \
+                or []
+            win.set_data([[(i, i + 1) for i, (k, v) in enumerate(tr)]],
+                         title="Trials")
+        else:
+            win.set_data([[(i, 50.0 + 5 * i) for i in range(11)]],
+                         title=kind)
+        win.show()
+        return win
+
+    def _summary_report(self):
+        from ice_report import summary_data
+        rows = summary_data(self.project, getattr(self, "_mesh_result", None))
+        lines = ["%-24s %-12s %-12s" % ("Entity", "Target (C)",
+                                        "Current (C)")]
+        lines.append("-" * 50)
+        for name, target, val in rows:
+            lines.append("%-24s %-12g %-12g" % (name, target, val))
+        self.log("\n".join(lines), "INFO")
+
+    def _html_report(self):
+        from ice_report import write_html_report
+        if self.project is None:
+            self.log("HTML report: no project", "WARN")
+            return
+        base = self._job_base() or os.getcwd()
+        name = (getattr(self.project, "name", "project") or "project")
+        path = os.path.join(base, ("%s_summary.html" % name))
+        write_html_report(path, self.project, getattr(self, "_mesh_result",
+                                                      None))
+        self.log("HTML report written: %s" % path)
+        try:
+            from PyQt5.QtGui import QDesktopServices
+            from PyQt5.QtCore import QUrl
+            QDesktopServices.openUrl(QUrl.fromLocalFile(path))
+        except Exception:
+            pass
+
+    def _point_report(self):
+        self._show_named_settings("Point report")
+
+    def _full_report(self):
+        self._html_report()
+
+    def _trials_results(self):
+        from ice_solve import trials_from_problem
+        tr = trials_from_problem(getattr(self.project, "problem", None))
+        if tr:
+            self.log("Trials: %s" % tr)
+        else:
+            self.log("No trials defined (use Solve -> Define trials, P7+)",
+                     "WARN")
+
+    def _fan_operating_points(self):
+        model = self.project.model if self.project else None
+        if model is None:
+            return
+        fans = [o for o in model._all_objects()]
+        for o in fans:
+            if o.kind in ("fan", "blower"):
+                sv = getattr(o, "setvals", None) or {}
+                self.log("Fan %s: flow=%s power=%s rpm=%s" %
+                         (o.name, sv.get("flow", "-"), sv.get("power", "-"),
+                          sv.get("rpm", "-")))
+
+    def _network_block_values(self):
+        from ice_solve import trials_from_problem
+        self.log("Network block values: %s" %
+                 trials_from_problem(getattr(self.project, "problem", None)))
 
     def _tb(self, name, row=0):
         tb = QToolBar(name, self)

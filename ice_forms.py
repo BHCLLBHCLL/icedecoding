@@ -77,7 +77,10 @@ class Row(object):
             self.widget.setChecked(bool(value))
         elif self.kind in ("spin", "int"):
             try:
-                self.widget.setValue(float(value))
+                if self.kind == "int":
+                    self.widget.setValue(int(float(value)))
+                else:
+                    self.widget.setValue(float(value))
             except (TypeError, ValueError):
                 pass
         elif self.kind == "combo":
