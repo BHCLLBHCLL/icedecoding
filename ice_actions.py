@@ -278,6 +278,9 @@ SLOT_MAP = {
     "Help": "_help", "Icepak on the Web": "_web_icepak",
     "Customer Portal": "_web_portal", "List shortcuts": "_list_shortcuts",
     "About Icepak": "_about",
+    # Edit
+    "Preferences": "_preferences_dialog",
+    "Annotations": "_annotations_dialog",
     # View
     "Lights": "_lights_dialog",
     "Location": "_measure_start:Location",

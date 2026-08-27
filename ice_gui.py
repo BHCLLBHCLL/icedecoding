@@ -69,6 +69,8 @@ try:  # pragma: no cover - 运行环境判断
                                SolveSettingsDialog)
     from ice_macros_gui import MacroWizard
     from ice_macros import BUILTIN_MACROS, build_macro
+    from ice_prefs_gui import AnnotationsDialog, PreferencesDialog
+    from ice_prefs import PrefsStore
     from ice_panes import (
         DetailsDialog, EditToolbarsDialog, GeometryWindow, LibraryTree,
         MessageWindow, NewProjectDialog, PROJECT_NODES, ProjectTree,
@@ -510,6 +512,8 @@ class IceGui(QMainWindow):
         self._snap_step = None          # None = off; else cabinet/100
         self._restrict_to_cabinet = True
         self._dirty = False
+        self._prefs = PrefsStore()
+        self._prefs.load()
         self._mesh_result = None
         self._mesh_actor = None
         self._mesh_params = {}
@@ -534,6 +538,8 @@ class IceGui(QMainWindow):
             self.log("This is the 64-bit version")
             self.log("ANSYS Icepak %s. Use File to open a project or .tzr."
                      % ICEPAK_VERSION)
+            self.log("Copyright ANSYS Inc. All rights reserved. "
+                     "(ice viewer compatible build)", "INFO")
             lib = find_icepak_lib()
             if lib:
                 self.library_tree.populate_from_path(lib)
@@ -1563,6 +1569,64 @@ class IceGui(QMainWindow):
                 self.log("Metal fractions: %s" % fracs)
                 return
         self.log("No ECAD/ICB data loaded (use IDF/ICB import)", "WARN")
+
+    def _preferences_dialog(self):
+        """Edit -> Preferences: seven tabs, live apply."""
+        dlg = PreferencesDialog(self, store=self._prefs)
+        dlg.exec_()
+
+    def _apply_prefs(self, store):
+        """Apply preferences live: background, interaction rules, unit text."""
+        bg = store.get("background_style", "gradient")
+        c1 = store.get("background_color1", "#9ec8e8")
+        c2 = store.get("background_color2", "#f4f7fb")
+        self._set_background(bg, c1, c2)
+        self._motion_axes = [bool(store.get("motion_x", 1)),
+                             bool(store.get("motion_y", 1)),
+                             bool(store.get("motion_z", 1))]
+        self._restrict_to_cabinet = bool(
+            store.get("restrict_to_cabinet", 1))
+        try:
+            n = max(1, int(store.get("snap_attributes", 100)))
+        except (TypeError, ValueError):
+            n = 100
+        if self._snap_step is None and n:
+            cab = None
+            if self.project is not None and self.project.model is not None:
+                cab = self.project.model.object_by_name("cabinet")
+            if cab is not None:
+                sh = getattr(cab, "shape", None)
+                if sh is not None:
+                    p1 = [float(x) for x in sh.setvals.get("point1",
+                                                           [0, 0, 0])]
+                    p2 = [float(x) for x in sh.setvals.get("point2",
+                                                           [1, 1, 1])]
+                    size = max(p2[i] - p1[i] for i in range(3))
+                    self._snap_step = size / n if size else 0.01
+        self._mouse_map = {"left": str(store.get("mouse_left", "select")),
+                           "middle": str(store.get("mouse_middle",
+                                                   "rotate")),
+                           "right": str(store.get("mouse_right", "pan"))}
+        self._prefs.save()
+        self.log("Preferences applied (background=%s motion=%s snap=%s)" %
+                 (bg, self._motion_axes, self._snap_step), "DEBUG")
+
+    def _annotations_dialog(self):
+        dlg = AnnotationsDialog(self)
+        dlg.exec_()
+
+    def _apply_annotations(self, vals):
+        self._display_state["Display project title"] = bool(
+            vals.get("show_title", False))
+        self._display_state["Display current date"] = bool(
+            vals.get("show_date", False))
+        self._display_state["Display ANSYS logo"] = bool(
+            vals.get("show_logo", False))
+        self._project_title_text = str(vals.get("title", "Project"))
+        if "title" in getattr(self, "_display_actors", {}):
+            pass
+        self.log("Annotations: %s" % vals, "DEBUG")
+        self._render()
 
     def _tb(self, name, row=0):
         tb = QToolBar(name, self)
