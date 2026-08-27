@@ -67,6 +67,8 @@ try:  # pragma: no cover - 运行环境判断
     from ice_solve_gui import (PatchTemperaturesDialog, PlotWindow,
                                ResidualMonitorWindow, RunSolutionDialog,
                                SolveSettingsDialog)
+    from ice_macros_gui import MacroWizard
+    from ice_macros import BUILTIN_MACROS, build_macro
     from ice_panes import (
         DetailsDialog, EditToolbarsDialog, GeometryWindow, LibraryTree,
         MessageWindow, NewProjectDialog, PROJECT_NODES, ProjectTree,
@@ -758,6 +760,60 @@ class IceGui(QMainWindow):
         """P0: menus are generated from the golden command registry."""
         build_menus(self)
         apply_hotkeys(self)
+        self._rebuild_macros_menu()
+
+    def _rebuild_macros_menu(self, macros=None):
+        """P7: Macros menu from the three-level macro registry."""
+        from ice_macros import BUILTIN_MACROS as _B
+        m = self._menus.get("Macros")
+        if m is None:
+            return
+        m.clear()
+        reg = dict(macros or _B)
+        grouped = {}
+        for key, spec in reg.items():
+            st = spec.get("subtype", "General")
+            sst = spec.get("subsubtype", "General")
+            grouped.setdefault((st, sst), []).append((key, spec))
+        for (st, sst), items in sorted(grouped.items()):
+            sm = m.addMenu("%s: %s" % (st, sst))
+            for key, spec in items:
+                name = spec.get("name", key)
+                act = sm.addAction(name)
+                act.triggered.connect(
+                    lambda _=False, k=key, n=name: self._run_macro(k, n))
+        self.log("Macros menu: %d groups, %d macros" %
+                 (len(grouped), sum(len(v) for v in grouped.values())),
+                 "DEBUG")
+
+    def _run_macro(self, key, name=None):
+        """Open the macro wizard; finish executes the parameterized builder."""
+        from ice_macros import BUILTIN_MACROS, build_macro
+        spec = BUILTIN_MACROS.get(key)
+        if spec is None:
+            self._nyi("Macro %s" % key)
+            return
+        dlg = MacroWizard(self, title=spec.get("name", key),
+                          params=spec.get("params", []))
+        dlg.bind_macro(key, spec.get("name", key))
+        dlg.exec_()
+
+    def _run_builtin_macro(self, key, params):
+        """Wizard Finish -> create objects from parameters."""
+        from ice_macros import BUILTIN_MACROS, build_macro
+        if self.project is None:
+            self._new_project()
+        spec = BUILTIN_MACROS.get(key)
+        if spec is None:
+            self._nyi("Macro %s" % key)
+            return
+        created = build_macro(self.project.model, key, params)
+        if created:
+            self._mark_dirty("Macro %s created %d objects" %
+                             (key, len(created)))
+            self.log("Macro %s: %s" %
+                     (key, ", ".join(o.name for o in created[:5])))
+        self._refresh()
 
     def _open_edit_toolbars(self):
         """View -> Edit toolbars dialog (Icepak parity)."""
