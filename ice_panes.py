@@ -1337,6 +1337,13 @@ class AutoHexDialog(QDialog):
         edit.add_row(f, "element_threshold", "Element threshold", "spin",
                      0.9, minimum=0.0, maximum=1.0)
         edit.add_row(f, "panel_block_face", "Panel/block face", "check", 0)
+        f = edit.section("Refinement (insert grid lines)")
+        edit.add_row(f, "refine_faces_on", "Insert lines at object faces",
+                     "check", 1)
+        edit.add_row(f, "min_spacing", "Min spacing (m)", "spin", 0.003,
+                     minimum=0.0001, maximum=0.05)
+        edit.add_row(f, "interior_ratio", "Interior subdivision ratio",
+                     "spin", 2.0, minimum=1.0, maximum=6.0)
         self._pages["Edit"] = edit
         self.tabs.addTab(edit, "Edit")
 
@@ -1359,6 +1366,8 @@ class AutoHexDialog(QDialog):
         others.add_row(f, "grid_display_mesh_separately",
                        "Display mesh separately", "check", 0)
         others.add_row(f, "grid_cutouts", "Cutouts", "check", 1)
+        others.add_row(f, "match_oracle_cells", "Target cells (0=off)",
+                       "int", 0, minimum=0, maximum=40000000)
         self._pages["Others"] = others
         self.tabs.addTab(others, "Others")
 

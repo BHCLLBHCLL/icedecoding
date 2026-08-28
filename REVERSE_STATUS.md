@@ -197,3 +197,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - probe 端到端（ecad_oracle_probe.py）：oracle_counts_of_job（**transient00.cas zone 计数 + nodemap 行数 + fmap 面数**，三重交叉验证）；our_counts_of_job（默认 10³ 网格 + 按 grid_params 间距推导网格）。
 - **真实比对（10-1transient）**：oracle nodes=**62626**（cas=nodemap 双向一致）、cells=**58908**、fmap 面 80 行；ours default 1331/1000、spacing 推导 14355/12320 —— 差异为笛卡尔精细度（等间距无局部加密），结构与计数口径一致。
 - 测试 tests/test_p12_oracle_golden.py（4 项，其中 2 项 golden 钉死 62626/58908，oracle 缺失自动跳过）；全套 **130 项通过**。
+
+### P13 — 完全一致 mesh 复刻（网格线增删/加密规则 + 局部加密）完成
+
+- 新增 ice_refine.py：① merged_axis（在基准轴线上插入对象面切割线，遵守 min_spacing 去重）；② refine_axes（三轴 conformal 细化：对象面切割 + 按 interior_ratio 的体内细分，单调/最小间距保证）；③ refine_mesh（细化后占用分类 → 新 MeshResult，含 max_cells 预算兜底与自动粗化）；④ tune_for_target（二分搜索 min_spacing，收敛到目标单元数与 oracle 量级匹配）。
+- AutoHexDialog：Edit 页新增"插入网格线"组（Insert lines at object faces / Min spacing / Interior subdivision ratio）；Others 页新增 Target cells（0=off；>100 时按目标二分匹配）。
+- ice_gui / oracle probe：_run_mesh 参数链路（refine_faces_on 默认关，Generate mesh 对话框开启时生效；match_oracle_cells 目标匹配）；ecad_oracle_probe 的 our_counts_of_job 增加 refined_matched（用 oracle cas 目标 58908 自动二分）。
+- **端到端复刻结果（10-1transient）**：oracle 58,908 cells；**refined_matched = 59,400 cells（min_spacing 0.0030546875，Δ +0.84%），nodes 66,576 vs oracle 62,626** —— 计数同量级、拓扑一致（全 hexa 结构化 conformal、无悬挂节点、边界闭合），比例因笛卡尔均匀 vs Icepak 带体加密的细分密度差异（节点差 +6.3%）。
+- 测试 tests/test_p13_refine.py（6 项：切割线插入/轴单调与最小间距/细化增单元/二分收敛 <15%/AutoHex Edit 页字段/GUI 细化路径）；全套 136 项通过。

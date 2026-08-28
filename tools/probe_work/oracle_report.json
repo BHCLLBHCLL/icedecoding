@@ -25,7 +25,7 @@
    "model",
    "problem"
   ],
-  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_krwi9bwb",
+  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_9b4v0o6s",
   "our_nodes": 1331,
   "our_cells": 1000
  },
@@ -73,6 +73,12 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "min_spacing": 0.0030546875,
+     "cells": 59400,
+     "nodes": 66576,
+     "target": 58908
     }
    },
    "overview_temps": 14,

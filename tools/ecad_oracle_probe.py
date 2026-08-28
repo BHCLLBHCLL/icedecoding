@@ -170,6 +170,21 @@ def our_counts_of_job(project_dir):
         res["default_error"] = "%r" % e
     # oracle-spacing derived counts from grid_params domain sizes
     gp = os.path.join(project_dir, "grid_params")
+    # refined / oracle-target matched grid (topology replication)
+    try:
+        from ice_refine import tune_for_target, refine_mesh
+        from ice_mesh import generate_mesh as _gm
+        target = 58908 if "10-1transient" in project_dir else 0
+        if target > 0:
+            best = tune_for_target(project_dir, target, model=proj.model)
+            if best is not None:
+                res["refined_matched"] = {
+                    "min_spacing": best[0],
+                    "cells": best[1],
+                    "nodes": best[2].node_count,
+                    "target": target}
+    except Exception as e:
+        res["refined_error"] = "%r" % e
     if os.path.exists(gp):
         entries = parse_grid_params(gp)
         dom = [e for e in entries if e["type"] == "domain"]

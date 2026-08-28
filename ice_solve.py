@@ -190,11 +190,13 @@ def plane_cut_points(result, axis, offset, temps):
     pts = []
     a = result.axes
     ai = {"x": 0, "y": 1, "z": 2}[axis]
+    col = a[ai]
+    tol = min((col[i + 1] - col[i]) for i in range(len(col) - 1)) / 2.0 * 1.2
     for (i, j, k), t in temps.items():
         c = [(a[0][i] + a[0][i + 1]) / 2,
              (a[1][j] + a[1][j + 1]) / 2,
              (a[2][k] + a[2][k + 1]) / 2]
-        if abs(c[ai] - offset) < 1e-9:
+        if abs(c[ai] - offset) <= tol:
             pts.append((c[0], c[1], c[2], t))
             if len(pts) > 4000:
                 break

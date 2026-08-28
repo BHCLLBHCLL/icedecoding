@@ -1052,6 +1052,21 @@ class IceGui(QMainWindow):
         ratio = float(params.get("grid_gr_ratio", 1.0))
         result = generate_mesh(self.project.model, counts=counts,
                                gtype=gtype, ratio=ratio)
+        if params.get("refine_faces_on", False):
+            from ice_refine import refine_mesh, tune_for_target
+            target = int(params.get("match_oracle_cells", 0) or 0)
+            if target > 100:
+                t = tune_for_target(os.getcwd(), target,
+                                    model=self.project.model)
+                if t is not None:
+                    result = t[2]
+                    self.log("Refined to target %d -> %d cells (min_spacing=%.5f)"
+                             % (target, result.cell_count, t[0]))
+            else:
+                ms = float(params.get("min_spacing", 0.003))
+                ratio_r = float(params.get("interior_ratio", 2.0))
+                result = refine_mesh(result, self.project.model,
+                                     min_spacing=ms, interior_ratio=ratio_r)
         max_elems = int(params.get("grid_max_elements", 25000000))
         if result.cell_count > max_elems:
             self.log("Large mesh: %d cells > max %d" %
