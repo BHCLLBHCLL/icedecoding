@@ -212,3 +212,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 2) refined 网格接入热求解器：heat_solver 改为**逐轴局部单元宽度**（wx/wy/wz 数组，源密度/拉普拉斯/分母全部按局部宽度），refined 非均匀网格 59,400/55,480 单元直接可解；测试 test_refined_mesh_supports_heat_solver（细化网格 SOR 收敛、全温度场覆盖）。
 3) 13 工程批量 oracle 比对：ecad_oracle_probe 的 oracle_counts_of_job 改为 **os.walk 递归 + 名称归一**（*00.cas / *.cas 排除 nc.cas/.cfd.cas；nodemap/fmap 同理，任一深度）；**批量结果**：11-3joule-heating 节点 352,256 vs 351,110（0.33%）、7-1hsink-rad 122,720 vs 127,394（3.7%）、7-2Heat-pipe 188,082 vs 186,209（1.0%）、11-2BGA 28,577 vs 27,905（2.4%）；>120 对象工程（12-1datacenter 259 对象）按"skipped"记录，避免细化超预算；各工程详情入档 tools/probe_work/oracle_report.json。
 - 测试 tests/test_p14_replication.py（2 项）；全套 138 项通过。
+
+### P15 — 精细批量（≥10 spacing × ≥6 base 交叉扫描）完成
+
+- 新增 tools/fine_batch.py：每个工程全交叉扫描（非重载：12 档 spacing × 7 档 base；>120 对象：8×3 粗预算；误差>10% 追加"coarse stage2"再扫），增量落盘 tools/probe_work/fine_batch.json。
+- **13 工程节点匹配表（best_err）**：10-1transient **0.41%**、9-2Optimization **0.58%**、7-1hsink-rad 1.19%、11-2BGA 1.59%、8-1cold-plate 1.65%、7-2Heat-pipe 2.18%、11-3joule-heating 2.49%、8-2yyhh 3.41%、12-1datacenter 4.34%、5-2rf_amp 6.13%、9-1FAN_Location 19.25%、5-1fin 24.13%、9-3Loss_coefficient 47.44%；12-2avonics 细扫运行内存异常（80 对象/粗扫可用），11-1compact-package 需嵌套 job 子目录（已记录 skipped 与处理方式）。
+- 说明：命中 <1% 的工程（10-1 0.41%、9-2 0.58%）即"节点差<1%"达成；其余为极限最优点（计数属于"最小可及误差"，受 base/自适应整数粒度限制——若需全部 <1%，需按对象单独调节 adaptive ratio 的连续化细分（interior_ratio 非整数偏移线），列为后继项。
