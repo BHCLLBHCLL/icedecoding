@@ -44,8 +44,11 @@ def solve_heat(result, model, boundary_temp=AMBIENT_T, max_iter=2000,
     """Cell-grid steady conduction (SOR). Returns (temps, residuals)."""
     nx, ny, nz = result.nx, result.ny, result.nz
     axis = result.axes
-    dx = (axis[0][1] - axis[0][0], axis[1][1] - axis[1][0],
-          axis[2][1] - axis[2][0])
+    # per-axis local cell widths (non-uniform refined grids)
+    wx = [axis[0][i + 1] - axis[0][i] for i in range(nx)]
+    wy = [axis[1][j + 1] - axis[1][j] for j in range(ny)]
+    wz = [axis[2][k + 1] - axis[2][k] for k in range(nz)]
+    dx = (max(wx), max(wy), max(wz))
     k_map, p_map = _obj_field(model)
 
     # per-cell conductivity + source density
@@ -59,7 +62,7 @@ def solve_heat(result, model, boundary_temp=AMBIENT_T, max_iter=2000,
             else DEFAULT_K
         p = p_map.get(name)
         if p:
-            vol = dx[0] * dx[1] * dx[2]
+            vol = wx[i] * wy[j] * wz[k]
             qcell[(i, j, k)] = p / vol
         else:
             qcell[(i, j, k)] = 0.0
@@ -80,18 +83,21 @@ def solve_heat(result, model, boundary_temp=AMBIENT_T, max_iter=2000,
                     bound[(i, j, k)] = False
                     T[(i, j, k)] = boundary_temp + 5.0
     residuals = []
-    denom = 2.0 * (1.0 / dx[0] ** 2 + 1.0 / dx[1] ** 2 + 1.0 / dx[2] ** 2)
+    def denom_at(i, j, k):
+        return 2.0 * (1.0 / wx[i] ** 2 + 1.0 / wy[j] ** 2 +
+                      1.0 / wz[k] ** 2)
+
     for it in range(int(max_iter)):
         res = 0.0
         for i in range(1, nx - 1):
             for j in range(1, ny - 1):
                 for k in range(1, nz - 1):
                     key = (i, j, k)
-                    term = (T[(i - 1, j, k)] + T[(i + 1, j, k)]) / dx[0] ** 2
-                    term += (T[(i, j - 1, k)] + T[(i, j + 1, k)]) / dx[1] ** 2
-                    term += (T[(i, j, k - 1)] + T[(i, j, k + 1)]) / dx[2] ** 2
+                    term = (T[(i - 1, j, k)] + T[(i + 1, j, k)]) / wx[i] ** 2 + \
+                        (T[(i, j - 1, k)] + T[(i, j + 1, k)]) / wy[j] ** 2 + \
+                        (T[(i, j, k - 1)] + T[(i, j, k + 1)]) / wz[k] ** 2
                     rhs = qcell.get(key, 0.0) / DEFAULT_K
-                    new = (term + rhs) / denom
+                    new = (term + rhs) / denom_at(i, j, k)
                     update = new - T[key]
                     T[key] = T[key] + omega * update
                     res += update * update

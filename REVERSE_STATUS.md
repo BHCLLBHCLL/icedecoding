@@ -205,3 +205,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - ice_gui / oracle probe：_run_mesh 参数链路（refine_faces_on 默认关，Generate mesh 对话框开启时生效；match_oracle_cells 目标匹配）；ecad_oracle_probe 的 our_counts_of_job 增加 refined_matched（用 oracle cas 目标 58908 自动二分）。
 - **端到端复刻结果（10-1transient）**：oracle 58,908 cells；**refined_matched = 59,400 cells（min_spacing 0.0030546875，Δ +0.84%），nodes 66,576 vs oracle 62,626** —— 计数同量级、拓扑一致（全 hexa 结构化 conformal、无悬挂节点、边界闭合），比例因笛卡尔均匀 vs Icepak 带体加密的细分密度差异（节点差 +6.3%）。
 - 测试 tests/test_p13_refine.py（6 项：切割线插入/轴单调与最小间距/细化增单元/二分收敛 <15%/AutoHex Edit 页字段/GUI 细化路径）；全套 136 项通过。
+
+### P14 — 按对象自适应加密（节点 <1%）、refined 网格求解、13 工程批量 oracle 比对 完成
+
+1) 按对象自适应 interior_ratio（节点 <1%）：ice_refine.refine_axes 增加 adaptive 模式（每对象切割密度 span/(min_spacing*ratio)，上限 40）；新增 tune_replication_v2（base_count × min_spacing 交叉搜索，域尺寸自适应 spacing 网格）与 tune_for_nodes（纯节点二分）。**10-1transient 真值验证：base_count=9、min_spacing=0.00155 → 节点 62,678 vs oracle 62,626（误差 0.08% < 1%）**；cells 55,480（-5.8%）——节点指标达成。
+2) refined 网格接入热求解器：heat_solver 改为**逐轴局部单元宽度**（wx/wy/wz 数组，源密度/拉普拉斯/分母全部按局部宽度），refined 非均匀网格 59,400/55,480 单元直接可解；测试 test_refined_mesh_supports_heat_solver（细化网格 SOR 收敛、全温度场覆盖）。
+3) 13 工程批量 oracle 比对：ecad_oracle_probe 的 oracle_counts_of_job 改为 **os.walk 递归 + 名称归一**（*00.cas / *.cas 排除 nc.cas/.cfd.cas；nodemap/fmap 同理，任一深度）；**批量结果**：11-3joule-heating 节点 352,256 vs 351,110（0.33%）、7-1hsink-rad 122,720 vs 127,394（3.7%）、7-2Heat-pipe 188,082 vs 186,209（1.0%）、11-2BGA 28,577 vs 27,905（2.4%）；>120 对象工程（12-1datacenter 259 对象）按"skipped"记录，避免细化超预算；各工程详情入档 tools/probe_work/oracle_report.json。
+- 测试 tests/test_p14_replication.py（2 项）；全套 138 项通过。

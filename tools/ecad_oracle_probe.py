@@ -126,29 +126,43 @@ def parse_overview(path):
 
 
 def oracle_counts_of_job(project_dir):
-    """Exact oracle grid counts for a job (cas zone headers + nodemap/fmap)."""
+    """Exact oracle grid counts (cas zone headers + nodemap/fmap), searching
+    nested job subdirectories and normalising solver-id names."""
     import re as _re
     from fluent_grid import parse_ascii_grid
     out = {"cas": None, "nodemap_lines": None, "fmap_lines": None}
-    cas = os.path.join(project_dir, "transient00.cas")
-    if not os.path.exists(cas):
-        cas = os.path.join(project_dir, "cas")
-    if os.path.exists(cas):
+
+    def find(patterns, exclude=()):
+        hits = []
+        for root, dirs, files in os.walk(project_dir):
+            for fn in files:
+                if any(fn.endswith(pat) for pat in patterns) and \
+                        not any(x in fn for x in exclude):
+                    hits.append(os.path.join(root, fn))
+        hits.sort()
+        return hits
+
+    cas_hits = find(("00.cas", ".cas"), exclude=("nc.cas", ".cfd.cas",
+                                                  "grid"))
+    if not cas_hits:
+        cas_hits = find(("00.cas", ".cas"), exclude=("nc.cas",))
+    if cas_hits:
         try:
-            text = open(cas, encoding="latin-1", errors="ignore").read()
+            text = open(cas_hits[0], encoding="latin-1",
+                        errors="ignore").read()
             out["cas"] = parse_ascii_grid(text)
+            out["cas_file"] = os.path.basename(cas_hits[0])
         except Exception as e:
             out["cas_error"] = "%r" % e
-    nm = os.path.join(project_dir, "transient00.nodemap")
-    if not os.path.exists(nm):
-        nm = os.path.join(project_dir, "nodemap")
-    if os.path.exists(nm):
-        raw = open(nm, "rb").read()
+    nm = find(("nodemap",))
+    if nm:
+        raw = open(nm[0], "rb").read()
         out["nodemap_lines"] = raw.count(b"\r\n") + (
             0 if raw.endswith(b"\r\n") else 1)
-    fm = os.path.join(project_dir, "transient00.fmap")
-    if os.path.exists(fm):
-        out["fmap_lines"] = sum(1 for _ in open(fm, encoding="latin-1",
+    fm = find(("fmap",))
+    if fm:
+        out["fmap_lines"] = sum(1 for _ in open(fm[0],
+                                                encoding="latin-1",
                                                 errors="ignore"))
     return out
 
@@ -170,19 +184,31 @@ def our_counts_of_job(project_dir):
         res["default_error"] = "%r" % e
     # oracle-spacing derived counts from grid_params domain sizes
     gp = os.path.join(project_dir, "grid_params")
-    # refined / oracle-target matched grid (topology replication)
+    # refined / oracle-target matched grid (topology replication v2:
+    # node target <1%; cell count reported alongside)
     try:
-        from ice_refine import tune_for_target, refine_mesh
-        from ice_mesh import generate_mesh as _gm
-        target = 58908 if "10-1transient" in project_dir else 0
-        if target > 0:
-            best = tune_for_target(project_dir, target, model=proj.model)
+        from ice_refine import tune_replication_v2
+        node_t = 0
+        own = oracle_counts_of_job(project_dir)
+        c = own.get("cas") or {}
+        node_t = c.get("nodes") or own.get("nodemap_lines") or 0
+        if node_t > 1000:
+            n_objs = len(list(proj.model._all_objects()))
+            if n_objs > 120:
+                res["refined_matched"] = {"skipped": True,
+                                          "reason": "objects>120"}
+            else:
+                best = tune_replication_v2(project_dir, node_t,
+                                           model=proj.model)
             if best is not None:
                 res["refined_matched"] = {
-                    "min_spacing": best[0],
-                    "cells": best[1],
-                    "nodes": best[2].node_count,
-                    "target": target}
+                    "score_err": best[0],
+                    "base_count": best[1],
+                    "min_spacing": best[2],
+                    "nodes": best[3].node_count,
+                    "cells": best[3].cell_count,
+                    "node_target": node_t,
+                    "cell_target": c.get("cells")}
     except Exception as e:
         res["refined_error"] = "%r" % e
     if os.path.exists(gp):

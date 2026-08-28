@@ -25,7 +25,7 @@
    "model",
    "problem"
   ],
-  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_9b4v0o6s",
+  "job_dir": "C:\\Users\\sdcll\\AppData\\Local\\Temp\\ice_oracle_s4d86rm8",
   "our_nodes": 1331,
   "our_cells": 1000
  },
@@ -63,7 +63,8 @@
      "cells": 58908
     },
     "nodemap_lines": 62626,
-    "fmap_lines": 80
+    "fmap_lines": 80,
+    "cas_file": "transient00.cas"
    },
    "our_counts": {
     "default": {
@@ -75,10 +76,13 @@
      "cells": 12320
     },
     "refined_matched": {
-     "min_spacing": 0.0030546875,
-     "cells": 59400,
-     "nodes": 66576,
-     "target": 58908
+     "score_err": 0.0607415450451889,
+     "base_count": 11,
+     "min_spacing": 0.0020000000000000005,
+     "nodes": 66430,
+     "cells": 59616,
+     "node_target": 62626,
+     "cell_target": 58908
     }
    },
    "overview_temps": 14,
@@ -123,9 +127,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 27905,
+     "cells": 153056
+    },
+    "nodemap_lines": 162053,
+    "fmap_lines": 5514,
+    "cas_file": "BGA-package00.cas"
    },
    "our_counts": {
     "default": {
@@ -135,6 +143,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 0.02408170578749328,
+     "base_count": 10,
+     "min_spacing": 5.513725490196071e-05,
+     "nodes": 28577,
+     "cells": 25600,
+     "node_target": 27905,
+     "cell_target": 153056
     }
    },
    "overview_temps": 0,
@@ -162,9 +179,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 351110,
+     "cells": 316012
+    },
+    "nodemap_lines": 351110,
+    "fmap_lines": 919,
+    "cas_file": "joule-heating00.cas"
    },
    "our_counts": {
     "default": {
@@ -174,6 +195,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 0.0032639343795391757,
+     "base_count": 9,
+     "min_spacing": 0.00095,
+     "nodes": 352256,
+     "cells": 325755,
+     "node_target": 351110,
+     "cell_target": 316012
     }
    },
    "overview_temps": 0,
@@ -201,9 +231,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 22998,
+     "cells": 127797
+    },
+    "nodemap_lines": 141720,
+    "fmap_lines": 424,
+    "cas_file": "datacenter00.cas"
    },
    "our_counts": {
     "default": {
@@ -213,7 +247,12 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
-    }
+    },
+    "refined_matched": {
+     "skipped": true,
+     "reason": "objects>120"
+    },
+    "refined_error": "UnboundLocalError(\"cannot access local variable 'best' where it is not associated with a value\")"
    },
    "overview_temps": 0,
    "overview_sample": []
@@ -240,9 +279,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 187730,
+     "cells": 27860
+    },
+    "nodemap_lines": 187730,
+    "fmap_lines": 1529,
+    "cas_file": "trial001.cas"
    },
    "our_counts": {
     "default": {
@@ -252,6 +295,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 4.75434933148671,
+     "base_count": 10,
+     "min_spacing": 0.0018944444444444447,
+     "nodes": 1080264,
+     "cells": 1048866,
+     "node_target": 187730,
+     "cell_target": 27860
     }
    },
    "overview_temps": 0,
@@ -279,9 +331,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 17224,
+     "cells": 87778
+    },
+    "nodemap_lines": 94756,
+    "fmap_lines": 133,
+    "cas_file": "fin00.cas"
    },
    "our_counts": {
     "default": {
@@ -291,6 +347,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 4.380109150023223,
+     "base_count": 10,
+     "min_spacing": 0.0019777777777777775,
+     "nodes": 92667,
+     "cells": 85800,
+     "node_target": 17224,
+     "cell_target": 87778
     }
    },
    "overview_temps": 0,
@@ -318,9 +383,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 127394,
+     "cells": 119050
+    },
+    "nodemap_lines": 127394,
+    "fmap_lines": 134,
+    "cas_file": "DO.cas"
    },
    "our_counts": {
     "default": {
@@ -330,6 +399,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 0.0366893260279134,
+     "base_count": 9,
+     "min_spacing": 0.0044444444444444444,
+     "nodes": 122720,
+     "cells": 115072,
+     "node_target": 127394,
+     "cell_target": 119050
     }
    },
    "overview_temps": 0,
@@ -357,9 +435,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 186209,
+     "cells": 167269
+    },
+    "nodemap_lines": 186209,
+    "fmap_lines": 273,
+    "cas_file": "Heat-pipe00.cas"
    },
    "our_counts": {
     "default": {
@@ -369,6 +451,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 0.010058590078889849,
+     "base_count": 12,
+     "min_spacing": 0.002888888888888889,
+     "nodes": 188082,
+     "cells": 176800,
+     "node_target": 186209,
+     "cell_target": 167269
     }
    },
    "overview_temps": 0,
@@ -396,9 +487,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 47503,
+     "cells": 42398
+    },
+    "nodemap_lines": 47503,
+    "fmap_lines": 77,
+    "cas_file": "8-1cold-plate00.cas"
    },
    "our_counts": {
     "default": {
@@ -408,6 +503,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 9.151358861545587,
+     "base_count": 8,
+     "min_spacing": 0.0022222222222222222,
+     "nodes": 482220,
+     "cells": 463326,
+     "node_target": 47503,
+     "cell_target": 42398
     }
    },
    "overview_temps": 0,
@@ -435,9 +539,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 5022,
+     "cells": 3900
+    },
+    "nodemap_lines": 5022,
+    "fmap_lines": 54,
+    "cas_file": "yyhh00.cas"
    },
    "our_counts": {
     "default": {
@@ -447,6 +555,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 23.62664277180406,
+     "base_count": 8,
+     "min_spacing": 0.001111111111111111,
+     "nodes": 123675,
+     "cells": 113664,
+     "node_target": 5022,
+     "cell_target": 3900
     }
    },
    "overview_temps": 0,
@@ -474,9 +591,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 54613,
+     "cells": 47810
+    },
+    "nodemap_lines": 54613,
+    "fmap_lines": 206,
+    "cas_file": "tr_zc_0_1.cas"
    },
    "our_counts": {
     "default": {
@@ -486,6 +607,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 6.621042608902642,
+     "base_count": 10,
+     "min_spacing": 0.0022222222222222222,
+     "nodes": 416208,
+     "cells": 398820,
+     "node_target": 54613,
+     "cell_target": 47810
     }
    },
    "overview_temps": 0,
@@ -513,9 +643,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 183732,
+     "cells": 171817
+    },
+    "nodemap_lines": 183732,
+    "fmap_lines": 526,
+    "cas_file": "best.cas"
    },
    "our_counts": {
     "default": {
@@ -525,6 +659,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 1.5402107417325235,
+     "base_count": 10,
+     "min_spacing": 0.0016933333333333334,
+     "nodes": 466718,
+     "cells": 446040,
+     "node_target": 183732,
+     "cell_target": 171817
     }
    },
    "overview_temps": 0,
@@ -552,9 +695,13 @@
     "note": "binary Fluent/Icepak grid; node records appear as marker+counter+3 doubles; exact section boundaries need the follow-up pin (see tools/probe_work/)"
    },
    "oracle_counts": {
-    "cas": null,
-    "nodemap_lines": null,
-    "fmap_lines": null
+    "cas": {
+     "nodes": 31764,
+     "cells": 29482
+    },
+    "nodemap_lines": 31764,
+    "fmap_lines": 30,
+    "cas_file": "tr_Re_10.cas"
    },
    "our_counts": {
     "default": {
@@ -564,6 +711,15 @@
     "spacing": {
      "nodes": 14355,
      "cells": 12320
+    },
+    "refined_matched": {
+     "score_err": 0.6312492129454729,
+     "base_count": 11,
+     "min_spacing": 0.0006274509803921569,
+     "nodes": 11713,
+     "cells": 9984,
+     "node_target": 31764,
+     "cell_target": 29482
     }
    },
    "overview_temps": 0,
