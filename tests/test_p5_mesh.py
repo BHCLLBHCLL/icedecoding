@@ -140,5 +140,6 @@ def test_grid_output_ascii_counts(win, monkeypatch):
     pth = os.path.join(d, "grid_output")
     write_grid_output_ascii(pth, res)
     txt = open(pth, encoding="latin-1").read()
-    assert "(10 (0 1 %d 0))" % res.node_count in txt
-    assert "(12 (0 1 %d 0))" % res.cell_count in txt
+    # Icepak dialect: zone counts are HEX
+    assert "(10 (0 1 %x 0))" % res.node_count in txt
+    assert "(12 (0 1 %x 0))" % res.cell_count in txt

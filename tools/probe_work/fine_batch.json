@@ -1,166 +1,275 @@
 {
+ "_version": "p16",
  "10-1transient": {
   "project": "10-1transient",
+  "engine": "continuous",
   "node_target": 62626,
   "cell_target": 58908,
-  "best_err": 0.004087759077699358,
-  "base_count": 8,
-  "min_spacing": 0.0015000000000000002,
-  "nodes": 62370,
-  "cells": 54720,
+  "best_err": 0.00022354932456168365,
+  "axis_counts": [
+   24,
+   45,
+   58
+  ],
+  "nodes": 62640,
+  "cells": 57684,
   "objects": 15,
+  "elapsed_s": 0.2
+ },
+ "10-2heat-st": {
+  "project": "10-2heat-st",
+  "skipped": "no cas/nodemap"
+ },
+ "11-1compact-package": {
+  "project": "11-1compact-package",
+  "engine": "continuous",
+  "node_target": 143205,
+  "cell_target": 133520,
+  "best_err": 2.0948989211270555e-05,
+  "axis_counts": [
+   34,
+   52,
+   81
+  ],
+  "nodes": 143208,
+  "cells": 134640,
+  "objects": 34,
+  "elapsed_s": 0.9
+ },
+ "11-2BGA-package": {
+  "project": "11-2BGA-package",
+  "engine": "continuous",
+  "node_target": 162053,
+  "cell_target": 153056,
+  "best_err": 4.319574460207463e-05,
+  "axis_counts": [
+   30,
+   73,
+   74
+  ],
+  "nodes": 162060,
+  "cells": 152424,
+  "objects": 5,
+  "elapsed_s": 0.4
+ },
+ "11-3joule-heating": {
+  "project": "11-3joule-heating",
+  "engine": "continuous",
+  "node_target": 351110,
+  "cell_target": 316012,
+  "best_err": 2.8481102788299963e-05,
+  "axis_counts": [
+   42,
+   88,
+   95
+  ],
+  "nodes": 351120,
+  "cells": 335298,
+  "objects": 41,
+  "elapsed_s": 1.4
+ },
+ "12-1datacenter": {
+  "project": "12-1datacenter",
+  "engine": "continuous",
+  "node_target": 141720,
+  "cell_target": 127797,
+  "best_err": 4.2337002540220155e-05,
+  "axis_counts": [
+   39,
+   46,
+   79
+  ],
+  "nodes": 141726,
+  "cells": 133380,
+  "objects": 259,
+  "elapsed_s": 3.4
+ },
+ "12-2avonics": {
+  "project": "12-2avonics",
+  "engine": "continuous",
+  "node_target": 187730,
+  "cell_target": 161888,
+  "best_err": 2.1307196505619774e-05,
+  "axis_counts": [
+   46,
+   53,
+   77
+  ],
+  "nodes": 187726,
+  "cells": 177840,
+  "objects": 82,
+  "elapsed_s": 0.7
+ },
+ "12-3TEC Tutorial": {
+  "project": "12-3TEC Tutorial",
+  "engine": "continuous",
+  "node_target": 827889,
+  "cell_target": 756872,
+  "best_err": 3.62367418820639e-06,
+  "axis_counts": [
+   58,
+   117,
+   122
+  ],
+  "nodes": 827892,
+  "cells": 800052,
+  "objects": 39,
   "elapsed_s": 3.4
  },
  "5-1fin": {
   "project": "5-1fin",
-  "node_target": 17224,
+  "engine": "continuous",
+  "node_target": 94756,
   "cell_target": 87778,
-  "best_err": 0.24129122155132374,
-  "base_count": 10,
-  "min_spacing": 0.006472727272727272,
-  "nodes": 13068,
-  "cells": 11264,
+  "best_err": 4.221368567689645e-05,
+  "axis_counts": [
+   32,
+   47,
+   63
+  ],
+  "nodes": 94752,
+  "cells": 88412,
   "objects": 21,
-  "elapsed_s": 28.9
+  "elapsed_s": 0.5
  },
  "5-2rf_amp": {
   "project": "5-2rf_amp",
-  "node_target": 18006,
+  "engine": "continuous",
+  "node_target": 98310,
   "cell_target": 91628,
-  "best_err": 0.061312895701432855,
-  "base_count": 10,
-  "min_spacing": 0.006,
-  "nodes": 19110,
-  "cells": 16728,
+  "best_err": 5.085952598921778e-05,
+  "axis_counts": [
+   35,
+   53,
+   53
+  ],
+  "nodes": 98315,
+  "cells": 91936,
   "objects": 19,
-  "elapsed_s": 12.9
+  "elapsed_s": 0.4
+ },
+ "6-1IDF": {
+  "project": "6-1IDF",
+  "skipped": "no cas/nodemap"
+ },
+ "6-2traces": {
+  "project": "6-2traces",
+  "skipped": "no model parsed"
  },
  "7-1hsink-rad": {
   "project": "7-1hsink-rad",
+  "engine": "continuous",
   "node_target": 127394,
   "cell_target": 119050,
-  "best_err": 0.01193148813915883,
-  "base_count": 10,
-  "min_spacing": 0.0033333333333333335,
-  "nodes": 125874,
-  "cells": 118296,
+  "best_err": 4.709797949667959e-05,
+  "axis_counts": [
+   28,
+   65,
+   70
+  ],
+  "nodes": 127400,
+  "cells": 119232,
   "objects": 21,
-  "elapsed_s": 17.6
+  "elapsed_s": 0.6
  },
  "7-2Heat-pipe": {
   "project": "7-2Heat-pipe",
+  "engine": "continuous",
   "node_target": 186209,
   "cell_target": 167269,
-  "best_err": 0.021803457405388568,
-  "base_count": 12,
-  "min_spacing": 0.002923587393120467,
-  "nodes": 190269,
-  "cells": 178880,
+  "best_err": 5.370309705760731e-06,
+  "axis_counts": [
+   44,
+   46,
+   92
+  ],
+  "nodes": 186208,
+  "cells": 176085,
   "objects": 49,
-  "elapsed_s": 14.5
+  "elapsed_s": 0.5
  },
  "8-1cold-plate": {
   "project": "8-1cold-plate",
+  "engine": "continuous",
   "node_target": 47503,
   "cell_target": 42398,
-  "best_err": 0.016462118182009558,
-  "base_count": 10,
-  "min_spacing": 0.005333333333333334,
-  "nodes": 48285,
-  "cells": 44352,
+  "best_err": 2.1051302023030123e-05,
+  "axis_counts": [
+   26,
+   29,
+   63
+  ],
+  "nodes": 47502,
+  "cells": 43400,
   "objects": 14,
-  "elapsed_s": 57.3
+  "elapsed_s": 0.3
  },
  "8-2yyhh": {
   "project": "8-2yyhh",
+  "engine": "continuous",
   "node_target": 5022,
   "cell_target": 3900,
-  "best_err": 0.034050179211469536,
-  "base_count": 10,
-  "min_spacing": 0.004999999999999999,
-  "nodes": 4851,
-  "cells": 4000,
+  "best_err": 0.0011947431302270011,
+  "axis_counts": [
+   11,
+   19,
+   24
+  ],
+  "nodes": 5016,
+  "cells": 4140,
   "objects": 9,
-  "elapsed_s": 21.5
+  "elapsed_s": 0.1
  },
  "9-1FAN_Location": {
   "project": "9-1FAN_Location",
+  "engine": "continuous",
   "node_target": 54613,
   "cell_target": 47810,
-  "best_err": 0.19249995422335342,
-  "base_count": 8,
-  "min_spacing": 0.005333333333333334,
-  "nodes": 44100,
-  "cells": 40120,
+  "best_err": 1.8310658634391078e-05,
+  "axis_counts": [
+   36,
+   37,
+   41
+  ],
+  "nodes": 54612,
+  "cells": 50400,
   "objects": 16,
-  "elapsed_s": 77.9
+  "elapsed_s": 0.3
  },
  "9-2Optimization": {
   "project": "9-2Optimization",
+  "engine": "continuous",
   "node_target": 183732,
   "cell_target": 171817,
-  "best_err": 0.005812814316504474,
-  "base_count": 6,
-  "min_spacing": 0.002496121055112775,
-  "nodes": 184800,
-  "cells": 173304,
+  "best_err": 6.531252041016262e-05,
+  "axis_counts": [
+   36,
+   58,
+   88
+  ],
+  "nodes": 183744,
+  "cells": 173565,
   "objects": 32,
-  "elapsed_s": 175.7
+  "elapsed_s": 0.8
  },
  "9-3Loss_coefficient": {
   "project": "9-3Loss_coefficient",
+  "engine": "continuous",
   "node_target": 31764,
   "cell_target": 29482,
-  "best_err": 0.47440498677748394,
-  "base_count": 14,
-  "min_spacing": 0.0005333333333333334,
-  "nodes": 16695,
-  "cells": 14560,
+  "best_err": 0.0001259287243420224,
+  "axis_counts": [
+   19,
+   38,
+   44
+  ],
+  "nodes": 31768,
+  "cells": 28638,
   "objects": 16,
-  "elapsed_s": 0.9
+  "elapsed_s": 0.3
  },
- "11-1compact-package": {
-  "project": "11-1compact-package",
-  "skipped": "no model parsed"
- },
- "11-2BGA-package": {
-  "project": "11-2BGA-package",
-  "node_target": 27905,
-  "cell_target": 153056,
-  "best_err": 0.015946962909872783,
-  "base_count": 6,
-  "min_spacing": 5.178914312584766e-05,
-  "nodes": 28350,
-  "cells": 25168,
-  "objects": 5,
-  "elapsed_s": 2.9
- },
- "11-3joule-heating": {
-  "project": "11-3joule-heating",
-  "node_target": 351110,
-  "cell_target": 316012,
-  "best_err": 0.024864002734185868,
-  "base_count": 10,
-  "min_spacing": 0.0009443456503736377,
-  "nodes": 359840,
-  "cells": 332820,
-  "objects": 41,
-  "elapsed_s": 134.2
- },
- "12-1datacenter": {
-  "project": "12-1datacenter",
-  "node_target": 22998,
-  "cell_target": 127797,
-  "best_err": 0.04339507783285503,
-  "base_count": 4,
-  "min_spacing": 0.22167272017919998,
-  "nodes": 22000,
-  "cells": 19110,
-  "objects": 259,
-  "elapsed_s": 415.8
- },
- "12-2avonics": {
-  "project": "12-2avonics",
-  "skipped": "runtime access-violation during fine scan (80 objects, heavy occupancy); use coarse scan"
+ "icepak_parser": {
+  "project": "icepak_parser",
+  "skipped": "no cas/nodemap"
  }
 }

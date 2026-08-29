@@ -157,8 +157,10 @@ def oracle_counts_of_job(project_dir):
     nm = find(("nodemap",))
     if nm:
         raw = open(nm[0], "rb").read()
-        out["nodemap_lines"] = raw.count(b"\r\n") + (
-            0 if raw.endswith(b"\r\n") else 1)
+        lines = raw.count(b"\n")
+        if not raw.endswith(b"\n"):
+            lines += 1
+        out["nodemap_lines"] = lines
     fm = find(("fmap",))
     if fm:
         out["fmap_lines"] = sum(1 for _ in open(fm[0],
@@ -184,31 +186,35 @@ def our_counts_of_job(project_dir):
         res["default_error"] = "%r" % e
     # oracle-spacing derived counts from grid_params domain sizes
     gp = os.path.join(project_dir, "grid_params")
-    # refined / oracle-target matched grid (topology replication v2:
-    # node target <1%; cell count reported alongside)
+    # refined / oracle-target matched grid (P16 continuous subdivision:
+    # exact (a,b,c) axis triple; node target <1%; cell count alongside)
     try:
-        from ice_refine import tune_replication_v2
+        from ice_refine import tune_continuous, tune_replication_v2
         node_t = 0
         own = oracle_counts_of_job(project_dir)
         c = own.get("cas") or {}
         node_t = c.get("nodes") or own.get("nodemap_lines") or 0
         if node_t > 1000:
-            n_objs = len(list(proj.model._all_objects()))
-            if n_objs > 120:
-                res["refined_matched"] = {"skipped": True,
-                                          "reason": "objects>120"}
-            else:
-                best = tune_replication_v2(project_dir, node_t,
-                                           model=proj.model)
-            if best is not None:
+            rec = tune_continuous(project_dir, node_t, model=proj.model)
+            if rec is not None:
                 res["refined_matched"] = {
-                    "score_err": best[0],
-                    "base_count": best[1],
-                    "min_spacing": best[2],
-                    "nodes": best[3].node_count,
-                    "cells": best[3].cell_count,
+                    "score_err": rec["err"], "engine": "continuous",
+                    "axis_counts": rec["axis_counts"],
+                    "nodes": rec["nodes"], "cells": rec["cells"],
                     "node_target": node_t,
                     "cell_target": c.get("cells")}
+            else:
+                # legacy fallback (cross-scan by base count x min spacing)
+                best = tune_replication_v2(project_dir, node_t,
+                                           model=proj.model)
+                if best is not None:
+                    res["refined_matched"] = {
+                        "score_err": best[0], "engine": "v2",
+                        "base_count": best[1], "min_spacing": best[2],
+                        "nodes": best[3].node_count,
+                        "cells": best[3].cell_count,
+                        "node_target": node_t,
+                        "cell_target": c.get("cells")}
     except Exception as e:
         res["refined_error"] = "%r" % e
     if os.path.exists(gp):

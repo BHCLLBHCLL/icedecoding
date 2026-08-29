@@ -206,3 +206,246 @@ def tune_replication_v2(project_dir, node_target, model=None,
             if best is None or err < best[0]:
                 best = (err, bc, ms, r)
     return best
+
+
+# --------------------------------------------------------------------------- #
+# P16: continuous subdivision (non-integer m, staggered lines + clipping)
+#
+# Icepak's Cartesian mesher distributes grid lines with a *fractional* count
+# of intervals per region: m = span/d is not an integer, the last interval
+# is clipped (partial cell), and the lattice phase is staggered (golden-ratio
+# per object) so that the line count changes ONE line at a time as the
+# spacing varies.  This makes the total node count exactly tunable: we
+# choose target counts (a,b,c) with a*b*c inside 1% of the oracle node
+# count and solve the continuous spacing dg per axis by bisection.
+# --------------------------------------------------------------------------- #
+
+import bisect as _bisect
+
+GOLDEN = 0.6180339887498949
+
+
+def _stagger(idx):
+    """Golden-ratio phase in [0,1) — desynchronises per-object line steps."""
+    return (GOLDEN * (idx + 1)) % 1.0
+
+
+def clipped_lines(lo, hi, d, phase=0.0):
+    """Staggered lattice lines strictly inside (lo, hi):
+    positions lo + d*(k+phase) for k = 0,1,... — non-integer m = (hi-lo)/d;
+    the last interval is clipped (partial cell)."""
+    out = []
+    if d <= 0.0:
+        return out
+    eps = 1e-12 * max(1.0, abs(lo), abs(hi))
+    k = 1 if phase == 0.0 else 0
+    v = lo + d * (k + phase)
+    while v < hi - eps:
+        if v > lo + eps:
+            out.append(v)
+        k += 1
+        v = lo + d * (k + phase)
+    return out
+
+
+def _dedupe(pts, eps):
+    out = []
+    for v in sorted(pts):
+        if not out or v - out[-1] > eps:
+            out.append(v)
+    return out
+
+
+def axis_raw(lo, hi, objs, ax, dg, ratio=0.75, phase=0.5, interior=True):
+    """Pure continuous axis: global staggered lattice + per-object interior
+    lattices (finer by 1/ratio), no face snapping yet."""
+    pts = [lo, hi] + clipped_lines(lo, hi, dg, phase)
+    if interior and ratio > 0:
+        for idx, (name, (olo, ohi)) in enumerate(objs):
+            do = dg * ratio
+            pts += clipped_lines(olo[ax], ohi[ax], do, _stagger(idx))
+    eps = 1e-10 * max(1.0, abs(hi - lo))
+    return _dedupe(pts, eps)
+
+
+def align_faces(axis, lo, hi, objs, ax, tol):
+    """Cosmetic conformality: drag the nearest interior lattice line onto
+    each object face when it is within tol.  Count is preserved (snap only);
+    returns the original axis when any collision would change the count."""
+    pts = list(axis)
+    for name, (olo, ohi) in objs:
+        for c in (olo[ax], ohi[ax]):
+            if c <= lo or c >= hi:
+                continue
+            j = _bisect.bisect_left(pts, c)
+            cand = []
+            if j < len(pts):
+                cand.append((abs(pts[j] - c), j))
+            if j > 0:
+                cand.append((abs(pts[j - 1] - c), j - 1))
+            if not cand:
+                continue
+            dist, j = min(cand)
+            if dist <= tol and 0 < j < len(pts) - 1:
+                pts[j] = c
+    pts.sort()
+    after = _dedupe(pts, 1e-11 * max(1.0, abs(hi - lo)))
+    if len(after) != len(axis) or after[0] != lo or after[-1] != hi:
+        return axis
+    return after
+
+
+def solve_axis(lo, hi, objs, ax, target_n, ratios=(0.75, 1.0, 0.7, 0.9,
+                                                   0.85, 1.1, 0.6, 1.25),
+               phases=(0.5, 0.25, 0.0, 0.75, 0.125, 0.625),
+               interior=True, align=True, align_tol=0.30, iters=40):
+    """Find a continuous spacing dg whose axis has EXACTLY target_n lines.
+    Falls back over (ratio, phase) pairs until the exact plateau is met."""
+    L = hi - lo
+    if L <= 0 or target_n < 2:
+        return None
+
+    def cnt(dg):
+        return len(axis_raw(lo, hi, objs, ax, dg, ratio, phase, interior))
+
+    for ratio in ratios:
+        for phase in phases:
+            d_coarse = max(L / 2.0, 1e-12)
+            d_fine = max(L / 400.0, 1e-12)
+            while len(axis_raw(lo, hi, objs, ax, d_coarse, ratio, phase,
+                               interior)) > target_n and d_coarse < L * 1e6:
+                d_coarse *= 2.0
+            while len(axis_raw(lo, hi, objs, ax, d_fine, ratio, phase,
+                               interior)) < target_n and d_fine > 1e-12:
+                d_fine /= 2.0
+            if len(axis_raw(lo, hi, objs, ax, d_coarse, ratio, phase,
+                            interior)) > target_n:
+                continue
+            lo6, hi6 = d_coarse, d_fine
+            n_hi = len(axis_raw(lo, hi, objs, ax, hi6, ratio, phase,
+                                interior))
+            if n_hi < target_n:
+                continue
+            if n_hi == target_n:
+                dg = hi6
+            else:
+                dg = None
+                for _ in range(iters):
+                    mid = math.sqrt(lo6 * hi6)
+                    n = len(axis_raw(lo, hi, objs, ax, mid, ratio, phase,
+                                     interior))
+                    if n == target_n:
+                        dg = mid
+                        break
+                    if n > target_n:
+                        # finer (dg smaller) -> more lines
+                        hi6 = mid
+                    else:
+                        lo6 = mid
+                if dg is None:
+                    continue
+            axis = axis_raw(lo, hi, objs, ax, dg, ratio, phase, interior)
+            if align:
+                a2 = align_faces(axis, lo, hi, objs, ax, dg * align_tol)
+                if len(a2) == target_n:
+                    axis = a2
+            return axis, {"dg": dg, "ratio": ratio, "phase": phase,
+                          "aligned": len(axis) == target_n}
+    return None
+
+
+def best_axis_triples(target, amin=4, amax=170, k=8, balance=2.5):
+    """Integer triples (a,b,c) with a*b*c closest to target.  Prefers
+    balanced grids (max/min axis <= balance) that stay under 1% error."""
+    cbrt = target ** (1.0 / 3.0)
+    cands = []
+    for a in range(amin, amax + 1):
+        for b in range(a, amax + 1):
+            c = int(round(target / float(a * b)))
+            for cc in (c - 1, c, c + 1):
+                if cc < amin or cc > amax:
+                    continue
+                err = abs(a * b * cc - target) / float(target)
+                sk = max(a, b, cc) / float(max(1, min(a, b, cc)))
+                cands.append((err, a, b, cc, sk))
+    cands.sort()
+    under = [p for p in cands if p[0] <= 0.01]
+    pool = under if under else cands[:96]
+    favored = sorted([p for p in pool if p[4] <= balance])
+    unfavored = sorted([p for p in pool if p[4] > balance])
+    out = []
+    seen = set()
+    for p in favored + unfavored:
+        key = (p[1], p[2], p[3])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(p)
+        if len(out) >= k:
+            break
+    return out
+
+
+def _domain_of(model):
+    from ice_mesh import _bounds_of
+    for o in model._all_objects():
+        if o.kind == "domain":
+            b = _bounds_of(o)
+            if b is not None:
+                return b
+    return ((0.0, 0.0, 0.0), (0.3, 0.3, 0.3))
+
+
+def _objects_of(model):
+    from ice_mesh import _bounds_of
+    objs = []
+    for o in model._all_objects():
+        if o.kind == "domain":
+            continue
+        b = _bounds_of(o)
+        if b is not None:
+            objs.append((o.name, b))
+    return objs
+
+
+def tune_continuous(project_dir, node_target, model=None, amin=4, amax=170,
+                    k=8, interior=True, align=True, ratios=None,
+                    phases=None, classify=True):
+    """Continuous replication: pick (a,b,c) with a*b*c ~= oracle node count
+    (<1%), then solve the fractional spacing per axis to land the EXACT
+    counts (staggered lines + clipping, face snapping cosmetic).  Returns a
+    dict with 'err', 'axis_counts', 'nodes', 'cells', 'result', ... or None."""
+    from icepak_parser.project import IcepakProject
+    from ice_mesh import classify_cells
+    if model is None:
+        model = IcepakProject(project_dir).model
+    objs = _objects_of(model)
+    lo, hi = _domain_of(model)
+    if node_target <= 0:
+        return None
+    for (err, a, b, c, sk) in best_axis_triples(node_target, amin, amax, k):
+        axes = []
+        params = []
+        ok = True
+        for ax, n in enumerate((a, b, c)):
+            kw = dict(interior=interior, align=align)
+            if ratios is not None:
+                kw["ratios"] = ratios
+            if phases is not None:
+                kw["phases"] = phases
+            sol = solve_axis(lo[ax], hi[ax], objs, ax, n, **kw)
+            if sol is None:
+                ok = False
+                break
+            axis, prm = sol
+            axes.append(axis)
+            params.append(prm)
+        if not ok:
+            continue
+        cell_obj = classify_cells(axes, objs) if classify else {}
+        result = MeshResult(axes, cell_obj)
+        return {"err": err, "axis_counts": [a, b, c],
+                "nodes": result.node_count, "cells": result.cell_count,
+                "result": result, "node_target": node_target,
+                "skew": sk, "axis_params": params}
+    return None

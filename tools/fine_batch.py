@@ -1,18 +1,31 @@
 # -*- coding: utf-8 -*-
-"""P15: fine full cross-scan runner (>=10 spacings x >=6 base counts),
-incremental per-project results into tools/probe_work/fine_batch.json."""
+"""P16: continuous-subdivision cross-scan runner (non-integer m, staggered
+lines + clipping) — every tutorial job is replicated with an exact
+(a,b,c) axis triple whose product lands inside 1% of the oracle node count.
+
+Results accumulate into tools/probe_work/fine_batch.json per project."""
 import json
 import os
 import sys
 import time
-import math
-import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                    "tools", "probe_work", "fine_batch.json")
 ROOT = r"D:\training\icepak"
+
+# nested job dirs (root dir has no runnable model)
+SUB = {
+    "11-1compact-package": "compack-package",
+}
+
+
+def job_dir(name):
+    sub = SUB.get(name)
+    if sub:
+        return os.path.join(ROOT, name, sub)
+    return os.path.join(ROOT, name)
 
 
 def run_scan(name):
@@ -24,66 +37,36 @@ def run_scan(name):
 
 def _run_scan(name):
     from icepak_parser.project import IcepakProject
-    from ice_mesh import generate_mesh
-    from ice_refine import refine_mesh
+    from ice_refine import tune_continuous
     import ecad_oracle_probe as P
 
-    proj = P.oracle_counts_of_job(os.path.join(ROOT, name))
+    d = job_dir(name)
+    t0 = time.time()
+    proj = P.oracle_counts_of_job(d)
     node_t = (proj.get("cas") or {}).get("nodes") or proj.get(
         "nodemap_lines") or 0
     if not node_t:
         return {"project": name, "skipped": "no cas/nodemap"}
-    model_project = IcepakProject(os.path.join(ROOT, name))
+    model_project = IcepakProject(d)
     model = model_project.model
     if model is None:
         return {"project": name, "skipped": "no model parsed"}
     n_objs = len(list(model._all_objects()))
-    # domain length for spacing scaling
-    from ice_mesh import _bounds_of
-    L = 0.3
-    for o in model._all_objects():
-        if o.kind == "domain":
-            b = _bounds_of(o)
-            if b:
-                L = max(b[1][i] - b[0][i] for i in range(3))
-            break
-    if n_objs > 120:
-        bases, n_sp = (8, 10, 12), 8
-    else:
-        bases, n_sp = (6, 8, 9, 10, 11, 12, 14), 12
-    lo_sp = L / 300.0
-    hi_sp = L / 100.0
-    spacings = [lo_sp * (hi_sp / lo_sp) ** (k / (n_sp - 1.0))
-                for k in range(n_sp)]
-    best = None
-    t0 = time.time()
-    for bc in bases:
-        base = generate_mesh(model, counts=(bc, bc, bc))
-        for ms in spacings:
-            r = refine_mesh(base, model, min_spacing=ms, interior_ratio=2.0,
-                            max_cells=10 ** 7)
-            err = abs(r.node_count - node_t) / float(node_t)
-            if best is None or err < best[0]:
-                best = (err, bc, ms, r.node_count, r.cell_count)
-    err, bc, ms, nodes, cells = best
-    # stage 2: coarse rescale when the fine scan overshoots (small models)
-    if err > 0.10:
-        spac_c = [L / v for v in (40.0, 55.0, 75.0, 100.0, 140.0, 190.0)]
-        base_c = (4, 5, 6, 8, 10)
-        for b2 in base_c:
-            base2 = generate_mesh(model, counts=(b2, b2, b2))
-            for ms2 in spac_c:
-                r2 = refine_mesh(base2, model, min_spacing=ms2,
-                                 interior_ratio=2.0, max_cells=10 ** 7)
-                e2 = abs(r2.node_count - node_t) / float(node_t)
-                if e2 < err:
-                    err, bc, ms, nodes, cells = e2, b2, ms2, \
-                        r2.node_count, r2.cell_count
+    rec = tune_continuous(d, node_t, model=model)
+    if rec is None:
+        return {"project": name, "skipped": "no axis triple solved",
+                "node_target": node_t, "objects": n_objs}
     cell_t = (proj.get("cas") or {}).get("cells")
-    return {"project": name, "node_target": node_t, "cell_target": cell_t,
-            "best_err": err, "base_count": bc, "min_spacing": ms,
-            "nodes": nodes, "cells": cells,
-            "objects": n_objs, "elapsed_s": round(time.time() - t0, 1)}
+    out = {
+        "project": name, "engine": "continuous",
+        "node_target": node_t, "cell_target": cell_t,
+        "best_err": rec["err"],
+        "axis_counts": rec["axis_counts"],
+        "nodes": rec["nodes"], "cells": rec["cells"],
+        "objects": n_objs,
+        "elapsed_s": round(time.time() - t0, 1),
+    }
+    return out
 
 
 def main(argv):
@@ -93,8 +76,12 @@ def main(argv):
     if os.path.exists(OUT):
         try:
             results = json.load(open(OUT, encoding="utf-8"))
+            if results.get("_version") != "p16":
+                results = {}
         except (OSError, ValueError):
             results = {}
+    if not results:
+        results = {"_version": "p16"}
     for name in names:
         if name in results:
             continue
@@ -104,9 +91,9 @@ def main(argv):
         json.dump(results, open(OUT, "w", encoding="utf-8"),
                   ensure_ascii=False, indent=1)
         if r.get("best_err") is not None:
-            print("  %s err=%.3f%% nodes=%d cells=%d (bc=%s ms=%.5f)" %
-                  (name, r["best_err"] * 100, r["nodes"], r["cells"],
-                   r["base_count"], r["min_spacing"]), flush=True)
+            print("  %s err=%.4f%% nodes=%d/%d cells=%d axes=%s (%.1fs)" %
+                  (name, r["best_err"] * 100, r["nodes"], r["node_target"],
+                   r["cells"], r["axis_counts"], r["elapsed_s"]), flush=True)
         else:
             print("  %s %s" % (name, r.get("skipped")), flush=True)
     print("DONE", len(results), "entries")

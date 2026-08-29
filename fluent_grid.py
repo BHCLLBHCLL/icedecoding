@@ -9,19 +9,15 @@ import struct
 
 
 def _num(tok):
-    """Fluent writes zone counts in hex (e.g. f4a2 = 62626) or decimal."""
+    """Icepak cas zone counts are HEX (observed: '17224' -> 94756 nodes,
+    '1f1a2' -> 127394, '22998' -> 141720; cross-validated by *.nodemap)."""
     tok = tok.strip()
     if tok.lower().startswith("0x"):
+        tok = tok[2:]
+    try:
         return int(tok, 16)
-    if any(c in tok.lower() for c in "abcdef"):
-        try:
-            return int(tok, 16)
-        except ValueError:
-            try:
-                return int(tok, 10)
-            except ValueError:
-                return 0
-    return int(tok, 10)
+    except ValueError:
+        return 0
 
 
 def parse_ascii_grid(text):

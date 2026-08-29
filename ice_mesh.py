@@ -293,7 +293,7 @@ def write_grid_output_ascii(path, result):
     a = result.axes
     nx, ny, nz = result.nx, result.ny, result.nz
     with open(path, "w", encoding="latin-1") as fh:
-        fh.write("(10 (0 1 %d 0))\n" % result.node_count)
+        fh.write("(10 (0 1 %x 0))\n" % result.node_count)  # hex like Icepak
         nid = 0
         for i in range(nx + 1):
             for j in range(ny + 1):
@@ -301,7 +301,7 @@ def write_grid_output_ascii(path, result):
                     nid += 1
                     fh.write("%d %.8g %.8g %.8g\n" %
                              (nid, a[0][i], a[1][j], a[2][k]))
-        fh.write("(12 (0 1 %d 0))\n" % result.cell_count)
+        fh.write("(12 (0 1 %x 0))\n" % result.cell_count)  # hex like Icepak
         cid = 0
         d1 = (nz + 1)
         d2 = (ny + 1) * (nz + 1)

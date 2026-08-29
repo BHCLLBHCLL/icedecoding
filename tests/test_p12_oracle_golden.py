@@ -19,7 +19,8 @@ def test_hex_zone_counts():
 
 def test_hex_num():
     assert _num("f4a2") == 62626
-    assert _num("1331") == 1331
+    assert _num("1331") == 0x1331
+    assert _num("17224") == 94756   # digits-only counts are STILL hex
 
 
 @pytest.mark.skipif(not os.path.exists(CAS), reason="oracle cas missing")

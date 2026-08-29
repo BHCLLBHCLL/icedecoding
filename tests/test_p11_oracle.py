@@ -26,8 +26,9 @@ def _synthetic_binary():
 def test_ascii_parser_headers():
     text = "(10 (2 3 0 0))\n(10 (0 1 1331 0))\n(12 (0 1 1000 0))\n"
     out = parse_ascii_grid(text)
-    assert out["nodes"] == 1331
-    assert out["cells"] == 1000
+    # Icepak cas zone counts are HEX (1331 -> 0x1331 = 4913)
+    assert out["nodes"] == 0x1331
+    assert out["cells"] == 0x1000
 
 
 def test_our_writer_roundtrip_counts():
@@ -57,4 +58,4 @@ def test_grid_counts_ascii_file():
     open(path, "w", encoding="latin-1").write(
         "(10 (0 1 55 0))\n(12 (0 1 48 0))\n")
     counts, diag = grid_counts(path)
-    assert counts["nodes"] == 55 and counts["cells"] == 48
+    assert counts["nodes"] == 0x55 and counts["cells"] == 0x48
