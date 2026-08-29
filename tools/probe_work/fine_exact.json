@@ -1,0 +1,427 @@
+{
+ "_version": "p17",
+ "10-1transient": {
+  "project": "10-1transient",
+  "engine": "exact",
+  "node_target": 62626,
+  "cell_target": 58908,
+  "best_err": 0.0,
+  "axis_counts": [
+   28,
+   43,
+   52
+  ],
+  "base_nodes": 62608,
+  "r": 18,
+  "slabs": [
+   [
+    2,
+    9
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 62626,
+  "cells": 57842,
+  "objects": 15,
+  "elapsed_s": 0.3
+ },
+ "10-2heat-st": {
+  "project": "10-2heat-st",
+  "skipped": "no cas/nodemap"
+ },
+ "11-1compact-package": {
+  "project": "11-1compact-package",
+  "engine": "exact",
+  "node_target": 143205,
+  "cell_target": 133520,
+  "best_err": 0.0,
+  "axis_counts": [
+   43,
+   45,
+   74
+  ],
+  "base_nodes": 143190,
+  "r": 15,
+  "slabs": [
+   [
+    3,
+    5
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 143205,
+  "cells": 134912,
+  "objects": 34,
+  "elapsed_s": 1.0
+ },
+ "11-2BGA-package": {
+  "project": "11-2BGA-package",
+  "engine": "exact",
+  "node_target": 162053,
+  "cell_target": 153056,
+  "best_err": 0.0,
+  "axis_counts": [
+   41,
+   52,
+   76
+  ],
+  "base_nodes": 162032,
+  "r": 21,
+  "slabs": [
+   [
+    3,
+    7
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 162053,
+  "cells": 153012,
+  "objects": 5,
+  "elapsed_s": 0.7
+ },
+ "11-3joule-heating": {
+  "project": "11-3joule-heating",
+  "engine": "exact",
+  "node_target": 351110,
+  "cell_target": 316012,
+  "best_err": 0.0,
+  "axis_counts": [
+   47,
+   83,
+   90
+  ],
+  "base_nodes": 351090,
+  "r": 20,
+  "slabs": [
+   [
+    2,
+    10
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 351110,
+  "cells": 335717,
+  "objects": 41,
+  "elapsed_s": 2.5
+ },
+ "12-1datacenter": {
+  "project": "12-1datacenter",
+  "engine": "exact",
+  "node_target": 141720,
+  "cell_target": 127797,
+  "best_err": 0.0,
+  "axis_counts": [
+   45,
+   47,
+   67
+  ],
+  "base_nodes": 141705,
+  "r": 15,
+  "slabs": [
+   [
+    3,
+    5
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 141720,
+  "cells": 133592,
+  "objects": 259,
+  "elapsed_s": 4.8
+ },
+ "12-2avonics": {
+  "project": "12-2avonics",
+  "engine": "exact",
+  "node_target": 187730,
+  "cell_target": 161888,
+  "best_err": 0.0,
+  "axis_counts": [
+   46,
+   53,
+   77
+  ],
+  "base_nodes": 187726,
+  "r": 4,
+  "slabs": [
+   [
+    2,
+    2
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 187730,
+  "cells": 177841,
+  "objects": 82,
+  "elapsed_s": 0.8
+ },
+ "12-3TEC Tutorial": {
+  "project": "12-3TEC Tutorial",
+  "engine": "exact",
+  "node_target": 827889,
+  "cell_target": 756872,
+  "best_err": 0.0,
+  "axis_counts": [
+   71,
+   106,
+   110
+  ],
+  "base_nodes": 827860,
+  "r": 29,
+  "slabs": [
+   [
+    2,
+    2
+   ],
+   [
+    5,
+    5
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 827889,
+  "cells": 801167,
+  "objects": 39,
+  "elapsed_s": 2.5
+ },
+ "5-1fin": {
+  "project": "5-1fin",
+  "engine": "exact",
+  "node_target": 94756,
+  "cell_target": 87778,
+  "best_err": 0.0,
+  "axis_counts": [
+   42,
+   47,
+   48
+  ],
+  "base_nodes": 94752,
+  "r": 4,
+  "slabs": [
+   [
+    2,
+    2
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 94756,
+  "cells": 88643,
+  "objects": 21,
+  "elapsed_s": 0.4
+ },
+ "5-2rf_amp": {
+  "project": "5-2rf_amp",
+  "engine": "exact",
+  "node_target": 98310,
+  "cell_target": 91628,
+  "best_err": 0.0,
+  "axis_counts": [
+   32,
+   48,
+   64
+  ],
+  "base_nodes": 98304,
+  "r": 6,
+  "slabs": [
+   [
+    2,
+    3
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 98310,
+  "cells": 91793,
+  "objects": 19,
+  "elapsed_s": 0.3
+ },
+ "6-1IDF": {
+  "project": "6-1IDF",
+  "skipped": "no cas/nodemap"
+ },
+ "6-2traces": {
+  "project": "6-2traces",
+  "skipped": "no model parsed"
+ },
+ "7-1hsink-rad": {
+  "project": "7-1hsink-rad",
+  "engine": "exact",
+  "node_target": 127394,
+  "cell_target": 119050,
+  "best_err": 0.0,
+  "axis_counts": [
+   39,
+   46,
+   71
+  ],
+  "base_nodes": 127374,
+  "r": 20,
+  "slabs": [
+   [
+    2,
+    10
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 127394,
+  "cells": 119709,
+  "objects": 21,
+  "elapsed_s": 0.6
+ },
+ "7-2Heat-pipe": {
+  "project": "7-2Heat-pipe",
+  "engine": "exact",
+  "node_target": 186209,
+  "cell_target": 167269,
+  "best_err": 0.0,
+  "axis_counts": [
+   49,
+   50,
+   76
+  ],
+  "base_nodes": 186200,
+  "r": 9,
+  "slabs": [
+   [
+    3,
+    3
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 186209,
+  "cells": 176404,
+  "objects": 49,
+  "elapsed_s": 0.5
+ },
+ "8-1cold-plate": {
+  "project": "8-1cold-plate",
+  "engine": "exact",
+  "node_target": 47503,
+  "cell_target": 42398,
+  "best_err": 0.0,
+  "axis_counts": [
+   28,
+   32,
+   53
+  ],
+  "base_nodes": 47488,
+  "r": 15,
+  "slabs": [
+   [
+    3,
+    5
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 47503,
+  "cells": 43532,
+  "objects": 14,
+  "elapsed_s": 0.2
+ },
+ "8-2yyhh": {
+  "project": "8-2yyhh",
+  "engine": "exact",
+  "node_target": 5022,
+  "cell_target": 3900,
+  "best_err": 0.0,
+  "axis_counts": [
+   12,
+   19,
+   22
+  ],
+  "base_nodes": 5016,
+  "r": 6,
+  "slabs": [
+   [
+    2,
+    3
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 5022,
+  "cells": 4160,
+  "objects": 9,
+  "elapsed_s": 0.1
+ },
+ "9-1FAN_Location": {
+  "project": "9-1FAN_Location",
+  "engine": "exact",
+  "node_target": 54613,
+  "cell_target": 47810,
+  "best_err": 0.0,
+  "axis_counts": [
+   35,
+   39,
+   40
+  ],
+  "base_nodes": 54600,
+  "r": 13,
+  "slabs": [
+   [
+    2,
+    2
+   ],
+   [
+    3,
+    3
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 54613,
+  "cells": 50393,
+  "objects": 16,
+  "elapsed_s": 0.3
+ },
+ "9-2Optimization": {
+  "project": "9-2Optimization",
+  "engine": "exact",
+  "node_target": 183732,
+  "cell_target": 171817,
+  "best_err": 0.0,
+  "axis_counts": [
+   54,
+   54,
+   63
+  ],
+  "base_nodes": 183708,
+  "r": 24,
+  "slabs": [
+   [
+    2,
+    12
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 183732,
+  "cells": 174169,
+  "objects": 32,
+  "elapsed_s": 0.8
+ },
+ "9-3Loss_coefficient": {
+  "project": "9-3Loss_coefficient",
+  "engine": "exact",
+  "node_target": 31764,
+  "cell_target": 29482,
+  "best_err": 0.0,
+  "axis_counts": [
+   27,
+   28,
+   42
+  ],
+  "base_nodes": 31752,
+  "r": 12,
+  "slabs": [
+   [
+    2,
+    6
+   ]
+  ],
+  "mode": "slab",
+  "nodes": 31764,
+  "cells": 28787,
+  "objects": 16,
+  "elapsed_s": 0.2
+ },
+ "icepak_parser": {
+  "project": "icepak_parser",
+  "skipped": "no cas/nodemap"
+ }
+}

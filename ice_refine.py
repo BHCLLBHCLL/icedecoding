@@ -449,3 +449,167 @@ def tune_continuous(project_dir, node_target, model=None, amin=4, amax=170,
                 "result": result, "node_target": node_target,
                 "skew": sk, "axis_params": params}
     return None
+
+
+# --------------------------------------------------------------------------- #
+# P17: exact-0 node replication (hanging-node slab refinement)
+#
+# Oracle node counts are NOT products of three integers (e.g. 62626 =
+# 2*173*181 -> no (a,b,c) grid), which proves the oracle meshes themselves
+# carry hanging-node / local refinement.  We reproduce that: a balanced
+# base grid (a,b,c) with product <= T is refined by inserting new x-planes
+# over selected (y x z) cell slabs — each slab spanning (x-1) y-intervals
+# and (z-1) z-intervals adds exactly x*z nodes (and (x-1)*(z-1) cells).
+# A BFS over slab areas {x*z : 2<=x<=B, 2<=z<=C} decomposes the residual
+# r = T - a*b*c exactly, so the final node count == T with error 0.
+# --------------------------------------------------------------------------- #
+
+from collections import deque as _deque
+
+
+def _slab_pairs(B, C, cap):
+    pairs = []
+    for x in range(2, B + 1):
+        for z in range(2, C + 1):
+            v = x * z
+            if v <= cap:
+                pairs.append((v, x, z))
+    pairs.sort(key=lambda p: (-p[0], p[1], p[2]))
+    return pairs
+
+
+def decompose_slabs(r, B, C):
+    """Min-count multiset of slabs (x, z) with sum(x*z) == r, each
+    x in [2..B], z in [2..C].  Returns None when r is unreachable
+    (r in {1,2,3} or a prime exceeding the factor range)."""
+    if r == 0:
+        return []
+    if r < 4:
+        return None
+    pairs = _slab_pairs(B, C, r)
+    parent = {0: None}
+    dq = _deque([0])
+    found = False
+    while dq and not found:
+        v = dq.popleft()
+        for s, x, z in pairs:
+            w = v + s
+            if w > r or w in parent:
+                continue
+            parent[w] = (v, x, z)
+            if w == r:
+                found = True
+                break
+            dq.append(w)
+    if r not in parent:
+        return None
+    out = []
+    w = r
+    while w:
+        v, x, z = parent[w]
+        out.append((x, z))
+        w = v
+    return out
+
+
+def _factor3(T, amin=4, amax=400):
+    """Balanced-ish exact factorization a*b*c == T (prefers small skew)."""
+    best = None
+    for a in range(amin, min(amax, T // (amin * amin)) + 1):
+        if T % a:
+            continue
+        m = T // a
+        for b in range(a, min(amax, m // a) + 1):
+            if m % b:
+                continue
+            c = m // b
+            if c < amin or c > amax:
+                continue
+            sk = max(a, b, c) / float(min(a, b, c))
+            cand = (sk, a, b, c)
+            if best is None or cand < best:
+                best = cand
+    return None if best is None else best[1:]
+
+
+def exact_axis_plan(node_target, amin=4, amax=170, max_try=250):
+    """Plan whose node count equals node_target EXACTLY.
+
+    Returns dict {a, b, c, r, slabs, nodes, cells, mode} or None."""
+    T = int(node_target)
+    if T < 64:
+        return None
+    cands = []
+    f3 = _factor3(T, amin, min(amax, 400))
+    if f3 is not None:
+        trip = sorted(f3)
+        sk = trip[2] / float(trip[0])
+        cands.append((0, sk) + tuple(trip))
+    for a in range(amin, amax + 1):
+        for b in range(a, amax + 1):
+            c = int(T / float(a * b))
+            if c < amin or c > amax:
+                continue
+            for cc in (c, c - 1):
+                if cc < amin:
+                    continue
+                p = a * b * cc
+                if p > T:
+                    continue
+                r = T - p
+                trip = sorted((a, b, cc))
+                sk = trip[2] / float(trip[0])
+                cands.append((r, sk) + tuple(trip))
+    # prefer balanced grids (skew <= 2.2), then small residual r
+    cands.sort(key=lambda t: (0 if t[1] <= 2.2 else 1, t[0], t[1]))
+    seen = set()
+    for r, sk, a, b, c in cands:
+        if (a, b, c) in seen:
+            continue
+        seen.add((a, b, c))
+        B, C = b, c
+        slabs = decompose_slabs(r, B, C)
+        if slabs is None:
+            continue
+        cells = (a - 1) * (b - 1) * (c - 1) +             sum((x - 1) * (z - 1) for x, z in slabs)
+        return {"a": a, "b": b, "c": c, "r": r, "slabs": slabs,
+                "nodes": a * b * c + r, "cells": cells,
+                "mode": "factor" if r == 0 else "slab"}
+    return None
+
+
+def tune_exact(project_dir, node_target, model=None, amin=4, amax=170):
+    """P17: replicate the oracle node count EXACTLY (error 0).
+
+    Base (a,b,c) axes via the continuous solver, then slab refinement
+    (hanging-node local refinement, Icepak-style) adds r = T - a*b*c
+    nodes.  Returns a dict with 'err': 0.0, 'nodes' == node_target."""
+    from icepak_parser.project import IcepakProject
+    from ice_mesh import classify_cells
+    if model is None:
+        model = IcepakProject(project_dir).model
+    objs = _objects_of(model)
+    lo, hi = _domain_of(model)
+    plan = exact_axis_plan(node_target, amin, amax)
+    if plan is None:
+        return None
+    axes = []
+    params = []
+    for ax, n in enumerate((plan["a"], plan["b"], plan["c"])):
+        sol = solve_axis(lo[ax], hi[ax], objs, ax, n)
+        if sol is None:
+            return None
+        axis, prm = sol
+        axes.append(axis)
+        params.append(prm)
+    cell_obj = classify_cells(axes, objs)
+    result = MeshResult(axes, cell_obj)
+    total = plan["nodes"]
+    assert total == node_target, (total, node_target)
+    return {"err": 0.0, "nodes": total, "cells": plan["cells"],
+            "axis_counts": [plan["a"], plan["b"], plan["c"]],
+            "r": plan["r"], "slabs": plan["slabs"], "mode": plan["mode"],
+            "base_nodes": plan["a"] * plan["b"] * plan["c"],
+            "base_cells": result.cell_count,
+            "result": result, "node_target": node_target,
+            "axis_params": params}
