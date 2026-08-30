@@ -81,7 +81,8 @@ def face_planes(params):
 
 def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
               max_cells=2_000_000, surface_extra=1,
-              use_object_sizes=True, cyls=None, cyl_cap=4):
+              use_object_sizes=True, cyls=None, cyl_cap=4,
+              shell_factor=1.05, curv_c=None):
     """Return leaf boxes [lo0,lo1,lo2,hi0,hi1,hi2] (n,6) and per-box size."""
     lo = np.array(bounds[0], dtype=np.float64)
     hi = np.array(bounds[1], dtype=np.float64)
@@ -119,9 +120,9 @@ def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
             w = c - p1 - t * u
             rho = float(np.linalg.norm(w))
             rt = cyl["r1"] + (cyl["r2"] - cyl["r1"]) * min(max(t / h, 0.0), 1.0)
-            if abs(rho - rt) < s:
-                return True
-        return False
+            if abs(rho - rt) < s * shell_factor:
+                return float(rt)
+        return None
 
     boxes = []
     for i in range(n0[0]):
@@ -132,7 +133,7 @@ def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
                               lo[0] + gs[0] * (i + 1), lo[1] + gs[1] * (j + 1),
                               lo[2] + gs[2] * (k + 1)])
                 _refine(b, size_at, faces, boxes, 0, max_levels, max_cells,
-                        surface_extra, in_shell, cyl_cap)
+                        surface_extra, in_shell, cyl_cap, curv_c)
     boxes = np.array(boxes)
     if balance and len(boxes) > 1:
         boxes = _balance(boxes, max_cells)
@@ -140,16 +141,21 @@ def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
 
 
 def _refine(b, size_at, faces, out, level, max_levels, max_cells,
-            surface_extra, in_shell=None, cyl_cap=4):
+            surface_extra, in_shell=None, cyl_cap=4, curv_c=None):
     s = b[3:6] - b[0:3]
     c = (b[0:3] + b[3:6]) / 2.0
     tgt = size_at(c)
     cut = any(b[ax] < pos < b[ax + 3] for (ax, pos) in faces)
-    shell = in_shell is not None and in_shell(c, s.max() * 1.05)
+    shell_r = None
+    if in_shell is not None:
+        shell_r = in_shell(c, s.max() * 1.05)
     need = (s > tgt).any()
+    if shell_r is not None and curv_c is not None:
+        shell = s.max() > curv_c * shell_r and level < cyl_cap
+    else:
+        shell = shell_r is not None and level < cyl_cap
     refine = (need and level < max_levels) or \
-        (cut and level < min(max_levels + surface_extra, 3)) or \
-        (shell and level < cyl_cap)
+        (cut and level < min(max_levels + surface_extra, 3)) or shell
     if refine and len(out) < max_cells:
         for ii in range(2):
             for jj in range(2):
@@ -162,7 +168,8 @@ def _refine(b, size_at, faces, out, level, max_levels, max_cells,
                     child[4] = child[1] + s[1] / 2
                     child[5] = child[2] + s[2] / 2
                     _refine(child, size_at, faces, out, level + 1, max_levels,
-                            max_cells, surface_extra, in_shell, cyl_cap)
+                            max_cells, surface_extra, in_shell, cyl_cap,
+                            curv_c)
     else:
         out.append(b)
 
@@ -305,7 +312,8 @@ def position_match(our, oracle):
 
 
 def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
-          surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4):
+          surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4,
+          shell_factor=1.05, curv_c=None):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -352,7 +360,8 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
     boxes = hdm_boxes(params, (lo, hi), grid_size, max_levels=max_levels,
                       max_cells=max_cells, surface_extra=surface_extra,
                       use_object_sizes=use_object_sizes, cyls=cyls,
-                      cyl_cap=cyl_cap)
+                      cyl_cap=cyl_cap, shell_factor=shell_factor,
+                      curv_c=curv_c)
     verts = leaf_vertices(boxes)
     faces = face_planes(params)
     tol = max(grid_size) * 0.45

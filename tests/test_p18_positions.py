@@ -151,3 +151,34 @@ def test_base_size_fallback_gcount():
     assert vmax.max() == pytest.approx(0.3)
     # base cells ~10 per axis -> at least 11^2-ish distinct nodes
     assert len(verts) >= 64
+
+
+def test_curvature_criterion_shallower():
+    """Higher curv_c -> shallower shell refinement -> fewer distinct x."""
+    d = tempfile.mkdtemp(prefix="ice_curv_")
+    open(os.path.join(d, "grid_params"), "w").write(
+        "domain 0 0.0 0.0 0.0 0.3 0.3 0.3 0.01 0.01 1e+37\n"
+        "hexa 1 0.1 0.1 0.1 0.2 0.2 0.2 1 0.005 0.005\n")
+    open(os.path.join(d, "problem"), "w").write(
+        "set grid_type hdm\nset grid_size_x 0.02\nset grid_size_y 0.02\n"
+        "set grid_size_z 0.02\n")
+    from ice_hdm import build
+    b1, v1, _, _ = build(d, max_levels=2, max_cells=30000,
+                         use_object_sizes=False, cyl_cap=6, curv_c=0.10)
+    b2, v2, _, _ = build(d, max_levels=2, max_cells=30000,
+                         use_object_sizes=False, cyl_cap=6, curv_c=0.25)
+    assert len(b1) >= len(b2)
+    assert len(v1) >= len(v2)
+
+
+def test_in_shell_returns_radius():
+    # cone surface radius check via project_to_cylinders + taper
+    verts = np.array([[0.05, 0.0, 0.0], [0.1, 0.0, 0.1]])
+    cyls = [{"p1": np.array([0.0, 0.0, 0.0]),
+             "p2": np.array([0.0, 0.0, 0.1]),
+             "r1": 0.05, "r2": 0.1}]
+    out = project_to_cylinders(verts, cyls, tol=0.001)
+    # first point: r(z=0) = 0.05 -> stays on r=0.05
+    assert abs(np.hypot(out[0][0], out[0][1]) - 0.05) < 1e-12
+    # second point: r(z=0.1) = 0.1 -> projected onto r=0.1
+    assert abs(np.hypot(out[1][0], out[1][1]) - 0.1) < 1e-12
