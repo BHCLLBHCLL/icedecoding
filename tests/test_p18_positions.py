@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from tools.grid_positions import extract_nodes
 from ice_hdm import (parse_grid_params, problem_grid_settings, face_planes,
-                     leaf_vertices, snap_vertices, position_match)
+                     leaf_vertices, snap_vertices, position_match,
+                     model_cylinders, project_to_cylinders)
 
 pytestmark = []
 
@@ -104,3 +105,49 @@ def test_hdm_build_synthetic_fast():
     assert len(boxes) > 0
     assert len(verts) > 8
     assert st.get("grid_size_x") == 0.02
+
+
+def test_project_to_cylinders():
+    verts = np.array([
+        [0.1, 0.0, 0.05],      # on surface (r=0.1)
+        [0.101, 0.0, 0.05],    # slightly outside -> project inward
+        [0.099, 0.0, 0.05],    # slightly inside -> project outward
+        [0.5, 0.0, 0.05],      # far away -> untouched
+        [0.1, 0.0, 0.25],      # beyond axis end -> untouched
+    ])
+    cyls = [{"p1": np.array([0.0, 0.0, 0.0]), "p2": np.array([0.0, 0.0, 0.2]),
+             "r1": 0.1, "r2": 0.1}]
+    out = project_to_cylinders(verts, cyls, tol=0.002)
+    for v in out[:3]:
+        assert abs(np.hypot(v[0], v[1]) - 0.1) < 1e-12
+    assert out[3][0] == 0.5
+    assert out[4][2] == 0.25
+
+
+def test_model_cylinders_from_default_object():
+    from icepak_parser.project import IcepakProject
+    from ice_create import default_cabinet, default_object
+    proj = IcepakProject.empty("t18c")
+    proj.model.objects.append(default_cabinet())
+    proj.model.objects.append(default_object("fan", "fan.1"))
+    cyls = model_cylinders(proj.model)
+    assert len(cyls) >= 1
+    assert cyls[0]["r1"] > 0
+
+
+def test_base_size_fallback_gcount():
+    # grid_size 8 (nonsense) must fall back to L/gcount
+    d = tempfile.mkdtemp(prefix="ice_bs_")
+    open(os.path.join(d, "grid_params"), "w").write(
+        "domain 0 0.0 0.0 0.0 0.3 0.3 0.3 0.01 0.01 1e+37\n")
+    open(os.path.join(d, "problem"), "w").write(
+        "set grid_type hdm\nset grid_size_x 8\nset grid_size_y 8\n"
+        "set grid_size_z 8\nset grid_gcount_i 10\nset grid_gcount_j 10\n"
+        "set grid_gcount_k 10\n")
+    from ice_hdm import build
+    boxes, verts, params, st = build(d, max_levels=1, max_cells=20000,
+                                     use_object_sizes=False)
+    vmax = verts.max(axis=0) - verts.min(axis=0)
+    assert vmax.max() == pytest.approx(0.3)
+    # base cells ~10 per axis -> at least 11^2-ish distinct nodes
+    assert len(verts) >= 64

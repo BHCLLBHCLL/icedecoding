@@ -81,7 +81,7 @@ def face_planes(params):
 
 def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
               max_cells=2_000_000, surface_extra=1,
-              use_object_sizes=True):
+              use_object_sizes=True, cyls=None, cyl_cap=4):
     """Return leaf boxes [lo0,lo1,lo2,hi0,hi1,hi2] (n,6) and per-box size."""
     lo = np.array(bounds[0], dtype=np.float64)
     hi = np.array(bounds[1], dtype=np.float64)
@@ -103,6 +103,26 @@ def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
         return best
 
     faces = face_planes(params)
+
+    def in_shell(c, s):
+        for cyl in cyls:
+            p1, p2 = cyl["p1"], cyl["p2"]
+            axis = p2 - p1
+            h2 = float(axis @ axis)
+            if h2 <= 0:
+                continue
+            u = axis / np.sqrt(h2)
+            h = float(np.sqrt(h2))
+            t = float((c - p1) @ u)
+            if t < -s or t > h + s:
+                continue
+            w = c - p1 - t * u
+            rho = float(np.linalg.norm(w))
+            rt = cyl["r1"] + (cyl["r2"] - cyl["r1"]) * min(max(t / h, 0.0), 1.0)
+            if abs(rho - rt) < s:
+                return True
+        return False
+
     boxes = []
     for i in range(n0[0]):
         for j in range(n0[1]):
@@ -112,7 +132,7 @@ def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
                               lo[0] + gs[0] * (i + 1), lo[1] + gs[1] * (j + 1),
                               lo[2] + gs[2] * (k + 1)])
                 _refine(b, size_at, faces, boxes, 0, max_levels, max_cells,
-                        surface_extra)
+                        surface_extra, in_shell, cyl_cap)
     boxes = np.array(boxes)
     if balance and len(boxes) > 1:
         boxes = _balance(boxes, max_cells)
@@ -120,14 +140,16 @@ def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
 
 
 def _refine(b, size_at, faces, out, level, max_levels, max_cells,
-            surface_extra):
+            surface_extra, in_shell=None, cyl_cap=4):
     s = b[3:6] - b[0:3]
     c = (b[0:3] + b[3:6]) / 2.0
     tgt = size_at(c)
     cut = any(b[ax] < pos < b[ax + 3] for (ax, pos) in faces)
+    shell = in_shell is not None and in_shell(c, s.max() * 1.05)
     need = (s > tgt).any()
     refine = (need and level < max_levels) or \
-        (cut and level < min(max_levels + surface_extra, 3))
+        (cut and level < min(max_levels + surface_extra, 3)) or \
+        (shell and level < cyl_cap)
     if refine and len(out) < max_cells:
         for ii in range(2):
             for jj in range(2):
@@ -140,7 +162,7 @@ def _refine(b, size_at, faces, out, level, max_levels, max_cells,
                     child[4] = child[1] + s[1] / 2
                     child[5] = child[2] + s[2] / 2
                     _refine(child, size_at, faces, out, level + 1, max_levels,
-                            max_cells, surface_extra)
+                            max_cells, surface_extra, in_shell, cyl_cap)
     else:
         out.append(b)
 
@@ -198,6 +220,61 @@ def snap_vertices(verts, faces, tol):
     return out
 
 
+def model_cylinders(model):
+    """Conical/cylindrical surfaces from the decoded model:
+    shape center/center2/radius[/radius2] (radius2 defaults to radius)."""
+    cyls = []
+    for o in model._all_objects():
+        sh = getattr(o, "shape", None)
+        if sh is None:
+            continue
+        sv = getattr(sh, "setvals", None) or {}
+        if "center" not in sv or "center2" not in sv or "radius" not in sv:
+            continue
+        try:
+            p1 = np.array([float(x) for x in sv["center"]])
+            p2 = np.array([float(x) for x in sv["center2"]])
+            r1 = float(sv["radius"][0])
+            r2 = float((sv.get("radius2") or sv["radius"])[0])
+            ir1 = float((sv.get("iradius") or ["0"])[0])
+            ir2 = float((sv.get("iradius2") or sv.get("iradius")
+                         or ["0"])[0])
+        except (TypeError, ValueError, IndexError):
+            continue
+        cyls.append({"p1": p1, "p2": p2, "r1": max(r1, ir1),
+                     "r2": max(r2, ir2)})
+    return cyls
+
+
+def project_to_cylinders(verts, cyls, tol):
+    """Project vertices within tol of a conical surface onto it (the source
+    of the oracle's 1e-7-scale continuous position spectrum)."""
+    out = verts.copy()
+    for c in cyls:
+        p1, p2 = c["p1"], c["p2"]
+        axis = p2 - p1
+        h2 = float(axis @ axis)
+        if h2 <= 0:
+            continue
+        u = axis / np.sqrt(h2)
+        h = float(np.sqrt(h2))
+        d = (out - p1) @ u
+        m = (d >= -tol) & (d <= h + tol)
+        if not m.any():
+            continue
+        w = out[m] - p1 - d[m, None] * u
+        rho = np.linalg.norm(w, axis=1)
+        rt = c["r1"] + (c["r2"] - c["r1"]) * np.clip(d[m] / h, 0.0, 1.0)
+        hit = (np.abs(rho - rt) < tol) & (rho > 0)
+        if not hit.any():
+            continue
+        idx = np.where(m)[0][hit]
+        ww = w[hit]
+        rr = rt[hit] / rho[hit]
+        out[idx] = p1 + d[idx][:, None] * u + rr[:, None] * ww
+    return out
+
+
 def leaf_vertices(boxes):
     """Unique corner vertices of all leaves (the mesh nodes)."""
     pts = set()
@@ -228,7 +305,7 @@ def position_match(our, oracle):
 
 
 def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
-          surface_extra=0, use_object_sizes=True):
+          surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -236,19 +313,50 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
     else:
         lo = np.array([0.0, 0.0, 0.0]); hi = np.array([0.3, 0.3, 0.3])
     st = problem_grid_settings(jdir)
-    if grid_size is None:
-        gx = st.get("grid_size_x", 0.02)
-        gy = st.get("grid_size_y", 0.02)
-        gz = st.get("grid_size_z", 0.02)
-        grid_size = (float(gx), float(gy), float(gz))
+    # base-size rule: s = min(sane grid_size, L / gcount) per axis
+    # (grid_size is the max element size; gcount the legacy count fallback)
+    def _sane(v, L):
+        try:
+            v = float(v)
+        except (TypeError, ValueError):
+            return None
+        if v <= 0 or v >= L or v != v:
+            return None
+        return v
+
     span = hi - lo
-    grid_size = tuple(min(grid_size[i], span[i] / 6.0) for i in range(3))
+    # cylinders from the model (curvature-driven refinement + projection)
+    if model is None:
+        try:
+            from icepak_parser.project import IcepakProject
+            model = IcepakProject(jdir).model
+        except Exception:
+            model = None
+    cyls = model_cylinders(model) if model is not None else []
+    gcount = (st.get("grid_gcount_i", 10), st.get("grid_gcount_j", 10),
+              st.get("grid_gcount_k", 10))
+    if grid_size is None:
+        gx = _sane(st.get("grid_size_x", 0.02), span[0])
+        gy = _sane(st.get("grid_size_y", 0.02), span[1])
+        gz = _sane(st.get("grid_size_z", 0.02), span[2])
+        if gx is None:
+            gx = span[0] / float(gcount[0])
+        if gy is None:
+            gy = span[1] / float(gcount[1])
+        if gz is None:
+            gz = span[2] / float(gcount[2])
+        grid_size = (gx, gy, gz)
+    grid_size = tuple(min(grid_size[i], span[i] / 3.0) for i in range(3))
     # oracle meshes pad the box toward 0
     lo = np.minimum(lo, 0.0)
     boxes = hdm_boxes(params, (lo, hi), grid_size, max_levels=max_levels,
                       max_cells=max_cells, surface_extra=surface_extra,
-                      use_object_sizes=use_object_sizes)
+                      use_object_sizes=use_object_sizes, cyls=cyls,
+                      cyl_cap=cyl_cap)
     verts = leaf_vertices(boxes)
     faces = face_planes(params)
-    verts = snap_vertices(verts, faces, tol=max(grid_size) * 0.45)
+    tol = max(grid_size) * 0.45
+    verts = snap_vertices(verts, faces, tol=tol)
+    if cyls:
+        verts = project_to_cylinders(verts, cyls, tol=tol)
     return boxes, verts, params, st
