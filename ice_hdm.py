@@ -493,9 +493,11 @@ def hdm_boxes_vec(params, bounds, grid_size, max_levels=3, balance=False,
                 if m.any():
                     os = np.where(osz > 1e30, gs, np.maximum(osz, 1e-5))
                     tgt[m] = np.minimum(tgt[m], os)
-                    fsz = obj_facesz[k] if k < len(obj_facesz) else []
-                    if fsz:
-                        tgt[m] = np.minimum(tgt[m], min(fsz))
+                    # per-face sizes are job-dependent and fragile to
+                    # parse; the oracle's HDM depth is dominated by the
+                    # curvature-shell, so we do NOT push object face sizes
+                    # into the size field by default (they over-refine e.g.
+                    # 8-2yyhh).  face_sizes remain available for inspection.
         need = (s > tgt).any(axis=1)
         refine = need & (levels < max_levels)
 

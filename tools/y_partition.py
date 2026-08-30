@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""P18e: partition y-spectra into background lattice vs cylinder-shell
-projected values — locate the +11% y overshoot source."""
+"""Partition a distinct-axis spectrum into geometry-shell vs background."""
 import os
 import sys
 
@@ -9,21 +8,23 @@ import numpy as np
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-CY = (0.25, 0.30, 0.35)
+# cylinder centers for 10-1transient
 CX = (0.15, 0.20, 0.25)
+CY = (0.25, 0.30, 0.35)
 
 
-def partition(vals):
-    """Split distinct axis values into shell band vs background."""
+def partition(vals, centers):
     shell = np.zeros(len(vals), dtype=bool)
-    for cy in CY:
-        shell |= np.abs(vals - cy) < 0.05
+    for c in centers:
+        shell |= np.abs(vals - c) < 0.05
     return vals[shell], vals[~shell]
 
 
-def load_oracle():
+def load_oracle(job="10-1transient"):
     from tools.grid_positions import extract_nodes
-    jdir = os.path.join(r"D:\training\icepak", "10-1transient")
+    jdir = os.path.join(r"D:\training\icepak", job)
+    if not os.path.isdir(jdir):
+        jdir = os.path.join(r"D:\training\icepak", job, "compack-package")
     nm = [f for f in os.listdir(jdir) if f.endswith(".nodemap")]
     raw = open(os.path.join(jdir, nm[0]), "rb").read()
     n = raw.count(b"\n")
@@ -34,25 +35,14 @@ def load_oracle():
 
 
 def main():
-    oracle = load_oracle()
-    from ice_hdm import build
-    boxes, verts, params, st = build(
-        os.path.join(r"D:\training\icepak", "10-1transient"),
-        max_levels=2, surface_extra=1, use_object_sizes=False,
-        max_cells=400000, cyl_cap=6, shell_factor=0.8, curv_c=0.165,
-        proj_tol=0.02 * 0.25)
-    verts = np.unique(np.round(verts, 12), axis=0)
-    for name, pts in (("oracle", oracle), ("ours", verts)):
-        for ax, aname in enumerate(("x", "y")):
-            vals = np.unique(np.round(pts[:, ax], 12))
-            sh, bg = partition(vals)
-            print("%s %s: total %d shell %d background %d"
-                  % (name, aname, len(vals), len(sh), len(bg)))
-            # background: how many on binary lattice of 0.02?
-            frac = (bg / 0.02) % 1.0
-            on_lattice = ((frac < 1e-6) | (frac > 1 - 1e-6)).sum()
-            print("    background on 0.02-lattice: %d (%.1f%%)"
-                  % (on_lattice, on_lattice * 100.0 / max(1, len(bg))))
+    pts = load_oracle()
+    print("oracle distinct x/y =", len(np.unique(np.round(pts[:, 0], 12))),
+          len(np.unique(np.round(pts[:, 1], 12))))
+    for ax, name, centers in ((0, "x", CX), (1, "y", CY)):
+        vals = np.unique(np.round(pts[:, ax], 12))
+        sh, bg = partition(vals, centers)
+        print("%s: total %d  shell(geometry band) %d  background %d"
+              % (name, len(vals), len(sh), len(bg)))
 
 
 if __name__ == "__main__":
