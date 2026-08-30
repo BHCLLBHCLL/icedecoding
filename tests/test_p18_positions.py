@@ -15,7 +15,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tools.grid_positions import extract_nodes
 from ice_hdm import (parse_grid_params, problem_grid_settings, face_planes,
                      leaf_vertices, snap_vertices, position_match,
-                     model_cylinders, project_to_cylinders)
+                     model_cylinders, project_to_cylinders,
+                     project_to_cylinders_local)
 
 pytestmark = []
 
@@ -224,3 +225,47 @@ def test_vec_matches_recursive_small():
                        use_object_sizes=True, cyls=cyls, cyl_cap=4,
                        shell_factor=1.05)
     assert abs(len(b1) - len(b2)) < 0.05 * len(b1)
+
+
+def test_quad_plane_token_parse():
+    from ice_hdm import parse_grid_params
+    d = tempfile.mkdtemp(prefix="ice_quad_")
+    p = os.path.join(d, "grid_params")
+    open(p, "w").write(
+        "quad 11 xy 0.12 0.22 0.12 0.18 0.28 0.12 1 0.06 0.06 0.005 0.005 "
+        "0.00375 2 1 1\n"
+        "hexa 10 0.1 0.2 0.12 0.3 0.4 0.13 1 0.2 0.2 0.01 0.005 0.005 "
+        "0.005 0.005 0.005 0.005 2 2 2 2 2 2 0.005 1\n")
+    recs = parse_grid_params(p)
+    assert len(recs) == 2
+    quad = [r for r in recs if r["type"] == "quad"][0]
+    assert quad["lo"] == (0.12, 0.22, 0.12)
+    assert quad["hi"] == (0.18, 0.28, 0.12)
+    hexa = [r for r in recs if r["type"] == "hexa"][0]
+    assert 0.005 in hexa["face_sizes"]
+
+
+def test_project_local_uses_own_cell_size():
+    verts = np.array([[0.101, 0.0, 0.05], [0.104, 0.0, 0.05]])
+    sizes = np.array([0.01, 0.001])
+    cyls = [{"p1": np.array([0.0, 0.0, 0.0]), "p2": np.array([0.0, 0.0, 0.2]),
+             "r1": 0.1, "r2": 0.1}]
+    out = project_to_cylinders_local(verts, sizes, cyls, tol_frac=0.5)
+    # vertex 0: 0.001 < 0.5*0.01 -> projected onto r=0.1
+    assert abs(np.hypot(out[0][0], out[0][1]) - 0.1) < 1e-12
+    # vertex 1: 0.004 > 0.5*0.001 -> untouched
+    assert out[1][0] == 0.104
+
+
+def test_bounded_faces_only_overlap_cells():
+    from ice_hdm import bounded_faces
+    params = [{"type": "hexa", "id": "1", "lo": (0.1, 0.1, 0.1),
+               "hi": (0.2, 0.2, 0.2), "size": (0.005, 0.005, 0.005)}]
+    bf = bounded_faces(params)
+    # 6 bounded faces; each carries its own other-axis extent
+    assert len(bf) == 6
+    zf = [f for f in bf if f[0] == 2]
+    assert len(zf) == 2
+    # the z=0.1 face rectangle spans x/y [0.1, 0.2]
+    assert np.allclose(zf[0][2], [0.1, 0.1])
+    assert np.allclose(zf[0][3], [0.2, 0.2])

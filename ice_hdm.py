@@ -30,14 +30,31 @@ def parse_grid_params(path):
             s = line.split()
             if len(s) < 11 or s[0].startswith("#"):
                 continue
+            i = 2
             try:
-                vals = [float(v) for v in s[2:11]]
+                float(s[2])
+            except ValueError:
+                i = 3   # plane token (xy/xz/yz) for quad/plate lines
+            if len(s) < i + 9:
+                continue
+            try:
+                vals = [float(v) for v in s[i:i + 9]]
                 rec = {"type": s[0], "id": s[1],
                        "lo": (vals[0], vals[1], vals[2]),
                        "hi": (vals[3], vals[4], vals[5]),
                        "size": (vals[6], vals[7], vals[8])}
             except ValueError:
                 continue
+            # per-face sizes for hexa-family objects (tail cols)
+            rec["face_sizes"] = []
+            if rec["type"] in ("hexa", "block", "source", "plate", "quad",
+                               "pcb", "enclosure", "resistance", "package"):
+                try:
+                    fs = [float(v) for v in s[i + 9:i + 15]]
+                    rec["face_sizes"] = [f for f in fs
+                                         if 1e-5 < f < 0.5]
+                except ValueError:
+                    pass
             out.append(rec)
     return out
 
@@ -77,6 +94,23 @@ def face_planes(params):
             faces.append((ax, lo[ax]))
             faces.append((ax, hi[ax]))
     return faces
+
+
+def bounded_faces(params):
+    """BOUNDED planar faces (axis, pos, other-lo, other-hi) — a cell is
+    cut only where the face rectangle actually overlaps the cell."""
+    out = []
+    for r in params:
+        if r["type"] == "domain":
+            continue
+        lo, hi = np.array(r["lo"]), np.array(r["hi"])
+        for ax in range(3):
+            others = [i for i in range(3) if i != ax]
+            olo = lo[others]
+            ohi = hi[others]
+            out.append((ax, float(lo[ax]), olo.copy(), ohi.copy()))
+            out.append((ax, float(hi[ax]), olo.copy(), ohi.copy()))
+    return out
 
 
 def hdm_boxes(params, bounds, grid_size, max_levels=3, balance=False,
@@ -363,14 +397,19 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
                           use_object_sizes=use_object_sizes, cyls=cyls,
                           cyl_cap=cyl_cap, shell_factor=shell_factor,
                           curv_c=curv_c)
-    verts = leaf_vertices_vec(boxes)
     faces = face_planes(params)
-    tol = max(grid_size) * 0.45
-    if proj_tol is not None:
+    if proj_tol is None:
+        # local-tolerance snapping: only surface-adjacent cell vertices
+        verts, sizes = leaf_vertices_sized(boxes)
+        verts = snap_vertices_local(verts, sizes, faces)
+        if cyls:
+            verts = project_to_cylinders_local(verts, sizes, cyls)
+    else:
+        verts = leaf_vertices_vec(boxes)
         tol = proj_tol
-    verts = snap_vertices(verts, faces, tol=tol)
-    if cyls:
-        verts = project_to_cylinders(verts, cyls, tol=tol)
+        verts = snap_vertices(verts, faces, tol=tol)
+        if cyls:
+            verts = project_to_cylinders(verts, cyls, tol=tol)
     return boxes, verts, params, st
 
 
@@ -388,9 +427,16 @@ def hdm_boxes_vec(params, bounds, grid_size, max_levels=3, balance=False,
     faces = face_planes(params)
     face_ax = np.array([f[0] for f in faces], dtype=np.int64)
     face_pos = np.array([f[1] for f in faces], dtype=np.float64)
+    bf = bounded_faces(params)
+    bf_ax = np.array([f[0] for f in bf], dtype=np.int64)
+    bf_pos = np.array([f[1] for f in bf], dtype=np.float64)
+    bf_lo = np.array([f[2] for f in bf], dtype=np.float64)
+    bf_hi = np.array([f[3] for f in bf], dtype=np.float64)
 
     objs = [(np.array(r["lo"]), np.array(r["hi"]), np.array(r["size"]))
             for r in params if r["type"] not in ("domain",)]
+    obj_facesz = [r.get("face_sizes") or [] for r in params
+                  if r["type"] not in ("domain",)]
 
     cyl_u = []
     cyl_p1 = []
@@ -442,18 +488,29 @@ def hdm_boxes_vec(params, bounds, grid_size, max_levels=3, balance=False,
 
         tgt = np.tile(gs, (n, 1))
         if use_object_sizes:
-            for olo, ohi, osz in objs:
+            for k, (olo, ohi, osz) in enumerate(objs):
                 m = np.all(c >= olo, axis=1) & np.all(c <= ohi, axis=1)
                 if m.any():
                     os = np.where(osz > 1e30, gs, np.maximum(osz, 1e-5))
                     tgt[m] = np.minimum(tgt[m], os)
+                    fsz = obj_facesz[k] if k < len(obj_facesz) else []
+                    if fsz:
+                        tgt[m] = np.minimum(tgt[m], min(fsz))
         need = (s > tgt).any(axis=1)
         refine = need & (levels < max_levels)
 
         cut = np.zeros(n, dtype=bool)
-        if len(face_pos):
-            for ax, pos in zip(face_ax.tolist(), face_pos.tolist()):
-                cut |= (boxes[:, ax] < pos) & (boxes[:, ax + 3] > pos)
+        if len(bf_pos):
+            for f in range(len(bf_pos)):
+                ax = int(bf_ax[f])
+                pos = float(bf_pos[f])
+                others = [i for i in range(3) if i != ax]
+                ok = (boxes[:, ax] < pos) & (boxes[:, ax + 3] > pos)
+                # face rectangle must overlap the cell in the other axes
+                for oi, oc in enumerate(others):
+                    ok &= (boxes[:, oc + 3] > bf_lo[f, oi]) & \
+                        (boxes[:, oc] < bf_hi[f, oi])
+                cut |= ok
         refine |= cut & (levels < min(max_levels + surface_extra, 3))
 
         if len(cyl_p1) and len(c):
@@ -509,3 +566,63 @@ def leaf_vertices_vec(boxes):
         corners[t::8, 1] = b[:, 1 + j * 3]
         corners[t::8, 2] = b[:, 2 + k * 3]
     return np.unique(np.round(corners, 12), axis=0)
+
+
+def leaf_vertices_sized(boxes):
+    """Corner vertices with their OWN leaf size (for local-tolerance
+    snapping: only vertices of surface-adjacent cells project)."""
+    b = boxes
+    n = len(b)
+    sz = (b[:, 3:6] - b[:, 0:3]).max(axis=1)
+    corners = np.empty((n * 8, 3))
+    sizes = np.empty(n * 8)
+    for t in range(8):
+        i = t & 1
+        j = (t >> 1) & 1
+        k = (t >> 2) & 1
+        corners[t::8, 0] = b[:, i * 3]
+        corners[t::8, 1] = b[:, 1 + j * 3]
+        corners[t::8, 2] = b[:, 2 + k * 3]
+        sizes[t::8] = sz
+    u, idx = np.unique(np.round(corners, 12), axis=0, return_index=True)
+    return u, sizes[idx]
+
+
+def snap_vertices_local(verts, sizes, faces, tol_frac=0.5):
+    """Project a vertex onto a planar face only when within
+    tol_frac x (its own leaf size)."""
+    out = verts.copy()
+    for ax, pos in faces:
+        d = np.abs(out[:, ax] - pos)
+        m = d < tol_frac * sizes
+        out[m, ax] = pos
+    return out
+
+
+def project_to_cylinders_local(verts, sizes, cyls, tol_frac=0.5):
+    """Project only surface-adjacent vertices (within tol_frac x leaf
+    size of the conical surface) — the oracle's own behaviour."""
+    out = verts.copy()
+    for c in cyls:
+        p1, p2 = c["p1"], c["p2"]
+        axis = p2 - p1
+        h2 = float(axis @ axis)
+        if h2 <= 0:
+            continue
+        u = axis / np.sqrt(h2)
+        h = float(np.sqrt(h2))
+        d = (out - p1) @ u
+        m = (d >= -sizes) & (d <= h + sizes)
+        if not m.any():
+            continue
+        w = out[m] - p1 - d[m, None] * u
+        rho = np.linalg.norm(w, axis=1)
+        rt = c["r1"] + (c["r2"] - c["r1"]) * np.clip(d[m] / h, 0.0, 1.0)
+        hit = (np.abs(rho - rt) < tol_frac * sizes[m]) & (rho > 0)
+        if not hit.any():
+            continue
+        idx = np.where(m)[0][hit]
+        ww = w[hit]
+        rr = rt[hit] / rho[hit]
+        out[idx] = p1 + d[idx][:, None] * u + rr[:, None] * ww
+    return out
