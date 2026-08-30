@@ -313,7 +313,7 @@ def position_match(our, oracle):
 
 def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
           surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4,
-          shell_factor=1.05, curv_c=None):
+          shell_factor=1.05, curv_c=None, proj_tol=None):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -357,15 +357,155 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
     grid_size = tuple(min(grid_size[i], span[i] / 3.0) for i in range(3))
     # oracle meshes pad the box toward 0
     lo = np.minimum(lo, 0.0)
-    boxes = hdm_boxes(params, (lo, hi), grid_size, max_levels=max_levels,
-                      max_cells=max_cells, surface_extra=surface_extra,
-                      use_object_sizes=use_object_sizes, cyls=cyls,
-                      cyl_cap=cyl_cap, shell_factor=shell_factor,
-                      curv_c=curv_c)
-    verts = leaf_vertices(boxes)
+    boxes = hdm_boxes_vec(params, (lo, hi), grid_size,
+                          max_levels=max_levels, max_cells=max_cells,
+                          surface_extra=surface_extra,
+                          use_object_sizes=use_object_sizes, cyls=cyls,
+                          cyl_cap=cyl_cap, shell_factor=shell_factor,
+                          curv_c=curv_c)
+    verts = leaf_vertices_vec(boxes)
     faces = face_planes(params)
     tol = max(grid_size) * 0.45
+    if proj_tol is not None:
+        tol = proj_tol
     verts = snap_vertices(verts, faces, tol=tol)
     if cyls:
         verts = project_to_cylinders(verts, cyls, tol=tol)
     return boxes, verts, params, st
+
+
+def hdm_boxes_vec(params, bounds, grid_size, max_levels=3, balance=False,
+                  max_cells=2_000_000, surface_extra=1,
+                  use_object_sizes=True, cyls=None, cyl_cap=4,
+                  shell_factor=1.05, curv_c=None):
+    """Vectorised level-by-level octree (same semantics as hdm_boxes)."""
+    lo = np.array(bounds[0], dtype=np.float64)
+    hi = np.array(bounds[1], dtype=np.float64)
+    gs = np.array(grid_size, dtype=np.float64)
+    n0 = np.maximum(1, np.ceil((hi - lo) / gs).astype(int))
+    gs = (hi - lo) / n0
+
+    faces = face_planes(params)
+    face_ax = np.array([f[0] for f in faces], dtype=np.int64)
+    face_pos = np.array([f[1] for f in faces], dtype=np.float64)
+
+    objs = [(np.array(r["lo"]), np.array(r["hi"]), np.array(r["size"]))
+            for r in params if r["type"] not in ("domain",)]
+
+    cyl_u = []
+    cyl_p1 = []
+    cyl_h = []
+    cyl_r1 = []
+    cyl_r2 = []
+    for c in cyls:
+        axis = c["p2"] - c["p1"]
+        h2 = float(axis @ axis)
+        if h2 <= 0:
+            continue
+        cyl_p1.append(c["p1"])
+        cyl_u.append(axis / np.sqrt(h2))
+        cyl_h.append(float(np.sqrt(h2)))
+        cyl_r1.append(c["r1"])
+        cyl_r2.append(c["r2"])
+    cyl_p1 = np.array(cyl_p1) if cyl_p1 else np.zeros((0, 3))
+    cyl_u = np.array(cyl_u) if cyl_u else np.zeros((0, 3))
+    cyl_h = np.array(cyl_h) if cyl_h else np.zeros(0)
+    cyl_r1 = np.array(cyl_r1) if cyl_r1 else np.zeros(0)
+    cyl_r2 = np.array(cyl_r2) if cyl_r2 else np.zeros(0)
+
+    ix = np.arange(n0[0])
+    jy = np.arange(n0[1])
+    kz = np.arange(n0[2])
+    ii, jj, kk = np.meshgrid(ix, jy, kz, indexing="ij")
+    lo0 = np.stack([lo[0] + gs[0] * ii.ravel(), lo[1] + gs[1] * jj.ravel(),
+                    lo[2] + gs[2] * kk.ravel()], axis=1)
+    boxes = np.concatenate([lo0, lo0 + gs], axis=1)
+    levels = np.zeros(len(boxes), dtype=np.int64)
+
+    off = np.zeros((8, 6))
+    for t in range(8):
+        i = t & 1
+        j = (t >> 1) & 1
+        k = (t >> 2) & 1
+        off[t, 0] = i * 0.5
+        off[t, 1] = j * 0.5
+        off[t, 2] = k * 0.5
+        off[t, 3] = i * 0.5 + 0.5
+        off[t, 4] = j * 0.5 + 0.5
+        off[t, 5] = k * 0.5 + 0.5
+
+    while True:
+        s = boxes[:, 3:6] - boxes[:, 0:3]
+        c = (boxes[:, 0:3] + boxes[:, 3:6]) / 2.0
+        s_max = s.max(axis=1)
+        n = len(boxes)
+
+        tgt = np.tile(gs, (n, 1))
+        if use_object_sizes:
+            for olo, ohi, osz in objs:
+                m = np.all(c >= olo, axis=1) & np.all(c <= ohi, axis=1)
+                if m.any():
+                    os = np.where(osz > 1e30, gs, np.maximum(osz, 1e-5))
+                    tgt[m] = np.minimum(tgt[m], os)
+        need = (s > tgt).any(axis=1)
+        refine = need & (levels < max_levels)
+
+        cut = np.zeros(n, dtype=bool)
+        if len(face_pos):
+            for ax, pos in zip(face_ax.tolist(), face_pos.tolist()):
+                cut |= (boxes[:, ax] < pos) & (boxes[:, ax + 3] > pos)
+        refine |= cut & (levels < min(max_levels + surface_extra, 3))
+
+        if len(cyl_p1) and len(c):
+            shell_ref = np.zeros(n, dtype=bool)
+            for k in range(len(cyl_p1)):
+                d = c - cyl_p1[k]
+                t = d @ cyl_u[k]
+                w = d - t[:, None] * cyl_u[k]
+                rho = np.sqrt((w * w).sum(axis=1))
+                h = cyl_h[k]
+                rt = cyl_r1[k] + (cyl_r2[k] - cyl_r1[k]) * \
+                    np.clip(t / h, 0.0, 1.0)
+                band = (np.abs(rho - rt) < s_max * shell_factor) & \
+                    (t >= -s_max * shell_factor) & \
+                    (t <= h + s_max * shell_factor)
+                if curv_c is not None:
+                    band &= s_max > curv_c * rt
+                shell_ref |= band
+            refine |= shell_ref & (levels < cyl_cap)
+
+        if not refine.any() or n >= max_cells:
+            break
+        sel = np.where(refine)[0]
+        n_sel = len(sel)
+        so = s[sel]
+        plo = np.repeat(boxes[sel, 0:3], 8, axis=0)
+        add_lo = np.tile(off[:, 0:3], (n_sel, 1)) * \
+            np.repeat(so, 8, axis=0)
+        add_hi = np.tile(off[:, 3:6], (n_sel, 1)) * \
+            np.repeat(so, 8, axis=0)
+        new = np.concatenate([plo + add_lo, plo + add_hi], axis=1)
+        boxes = np.concatenate([boxes[~refine], new], axis=0)
+        levels = np.concatenate([levels[~refine],
+                                 np.repeat(levels[sel] + 1, 8)])
+        if len(boxes) > max_cells:
+            boxes = boxes[:max_cells]
+            levels = levels[:max_cells]
+            break
+    if balance and len(boxes) > 1:
+        boxes = _balance(boxes, max_cells)
+    return boxes
+
+
+def leaf_vertices_vec(boxes):
+    """Unique corner vertices via numpy (fast for sweeps)."""
+    b = boxes
+    corners = np.empty((len(b) * 8, 3))
+    for t in range(8):
+        i = t & 1
+        j = (t >> 1) & 1
+        k = (t >> 2) & 1
+        corners[t::8, 0] = b[:, i * 3]
+        corners[t::8, 1] = b[:, 1 + j * 3]
+        corners[t::8, 2] = b[:, 2 + k * 3]
+    return np.unique(np.round(corners, 12), axis=0)

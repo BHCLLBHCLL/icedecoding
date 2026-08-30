@@ -182,3 +182,45 @@ def test_in_shell_returns_radius():
     assert abs(np.hypot(out[0][0], out[0][1]) - 0.05) < 1e-12
     # second point: r(z=0.1) = 0.1 -> projected onto r=0.1
     assert abs(np.hypot(out[1][0], out[1][1]) - 0.1) < 1e-12
+
+
+def test_vec_builder_children_halve():
+    import numpy as np
+    from ice_hdm import hdm_boxes_vec
+    params = [{"type": "domain", "id": "0", "lo": (0.0, 0.0, 0.0),
+               "hi": (0.3, 0.3, 0.3), "size": (0.01, 0.01, 1e37)},
+              {"type": "hexa", "id": "1", "lo": (0.1, 0.1, 0.1),
+               "hi": (0.2, 0.2, 0.2), "size": (1, 0.005, 0.005)}]
+    cyls = [{"p1": np.array([0.25, 0.25, 0.13]),
+             "p2": np.array([0.25, 0.25, 0.19]), "r1": 0.02, "r2": 0.012}]
+    b = hdm_boxes_vec(params, ((0.0, 0.0, 0.0), (0.3, 0.3, 0.3)),
+                      (0.02, 0.02, 0.02), max_levels=2, max_cells=200000,
+                      surface_extra=1, use_object_sizes=True, cyls=cyls,
+                      cyl_cap=4, shell_factor=1.05)
+    s = b[:, 3:6] - b[:, 0:3]
+    base = 0.3 / np.ceil(0.3 / 0.02)
+    ratios = s / base
+    # every leaf size is a power of 1/2 times the snapped base size
+    assert np.allclose(np.round(np.log2(ratios)), np.log2(ratios))
+    assert s.max() <= base + 1e-12
+
+
+def test_vec_matches_recursive_small():
+    import numpy as np
+    from ice_hdm import hdm_boxes, hdm_boxes_vec
+    params = [{"type": "domain", "id": "0", "lo": (0.0, 0.0, 0.0),
+               "hi": (0.3, 0.3, 0.3), "size": (0.01, 0.01, 1e37)},
+              {"type": "hexa", "id": "1", "lo": (0.1, 0.1, 0.1),
+               "hi": (0.2, 0.2, 0.2), "size": (1, 0.005, 0.005)}]
+    cyls = [{"p1": np.array([0.25, 0.25, 0.13]),
+             "p2": np.array([0.25, 0.25, 0.19]), "r1": 0.02, "r2": 0.012}]
+    b1 = hdm_boxes(params, ((0.0, 0.0, 0.0), (0.3, 0.3, 0.3)),
+                   (0.02, 0.02, 0.02), max_levels=2, max_cells=2_000_000,
+                   surface_extra=1, use_object_sizes=True, cyls=cyls,
+                   cyl_cap=4, shell_factor=1.05)
+    b2 = hdm_boxes_vec(params, ((0.0, 0.0, 0.0), (0.3, 0.3, 0.3)),
+                       (0.02, 0.02, 0.02), max_levels=2,
+                       max_cells=2_000_000, surface_extra=1,
+                       use_object_sizes=True, cyls=cyls, cyl_cap=4,
+                       shell_factor=1.05)
+    assert abs(len(b1) - len(b2)) < 0.05 * len(b1)
