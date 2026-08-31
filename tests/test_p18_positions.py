@@ -288,3 +288,21 @@ def test_base_phase_shifts_lattice():
     assert not np.allclose(x0, x1)
     assert np.min(x1) > np.min(x0)
     assert len(x0) == len(x1)
+
+
+def test_ring_nodes_uniform():
+    import numpy as np
+    from ice_hdm import ring_nodes
+    cyls = [{"p1": np.array([0.15, 0.25, 0.13]),
+             "p2": np.array([0.15, 0.25, 0.19]), "r1": 0.02, "r2": 0.02}]
+    r = ring_nodes(cyls, pitch_c=0.1, z_frac=0.5)
+    assert len(r) > 100
+    rho = np.hypot(r[:, 0] - 0.15, r[:, 1] - 0.25)
+    assert np.allclose(rho, 0.02)          # all on the surface
+    assert r[:, 2].min() >= 0.13 - 1e-12
+    assert r[:, 2].max() <= 0.19 + 1e-12
+    th = np.arctan2(r[:, 1] - 0.25, r[:, 0] - 0.15)
+    hist, _ = np.histogram(th, bins=np.linspace(-np.pi, np.pi, 19))
+    # near-uniform angular sampling: no empty bins, no huge spikes
+    assert hist.min() > 0
+    assert hist.max() < 3 * hist.mean()

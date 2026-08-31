@@ -347,7 +347,8 @@ def position_match(our, oracle):
 
 def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
           surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4,
-          shell_factor=1.05, curv_c=None, proj_tol=None, base_phase=None):
+          shell_factor=1.05, curv_c=None, proj_tol=None, base_phase=None,
+          ring_pitch=None, ring_zfrac=1.0):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -403,7 +404,35 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
         verts, sizes = leaf_vertices_sized(boxes)
         verts = snap_vertices_local(verts, sizes, faces)
         if cyls:
-            verts = project_to_cylinders_local(verts, sizes, cyls)
+            if ring_pitch is not None:
+                # replace cube-corner projection with uniform-angular
+                # surface rings (the oracle's own shell structure)
+                keep = np.ones(len(verts), dtype=bool)
+                for c in cyls:
+                    p1, p2 = c["p1"], c["p2"]
+                    axis = p2 - p1
+                    h2 = float(axis @ axis)
+                    if h2 <= 0:
+                        continue
+                    u = axis / np.sqrt(h2)
+                    h = float(np.sqrt(h2))
+                    d = (verts - p1) @ u
+                    m = (d >= -sizes) & (d <= h + sizes)
+                    if not m.any():
+                        continue
+                    w = verts[m] - p1 - d[m, None] * u
+                    rho = np.linalg.norm(w, axis=1)
+                    rt = c["r1"] + (c["r2"] - c["r1"]) * \
+                        np.clip(d[m] / h, 0.0, 1.0)
+                    near = (np.abs(rho - rt) < 0.5 * sizes[m]) & (rho > 0)
+                    idx = np.where(m)[0][near]
+                    keep[idx] = False
+                verts = verts[keep]
+                rings = ring_nodes(cyls, pitch_c=ring_pitch,
+                                   z_frac=ring_zfrac)
+                verts = np.concatenate([verts, rings], axis=0)
+            else:
+                verts = project_to_cylinders_local(verts, sizes, cyls)
     else:
         verts = leaf_vertices_vec(boxes)
         tol = proj_tol
@@ -575,6 +604,38 @@ def leaf_vertices_vec(boxes):
         corners[t::8, 1] = b[:, 1 + j * 3]
         corners[t::8, 2] = b[:, 2 + k * 3]
     return np.unique(np.round(corners, 12), axis=0)
+
+
+def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0):
+    """Uniform angular-pitch surface ring nodes around each conical
+    cylinder (the oracle's shell structure: near-uniform theta sampling
+    with ~1/4 the node count of cube-corner projection).
+
+    pitch_c: angular pitch [rad] (cell_size / r, curv_c-like);
+    axial step = pitch_c * r_local * z_frac."""
+    out = []
+    for c in cyls:
+        p1, p2 = c["p1"], c["p2"]
+        axis = p2 - p1
+        h2 = float(axis @ axis)
+        if h2 <= 0:
+            continue
+        u = axis / np.sqrt(h2)
+        h = float(np.sqrt(h2))
+        z1, z2 = p1[2], p2[2]
+        z = z1
+        while z <= z2 + 1e-12:
+            f = (z - z1) / h if h > 0 else 0.0
+            r = c["r1"] + (c["r2"] - c["r1"]) * min(max(f, 0.0), 1.0)
+            step_z = max(pitch_c * r * z_frac, 1e-6)
+            n = max(3, int(2 * np.pi / max(pitch_c, 1e-4)))
+            for k in range(n):
+                th = 2 * np.pi * k / n
+                out.append((c["p1"][0] + r * np.cos(th),
+                            c["p1"][1] + r * np.sin(th), z))
+            z += step_z
+    return np.array(out, dtype=np.float64) if out else \
+        np.zeros((0, 3), dtype=np.float64)
 
 
 def leaf_vertices_sized(boxes):
