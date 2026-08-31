@@ -348,7 +348,7 @@ def position_match(our, oracle):
 def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
           surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4,
           shell_factor=1.05, curv_c=None, proj_tol=None, base_phase=None,
-          ring_pitch=None, ring_zfrac=1.0):
+          ring_pitch=None, ring_zfrac=1.0, ring_stagger=0.0):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -429,7 +429,8 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
                     keep[idx] = False
                 verts = verts[keep]
                 rings = ring_nodes(cyls, pitch_c=ring_pitch,
-                                   z_frac=ring_zfrac)
+                                   z_frac=ring_zfrac,
+                                   stagger_strength=ring_stagger)
                 verts = np.concatenate([verts, rings], axis=0)
             else:
                 verts = project_to_cylinders_local(verts, sizes, cyls)
@@ -606,15 +607,19 @@ def leaf_vertices_vec(boxes):
     return np.unique(np.round(corners, 12), axis=0)
 
 
-def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0):
+def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
+               stagger_strength=1.0):
     """Uniform angular-pitch surface ring nodes around each conical
     cylinder (the oracle's shell structure: near-uniform theta sampling
     with ~1/4 the node count of cube-corner projection).
 
     pitch_c: angular pitch [rad] (cell_size / r, curv_c-like);
-    axial step = pitch_c * r_local * z_frac."""
+    axial step = pitch_c * r_local * z_frac.
+    theta_stagger: per-cylinder theta phase offset (golden-ratio) — the
+    oracle's octree leaves place each cylinder's angular grid at a
+    different phase, so same-column x-sets only overlap ~30-40%."""
     out = []
-    for c in cyls:
+    for j, c in enumerate(cyls):
         p1, p2 = c["p1"], c["p2"]
         axis = p2 - p1
         h2 = float(axis @ axis)
@@ -624,13 +629,18 @@ def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0):
         h = float(np.sqrt(h2))
         z1, z2 = p1[2], p2[2]
         z = z1
+        n = max(3, int(2 * np.pi / max(pitch_c, 1e-4)))
+        phase = 0.0
+        if theta_stagger:
+            phase = ((0.6180339887498949 * (j + 1)) % 1.0) * \
+                stagger_strength
+        phase_rad = phase * 2 * np.pi / n
         while z <= z2 + 1e-12:
             f = (z - z1) / h if h > 0 else 0.0
             r = c["r1"] + (c["r2"] - c["r1"]) * min(max(f, 0.0), 1.0)
             step_z = max(pitch_c * r * z_frac, 1e-6)
-            n = max(3, int(2 * np.pi / max(pitch_c, 1e-4)))
             for k in range(n):
-                th = 2 * np.pi * k / n
+                th = 2 * np.pi * k / n + phase_rad
                 out.append((c["p1"][0] + r * np.cos(th),
                             c["p1"][1] + r * np.sin(th), z))
             z += step_z

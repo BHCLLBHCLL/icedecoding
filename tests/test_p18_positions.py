@@ -306,3 +306,20 @@ def test_ring_nodes_uniform():
     # near-uniform angular sampling: no empty bins, no huge spikes
     assert hist.min() > 0
     assert hist.max() < 3 * hist.mean()
+
+
+def test_ring_stagger_binary_effect():
+    import numpy as np
+    from ice_hdm import ring_nodes
+    cyls = [{"p1": np.array([0.15, 0.25, 0.13]),
+             "p2": np.array([0.15, 0.25, 0.19]), "r1": 0.02, "r2": 0.02},
+            {"p1": np.array([0.15, 0.30, 0.13]),
+             "p2": np.array([0.15, 0.30, 0.19]), "r1": 0.02, "r2": 0.02}]
+    r0 = ring_nodes(cyls, pitch_c=0.1, z_frac=0.5, stagger_strength=0.0)
+    r1 = ring_nodes(cyls, pitch_c=0.1, z_frac=0.5, stagger_strength=1.0)
+    x0 = len(np.unique(np.round(r0[:, 0], 12)))
+    x1 = len(np.unique(np.round(r1[:, 0], 12)))
+    # zero stagger: same-column cylinders share their x lattice (overlap);
+    # full stagger: x-sets become disjoint
+    assert x0 < x1
+    assert x1 > x0 * 1.5
