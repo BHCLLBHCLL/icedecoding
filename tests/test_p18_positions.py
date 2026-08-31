@@ -269,3 +269,22 @@ def test_bounded_faces_only_overlap_cells():
     # the z=0.1 face rectangle spans x/y [0.1, 0.2]
     assert np.allclose(zf[0][2], [0.1, 0.1])
     assert np.allclose(zf[0][3], [0.2, 0.2])
+
+
+def test_base_phase_shifts_lattice():
+    import numpy as np
+    from ice_hdm import hdm_boxes_vec
+    params = [{"type": "domain", "id": "0", "lo": (0.0, 0.0, 0.0),
+               "hi": (0.3, 0.3, 0.3), "size": (0.01, 0.01, 1e37)}]
+    b0 = hdm_boxes_vec(params, ((0.0, 0.0, 0.0), (0.3, 0.3, 0.3)),
+                       (0.1, 0.1, 0.1), max_levels=0, max_cells=100000,
+                       use_object_sizes=False)
+    b1 = hdm_boxes_vec(params, ((0.0, 0.0, 0.0), (0.3, 0.3, 0.3)),
+                       (0.1, 0.1, 0.1), max_levels=0, max_cells=100000,
+                       use_object_sizes=False, base_phase=(0.02, 0.0, 0.0))
+    x0 = np.unique(b0[:, 0])
+    x1 = np.unique(b1[:, 0])
+    # phase shifts the lattice anchor
+    assert not np.allclose(x0, x1)
+    assert np.min(x1) > np.min(x0)
+    assert len(x0) == len(x1)

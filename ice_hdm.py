@@ -347,7 +347,7 @@ def position_match(our, oracle):
 
 def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
           surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4,
-          shell_factor=1.05, curv_c=None, proj_tol=None):
+          shell_factor=1.05, curv_c=None, proj_tol=None, base_phase=None):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -396,7 +396,7 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
                           surface_extra=surface_extra,
                           use_object_sizes=use_object_sizes, cyls=cyls,
                           cyl_cap=cyl_cap, shell_factor=shell_factor,
-                          curv_c=curv_c)
+                          curv_c=curv_c, base_phase=base_phase)
     faces = face_planes(params)
     if proj_tol is None:
         # local-tolerance snapping: only surface-adjacent cell vertices
@@ -416,11 +416,18 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
 def hdm_boxes_vec(params, bounds, grid_size, max_levels=3, balance=False,
                   max_cells=2_000_000, surface_extra=1,
                   use_object_sizes=True, cyls=None, cyl_cap=4,
-                  shell_factor=1.05, curv_c=None):
-    """Vectorised level-by-level octree (same semantics as hdm_boxes)."""
-    lo = np.array(bounds[0], dtype=np.float64)
+                  shell_factor=1.05, curv_c=None, base_phase=None):
+    """Vectorised level-by-level octree (same semantics as hdm_boxes).
+
+    base_phase: per-axis phase shift of the base lattice (leaf placement
+    offset relative to geometry — the lever for the x/y count asymmetry)."""
+    lo0 = np.array(bounds[0], dtype=np.float64)
     hi = np.array(bounds[1], dtype=np.float64)
     gs = np.array(grid_size, dtype=np.float64)
+    # tile lattice anchored at lo0 + base_phase (partial first cell at lo0)
+    lo = lo0.copy()
+    if base_phase is not None:
+        lo = lo0 + np.array(base_phase, dtype=np.float64)
     n0 = np.maximum(1, np.ceil((hi - lo) / gs).astype(int))
     gs = (hi - lo) / n0
 
@@ -443,7 +450,7 @@ def hdm_boxes_vec(params, bounds, grid_size, max_levels=3, balance=False,
     cyl_h = []
     cyl_r1 = []
     cyl_r2 = []
-    for c in cyls:
+    for c in (cyls or []):
         axis = c["p2"] - c["p1"]
         h2 = float(axis @ axis)
         if h2 <= 0:
