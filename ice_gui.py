@@ -1372,6 +1372,33 @@ class IceGui(QMainWindow):
             self.log("real temp cloud: %r" % e, "WARN")
             return None
 
+    def _open_temp_window(self, project_dir=None):
+        """Open the real temperature histogram (Post -> Temperature distribution)."""
+        base = project_dir or self._job_base()
+        if not base:
+            self.log("No active project for temperature window", "WARN")
+            return None
+        try:
+            from fluent_fdat import real_temp_cloud_face
+            from ice_solve_gui import PlotWindow
+            from ice_report import real_temp_section
+            r = real_temp_cloud_face(base)
+            if r is None:
+                self.log("No real temperature data for %s" % base, "WARN")
+                return None
+            centers, temps = r
+            win = PlotWindow(self, title="Temperature distribution")
+            win.set_histogram(list(temps), bins=16, title="Temperature")
+            win.resize(520, 300)
+            win.show()
+            sec = real_temp_section(centers, temps)
+            self.log("temperature section generated (%d cells, %.1f..%.1f K)"
+                     % (len(temps), min(temps), max(temps)))
+            return sec
+        except Exception as e:
+            self.log("temp window: %r" % e, "WARN")
+            return None
+
     def _open_plot(self, kind):
         from ice_solve import (read_resd, sample_along, simulate_history,
                                trials_from_problem, synthetic_cell_temps)

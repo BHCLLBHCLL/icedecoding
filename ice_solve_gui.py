@@ -193,6 +193,31 @@ class PlotWindow(QWidget):
         self._log_y = log_y
         self.update()
 
+    def set_histogram(self, values, bins=12, title=None, xlabel=None):
+        """Temperature distribution histogram (bar plot)."""
+        if not values:
+            self._series = []
+            self.update()
+            return
+        import numpy as np
+        lo, hi = float(min(values)), float(max(values))
+        span = (hi - lo) or 1e-12
+        hist = [0] * bins
+        for v in values:
+            i = min(bins - 1, int((v - lo) / span * bins))
+            hist[i] += 1
+        edges = [lo + i * span / bins for i in range(bins + 1)]
+        m = max(hist) or 1
+        series = [[(edges[i], hist[i]), (edges[i + 1], hist[i]),
+                   (edges[i + 1], 0.0)] for i in range(bins)]
+        self._series = series
+        if title:
+            self._title = title
+        self._xlabel = xlabel or "Temperature (K)"
+        self._ylabel = "Cell count"
+        self._log_y = False
+        self.update()
+
     def _bounds(self):
         xs, ys = [], []
         for s in self._series:

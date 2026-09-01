@@ -510,3 +510,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - 11-1/12-2/9-2/7-2 无干净温度（未收敛/未初始化），其余多数高覆盖——**"本案例部分区未初始化"确认，但 12-1datacenter(97%)/9-3Loss(95%) 等近全覆盖**。
 - **云函数泛化**：`_job_cas_fdat` 按同名基查找 cas+fdat（tutorial 文件名各异，如 datacenter00/tr_Re_10），`real_temp_cloud_face` 全作业可用——实测 12-1 (124,137 点/285.9-299.3K)、7-1 (97,468 点/313-353K)、5-1fin (74,192 点/293-318K)。
 - **测试**：tests/test_p19_cloud.py 新增 datacenter 全覆盖测试 1 项（共 4 项）——**全套 211 项通过**（206+5）。
+
+### P19-4b - cloud to PlotWindow / report HTML complete
+
+- ice_report: histogram_svg (inline SVG temp histogram), real_temp_section (real temp stats + extent + SVG) - embeddable in html_report.
+- ice_solve_gui.PlotWindow.set_histogram: temperature distribution histogram (bar series).
+- ice_gui._open_temp_window: load real temp cloud -> PlotWindow histogram + HTML temp section.
+- Tests: tests/test_p19_report.py (4) - full suite 211 passed (207+4).

@@ -85,3 +85,57 @@ def write_html_report(path, project, mesh=None):
     with open(path, "w", encoding="utf-8") as fh:
         fh.write(html_report(project, mesh))
     return path
+
+
+def histogram_svg(values, bins=12, width=440, height=160, color="#1f4e79"):
+    """Inline SVG bar histogram of a value array -> (svg, hist, edges)."""
+    import math
+    if not values:
+        return "<svg width='%d' height='%d'></svg>" % (width, height), [], []
+    lo, hi = min(values), max(values)
+    span = (hi - lo) or 1e-12
+    hist = [0] * bins
+    for v in values:
+        i = min(bins - 1, int((v - lo) / span * bins))
+        hist[i] += 1
+    n = len(values)
+    maxc = max(hist) or 1
+    pad = 8
+    bh = (height - 2 * pad) / maxc
+    bw = (width - 2 * pad) / bins
+    parts = ["<svg width='%d' height='%d' xmlns='http://www.w3.org/2000/svg'>"
+             % (width, height)]
+    for i, c in enumerate(hist):
+        x = pad + i * bw
+        h = max(1.0, c * bh)
+        parts.append("<rect x='%.1f' y='%.1f' width='%.1f' height='%.1f' "
+                     "fill='%s' stroke='#ffffff' stroke-width='0.5'/>" %
+                     (x, height - pad - h, bw - 1, h, color))
+    parts.append("</svg>")
+    return "".join(parts), hist, [lo + i * span / bins for i in range(bins + 1)]
+
+
+def real_temp_section(centers, temps, title="Temperature field"):
+    """HTML section: real temperature stats + SVG histogram."""
+    import html
+    import numpy as np
+    hist_svg, hist, edges = histogram_svg(list(temps))
+    lo, hi = float(min(temps)), float(max(temps))
+    mean = float(np.mean(temps))
+    p = ["<h2>%s</h2>" % html.escape(title),
+         "<table><tr><th>Cells</th><td>%d</td></tr>"
+         "<tr><th>Min</th><td>%.2f K</td></tr>"
+         "<tr><th>Max</th><td>%.2f K</td></tr>"
+         "<tr><th>Mean</th><td>%.2f K</td></tr>"
+         "<tr><th>Range</th><td>%.2f K</td></tr></table>"
+         % (len(temps), lo, hi, mean, hi - lo)]
+    if centers is not None and len(centers):
+        xr = centers[:, 0].min(), centers[:, 0].max()
+        yr = centers[:, 1].min(), centers[:, 1].max()
+        zr = centers[:, 2].min(), centers[:, 2].max()
+        p.append("<table><tr><th>Extent X</th><td>%.3f..%.3f</td></tr>"
+                 "<tr><th>Extent Y</th><td>%.3f..%.3f</td></tr>"
+                 "<tr><th>Extent Z</th><td>%.3f..%.3f</td></tr></table>"
+                 % (xr[0], xr[1], yr[0], yr[1], zr[0], zr[1]))
+    p.append(hist_svg)
+    return "".join(p)
