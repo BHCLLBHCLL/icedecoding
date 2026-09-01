@@ -87,6 +87,26 @@ def encode_text(plain: str, seed: int = _DEFAULT_SEED) -> str:
     return "\n".join(encode_line(l, seed) for l in plain.splitlines())
 
 
+def encode_text_faithful(decoded_text: str, raw_text: str) -> str:
+    """Byte-identity re-encode: re-obfuscate each Il!! line with its ORIGINAL
+    per-line seed, leave non-Il!! lines verbatim.  Guarantees
+    encode_text_faithful(decode_text(raw), raw) == raw."""
+    raw_lines = raw_text.splitlines()
+    dec_lines = decoded_text.splitlines()
+    out = []
+    for i, rl in enumerate(raw_lines):
+        if rl.startswith(MAGIC):
+            seed = ord(rl[4]) if len(rl) > 4 else _DEFAULT_SEED
+            plain = decode_line(rl)
+            out.append(encode_line(plain, seed))
+        else:
+            out.append(rl)
+    s = "\n".join(out)
+    if raw_text.endswith("\n"):
+        s += "\n"
+    return s
+
+
 if __name__ == "__main__":
     import io
     import sys
