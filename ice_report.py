@@ -87,6 +87,79 @@ def write_html_report(path, project, mesh=None):
     return path
 
 
+def real_stats(project_dir):
+    """Real temperature summary dict (or None)."""
+    try:
+        from fluent_fdat import real_temp_cloud_face
+        r = real_temp_cloud_face(project_dir)
+        if r is None:
+            return None
+        centers, temps = r
+        return {"cells": int(len(temps)), "tmin": float(temps.min()),
+                "tmax": float(temps.max()), "tmean": float(temps.mean())}
+    except Exception:
+        return None
+
+
+def real_summary_table_html(project_dir, title="Temperature summary"):
+    """Summary report rows: real temperature stats."""
+    st = real_stats(project_dir)
+    if st is None:
+        return "<h2>%s</h2><p>No real temperature data.</p>" % title
+    return ("<h2>%s</h2><table><tr><th>Cells</th><td>%d</td></tr>"
+            "<tr><th>Min</th><td>%.2f K</td></tr>"
+            "<tr><th>Max</th><td>%.2f K</td></tr>"
+            "<tr><th>Mean</th><td>%.2f K</td></tr>"
+            "<tr><th>Range</th><td>%.2f K</td></tr></table>" %
+            (title, st["cells"], st["tmin"], st["tmax"], st["tmean"],
+             st["tmax"] - st["tmin"]))
+
+
+def point_report_html(project_dir, points):
+    """Point report: real temperature at a list of points."""
+    import html
+    from fluent_fdat import real_point_temp
+    rows = ["<h2>Point report</h2>"
+            "<table><tr><th>Point</th><th>Temperature</th></tr>"]
+    for p in points:
+        t = real_point_temp(project_dir, p)
+        rows.append("<tr><td>(%.3f, %.3f, %.3f)</td><td>%s</td></tr>" %
+                    (p[0], p[1], p[2],
+                     "%.2f K" % t if t is not None else "n/a"))
+    rows.append("</table>")
+    return "".join(rows)
+
+
+def full_report_html(project_dir, title="ANSYS Icepak report",
+                     points=None):
+    """Full report: header + real temperature summary + histogram section."""
+    try:
+        from fluent_fdat import real_temp_cloud_face
+        r = real_temp_cloud_face(project_dir)
+    except Exception:
+        r = None
+    parts = ["<!DOCTYPE html><html><head><meta charset='utf-8'>",
+             "<title>%s</title>" % html.escape(title),
+             "<style>%s</style></head><body><h1>%s</h1>"
+             % (REPORT_STYLE, html.escape(title))]
+    if r is not None:
+        centers, temps = r
+        parts.append(real_temp_section(centers, temps))
+    else:
+        parts.append("<p>No real temperature data.</p>")
+    parts.append(real_summary_table_html(project_dir))
+    if points:
+        parts.append(point_report_html(project_dir, points))
+    parts.append("</body></html>")
+    return "".join(parts)
+
+
+def write_real_report(path, project_dir, points=None):
+    with open(path, "w", encoding="utf-8") as fh:
+        fh.write(full_report_html(project_dir, points=points))
+    return path
+
+
 def histogram_svg(values, bins=12, width=440, height=160, color="#1f4e79"):
     """Inline SVG bar histogram of a value array -> (svg, hist, edges)."""
     import math
