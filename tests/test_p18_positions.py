@@ -323,3 +323,22 @@ def test_ring_stagger_binary_effect():
     # full stagger: x-sets become disjoint
     assert x0 < x1
     assert x1 > x0 * 1.5
+
+
+def test_ring_nodes_axial_taper_no_shadow():
+    # regression: 'h' cell-size variable must NOT shadow the cylinder axis
+    # height in ring_nodes (previously collapsed the vertical extent).
+    import numpy as np
+    from ice_hdm import ring_nodes
+    cyls = [{"p1": np.array([0.15, 0.25, 0.13]),
+             "p2": np.array([0.15, 0.25, 0.19]), "r1": 0.02, "r2": 0.012}]
+    r = ring_nodes(cyls, pitch_c=0.10, z_frac=0.5, theta_stagger=False)
+    assert r[:, 2].max() > 0.18           # reaches the top (no collapse)
+    # same-column cylinders share their x values (no stagger)
+    cyls2 = cyls + [{"p1": np.array([0.15, 0.30, 0.13]),
+                     "p2": np.array([0.15, 0.30, 0.19]),
+                     "r1": 0.02, "r2": 0.012}]
+    r2 = ring_nodes(cyls2, pitch_c=0.10, z_frac=0.5, theta_stagger=False)
+    nx = len(np.unique(np.round(r2[:, 0], 12)))
+    # two same-c columns: x collides (per-column), y does not
+    assert nx < len(r2) * 0.5

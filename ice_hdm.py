@@ -348,7 +348,8 @@ def position_match(our, oracle):
 def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
           surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4,
           shell_factor=1.05, curv_c=None, proj_tol=None, base_phase=None,
-          ring_pitch=None, ring_zfrac=1.0, ring_stagger=0.0):
+          ring_pitch=None, ring_zfrac=1.0, ring_stagger=0.0,
+          ring_lattice=False, ring_base_step=0.02):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -430,7 +431,9 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
                 verts = verts[keep]
                 rings = ring_nodes(cyls, pitch_c=ring_pitch,
                                    z_frac=ring_zfrac,
-                                   stagger_strength=ring_stagger)
+                                   stagger_strength=ring_stagger,
+                                   lattice=ring_lattice,
+                                   base_step=ring_base_step)
                 verts = np.concatenate([verts, rings], axis=0)
             else:
                 verts = project_to_cylinders_local(verts, sizes, cyls)
@@ -608,7 +611,7 @@ def leaf_vertices_vec(boxes):
 
 
 def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
-               stagger_strength=1.0):
+               stagger_strength=1.0, lattice=False, base_step=0.02):
     """Uniform angular-pitch surface ring nodes around each conical
     cylinder (the oracle's shell structure: near-uniform theta sampling
     with ~1/4 the node count of cube-corner projection).
@@ -639,10 +642,18 @@ def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
             f = (z - z1) / h if h > 0 else 0.0
             r = c["r1"] + (c["r2"] - c["r1"]) * min(max(f, 0.0), 1.0)
             step_z = max(pitch_c * r * z_frac, 1e-6)
+            hc = max(pitch_c * r, 1e-6)
             for k in range(n):
                 th = 2 * np.pi * k / n + phase_rad
-                out.append((c["p1"][0] + r * np.cos(th),
-                            c["p1"][1] + r * np.sin(th), z))
+                x = c["p1"][0] + r * np.cos(th)
+                y = c["p1"][1] + r * np.sin(th)
+                if lattice:
+                    # quantize x/y back to the shared lattice at the local
+                    # shell-cell size hc: same-column cylinders then share
+                    # part of their x values (oracle 27-41% overlap)
+                    x = round(x / hc) * hc
+                    y = round(y / hc) * hc
+                out.append((x, y, z))
             z += step_z
     return np.array(out, dtype=np.float64) if out else \
         np.zeros((0, 3), dtype=np.float64)
