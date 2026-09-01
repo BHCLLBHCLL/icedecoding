@@ -523,3 +523,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - P19-10 完成；P19-4/5/6/7/9 部分；P19-8 未实现。
 - 最硬缺口：P19-4 3D 标量/矢量视区渲染、P19-7 字节级编码器、P19-8 IcBQS。
 - 开发计划分 Phase A(后处理)/B(写回)/C(队列)/D(ECAD+宏+语言)，约 4.5-5.5 周。
+
+### Phase A1 — 标量场视区渲染（iso/平面切/极值，真实温度）完成
+
+- **fluent_fdat**：`_mk_scalar_cloud`（温度标量点云 vtkPolyData）、`iso_band_data`（等值点带，rel_tol 2%）、`plane_band_data`（平面切点带，tol 0.0008）、`extrema_data`（热/冷最值点）。
+- **ice_gui._maybe_real_post_actor**：加载真实温度云 → 按 kind（Isosurface/Plane cut/Min-max）生成标量筛选点带 → VTK 点云 actor（红色）入渲染器；`_create_post` 接入（有真实数据优先）。
+- 实测 12-1datacenter：iso 839 点、极值 24 点；并**修复 _job_base None 漏洞**（无项目时 os.path.isdir(None) 崩溃）。
+- **测试**：tests/test_p19_post.py（3 项：真实 iso 带、真实极值 20 点、合成平面切 2 点）——**全套 214 项通过**（211+3）。

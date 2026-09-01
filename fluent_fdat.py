@@ -422,3 +422,54 @@ def temp_cloud_polys(centers, temps):
     cloud.SetPoints(pts)
     cloud.GetPointData().SetScalars(colors)
     return cloud, tmin, tmax
+
+# ---- Phase A1: scalar-field viewport operators on the real temp cloud ----
+
+def _mk_scalar_cloud(points):
+    """vtkPolyData from (N,3) points with temp scalar -> (polydata, scalars)."""
+    import vtk
+    import numpy as np
+    n = len(points)
+    pts = vtk.vtkPoints()
+    pts.SetNumberOfPoints(n)
+    for i in range(n):
+        pts.SetPoint(i, float(points[i][0]), float(points[i][1]),
+                     float(points[i][2]))
+    s = vtk.vtkDoubleArray()
+    s.SetName("Temperature")
+    s.SetNumberOfComponents(1)
+    for i in range(n):
+        s.InsertNextValue(float(points[i][3]))
+    p = vtk.vtkPolyData()
+    p.SetPoints(pts)
+    p.GetPointData().SetScalars(s)
+    return p, s
+
+
+def iso_band_data(centers, temps, value, rel_tol=0.02):
+    """Real iso 'surface' = points whose temp is within rel_tol*span of value.
+    Returns (points[N,4], polydata)."""
+    import numpy as np
+    lo, hi = float(temps.min()), float(temps.max())
+    span = (hi - lo) or 1e-12
+    m = np.abs(temps - value) <= rel_tol * span
+    sel = np.concatenate([centers[m, :3], temps[m][:, None]], axis=1)
+    return sel, _mk_scalar_cloud(sel)[0]
+
+
+def plane_band_data(centers, temps, axis, offset, tol=0.0008):
+    """Real plane cut = points whose <axis> coord is within tol of offset."""
+    import numpy as np
+    m = np.abs(centers[:, axis] - offset) <= tol
+    sel = np.concatenate([centers[m, :3], temps[m][:, None]], axis=1)
+    return sel, _mk_scalar_cloud(sel)[0]
+
+
+def extrema_data(centers, temps, k=12):
+    """Hottest and coldest points (min/max location markers)."""
+    import numpy as np
+    hi_idx = np.argsort(-temps)[:k]
+    lo_idx = np.argsort(temps)[:k]
+    idx = np.concatenate([hi_idx, lo_idx])
+    sel = np.concatenate([centers[idx, :3], temps[idx][:, None]], axis=1)
+    return sel, _mk_scalar_cloud(sel)[0]

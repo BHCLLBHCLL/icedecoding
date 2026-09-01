@@ -1244,6 +1244,8 @@ class IceGui(QMainWindow):
                 os.makedirs(base)
             except OSError:
                 return None
+        if not base:
+            return None
         return base if os.path.isdir(base) else None
 
     def _open_solution_monitor(self):
@@ -1284,6 +1286,48 @@ class IceGui(QMainWindow):
             name: obj_temperature_for(result, name)
             for name in set(result.cell_obj.values())})
 
+
+    def _maybe_real_post_actor(self, kind, params):
+        """Add a real-temperature iso / plane / extrema actor when data exists."""
+        base = self._job_base()
+        if not base:
+            return None
+        try:
+            from fluent_fdat import (real_temp_cloud_face, iso_band_data,
+                                     plane_band_data, extrema_data,
+                                     temp_cloud_polys)
+            r = real_temp_cloud_face(base)
+            if r is None:
+                return None
+            centers, temps = r
+            if kind == "Isosurface":
+                value = float(params.get("value", 0.0)) or float(temps.mean())
+                sel, _ = iso_band_data(centers, temps, value)
+            elif kind == "Plane cut":
+                axis = "xyz".find(str(params.get("axis", "x")).lower())
+                offset = float(params.get("offset", 0.0))
+                sel, _ = plane_band_data(centers, temps, max(0, axis), offset)
+            elif kind == "Min/max locations":
+                sel, _ = extrema_data(centers, temps)
+            else:
+                return None
+            if len(sel) == 0:
+                return None
+            import numpy as np
+            cloud, tmin, tmax = temp_cloud_polys(sel[:, :3], sel[:, 3])
+            if hasattr(self, "renderer") and self.renderer is not None:
+                mapper = _vtk_glyph_points(cloud)
+                actor = _vtk_actor(mapper, 0.0028)
+                actor.GetProperty().SetColor(0.9, 0.2, 0.2)
+                self.renderer.AddActor(actor)
+                self.renderer.ResetCamera()
+                self.log("%s (real): %d pts, %.1f..%.1f K" %
+                         (kind, len(sel), tmin, tmax))
+            return cloud
+        except Exception as e:
+            self.log("real post actor %s: %r" % (kind, e), "WARN")
+            return None
+
     def _create_post(self, kind):
         """Post -> Object face/Plane cut/Isosurface/Point/Surface probe."""
         if self.project is None:
@@ -1310,6 +1354,9 @@ class IceGui(QMainWindow):
             self.log("%s: %s (%d samples)" % (kind, record["params"],
                                               len(data)))
             self._post_data = data
+        real_actor = self._maybe_real_post_actor(kind, page.values())
+        if real_actor is not None:
+            self._post_data = real_actor
         self._mark_dirty("Added post object %s" % kind)
         self._refresh()
 
