@@ -473,3 +473,70 @@ def extrema_data(centers, temps, k=12):
     idx = np.concatenate([hi_idx, lo_idx])
     sel = np.concatenate([centers[idx, :3], temps[idx][:, None]], axis=1)
     return sel, _mk_scalar_cloud(sel)[0]
+
+# ---- Phase A2: real velocity field -> vector glyph ----
+
+def _clean_section(pf, prefix):
+    import numpy as np
+    best = None
+    for name, args, vals in pf["fields"]:
+        base = name.split(",")[0].strip()
+        if base != prefix:
+            continue
+        a = np.asarray(vals, dtype=np.float64)
+        nf = int((np.isfinite(a) & (np.abs(a) < 1e6)).sum())
+        if nf < len(a) * 0.8:
+            continue
+        if best is None or nf > best[1]:
+            best = (args, nf, list(a))
+    return best
+
+
+def real_velocity_cloud(project_dir):
+    import os
+    import numpy as np
+    cas, fdat = _job_cas_fdat(project_dir)
+    if not cas or not fdat:
+        return None
+    text = open(cas, encoding="latin-1", errors="replace").read()
+    nodes = parse_cas_nodes(text)
+    centers = cell_centers_from_faces(text, nodes)
+    pf = parse_fdat(fdat)
+    su = _clean_section(pf, "SV_U")
+    sv = _clean_section(pf, "SV_V")
+    sw = _clean_section(pf, "SV_W")
+    if not (su and sv and sw):
+        return None
+    cids = sorted(centers.keys())
+    pts = []
+    vecs = []
+    for cid in cids:
+        idx = cid - su[0][6]
+        if 0 <= idx < len(su[2]) and 0 <= idx < len(sv[2]) and \
+                0 <= idx < len(sw[2]):
+            u, v, w = su[2][idx], sv[2][idx], sw[2][idx]
+            if abs(u) < 1e6 and abs(v) < 1e6 and abs(w) < 1e6:
+                pts.append(centers[cid])
+                vecs.append((u, v, w))
+    if not pts:
+        return None
+    return np.array(pts, dtype=np.float64), np.array(vecs, dtype=np.float64)
+
+
+def vector_glyph_cloud(centers, vectors, scale=1.0):
+    import vtk
+    n = len(centers)
+    pts = vtk.vtkPoints()
+    pts.SetNumberOfPoints(n)
+    vecs = vtk.vtkDoubleArray()
+    vecs.SetName("Velocity")
+    vecs.SetNumberOfComponents(3)
+    for i in range(n):
+        pts.SetPoint(i, float(centers[i][0]), float(centers[i][1]),
+                     float(centers[i][2]))
+        vecs.InsertNextTuple3(float(vectors[i][0]), float(vectors[i][1]),
+                              float(vectors[i][2]))
+    p = vtk.vtkPolyData()
+    p.SetPoints(pts)
+    p.GetPointData().SetVectors(vecs)
+    return p

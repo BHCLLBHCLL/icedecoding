@@ -41,3 +41,18 @@ def test_plane_band_synthetic():
     t = np.array([295.0, 296.0, 300.0])
     sel, _ = plane_band_data(c, t, axis=0, offset=0.100, tol=0.002)
     assert len(sel) == 2
+
+
+
+@pytest.mark.skipif(not os.path.exists(FDAT), reason="oracle fdat missing")
+def test_real_velocity_cloud():
+    from fluent_fdat import real_velocity_cloud, vector_glyph_cloud
+    r = real_velocity_cloud(os.path.dirname(FDAT))
+    assert r is not None
+    centers, vecs = r
+    assert len(centers) > 100000
+    speed = np.linalg.norm(vecs, axis=1)
+    assert speed.max() > 0.1            # real airflow
+    glyph = vector_glyph_cloud(centers[:500], vecs[:500])
+    assert glyph.GetNumberOfPoints() == 500
+    assert glyph.GetPointData().GetVectors().GetNumberOfTuples() == 500

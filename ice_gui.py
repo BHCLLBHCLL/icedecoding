@@ -1309,6 +1309,29 @@ class IceGui(QMainWindow):
                 sel, _ = plane_band_data(centers, temps, max(0, axis), offset)
             elif kind == "Min/max locations":
                 sel, _ = extrema_data(centers, temps)
+            elif kind == "Vector field":
+                from fluent_fdat import (real_velocity_cloud,
+                                         vector_glyph_cloud)
+                rv = real_velocity_cloud(base)
+                if rv is None:
+                    return None
+                vc, vv = rv
+                glyph = vector_glyph_cloud(vc, vv)
+                if hasattr(self, "renderer") and self.renderer is not None:
+                    import vtk
+                    mapper = vtk.vtkGlyph3DMapper()
+                    mapper.SetInputData(glyph)
+                    mapper.OrientOn()
+                    actor = vtk.vtkActor()
+                    actor.SetMapper(mapper)
+                    actor.GetProperty().SetColor(0.2, 0.5, 0.9)
+                    self.renderer.AddActor(actor)
+                    self.renderer.ResetCamera()
+                self.log("Vector field (real): %d glyphs"
+                         " (%.4f..%.4f m/s)" %
+                         (len(vc), float((vv ** 2).sum(1).max() ** 0.5),
+                          float((vv ** 2).sum(1).min() ** 0.5)))
+                return glyph
             else:
                 return None
             if len(sel) == 0:
