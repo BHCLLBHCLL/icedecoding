@@ -517,3 +517,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - ice_solve_gui.PlotWindow.set_histogram: temperature distribution histogram (bar series).
 - ice_gui._open_temp_window: load real temp cloud -> PlotWindow histogram + HTML temp section.
 - Tests: tests/test_p19_report.py (4) - full suite 211 passed (207+4).
+
+### P19 状态核对（P19-4~P19-10）—— 详见 docs/P19_4_10_CHECKLIST.md
+
+- P19-10 完成；P19-4/5/6/7/9 部分；P19-8 未实现。
+- 最硬缺口：P19-4 3D 标量/矢量视区渲染、P19-7 字节级编码器、P19-8 IcBQS。
+- 开发计划分 Phase A(后处理)/B(写回)/C(队列)/D(ECAD+宏+语言)，约 4.5-5.5 周。
