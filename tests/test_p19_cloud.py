@@ -48,3 +48,17 @@ def test_temp_cloud_polys_builds():
     cloud, tmin, tmax = temp_cloud_polys(centers, temps)
     assert cloud.GetNumberOfPoints() == 3
     assert abs(tmin - 293.15) < 1e-9 and abs(tmax - 310.0) < 1e-9
+
+
+
+@pytest.mark.skipif(not os.path.exists(
+        os.path.join("D:", os.sep, "training", "icepak",
+                     "12-1datacenter", "datacenter00.fdat")),
+        reason="oracle fdat missing")
+def test_real_cloud_datacenter_full_coverage():
+    r = real_temp_cloud_face(os.path.join("D:", os.sep, "training", "icepak",
+                                          "12-1datacenter"))
+    assert r is not None
+    centro, temps = r
+    assert len(centro) > 100000           # ~97% coverage
+    assert 280.0 < temps.min() < temps.max() < 320.0

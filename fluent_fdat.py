@@ -335,14 +335,33 @@ def parse_cas_nodes(text):
 
 # ---- P19-4: real temperature cloud (face-based cell centers + fdat) ----
 
+def _job_cas_fdat(project_dir):
+    """Find (cas, fdat) sharing a base name (tutorial jobs vary)."""
+    import os
+    fdats = sorted(n for n in os.listdir(project_dir) if n.endswith(".fdat"))
+    if not fdats:
+        return None, None
+    fdat = os.path.join(project_dir, fdats[0])
+    base = fdats[0][:-5]
+    cas = os.path.join(project_dir, base + ".cas")
+    if not os.path.exists(cas):
+        cas_list = [n for n in os.listdir(project_dir)
+                    if n.endswith(".cas") and "nc.cas" not in n
+                    and "cfd.cas" not in n]
+        if cas_list:
+            cas = os.path.join(project_dir, sorted(cas_list)[0])
+        else:
+            return None, None
+    return cas, fdat
+
+
 def real_temp_cloud_face(project_dir):
     """Return (centers[N,3], temps[N]) — real cell centers (face-zones)
     with real fdat temperatures ordered by cell id.  None if unavailable."""
     import os
     import numpy as np
-    cas = os.path.join(project_dir, "transient00.cas")
-    fdat = os.path.join(project_dir, "transient00.fdat")
-    if not os.path.exists(cas) or not os.path.exists(fdat):
+    cas, fdat = _job_cas_fdat(project_dir)
+    if not cas or not fdat:
         return None
     text = open(cas, encoding="latin-1", errors="replace").read()
     nodes = parse_cas_nodes(text)
