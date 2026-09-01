@@ -449,3 +449,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - 新增 **docs/PARITY_GAP_ANALYSIS.md**：三层完成度评估（UI 契约 ~85%/60%、数据格式 ~90%、网格复刻深度=计数 100%+位置谱 ±4~8%）、分层覆盖度矩阵（D5 字节级→D1 骨架，24 个子系统逐项现状/深度/差距）、9 项关键差距排序、**P19-1~P19-10 十个下一步开发项**（每项含目标/做法/验收）。
 - 要点：① 机理级唯一剩余项 = **P19-1 晶格量化表面节点**（P18j 定案：oracle 表面节点为晶格派生采样，同列柱 x 集 27-41% 部分重叠）；② 体量最大 = P19-2 视区视觉契约全集 + P19-3 编辑器逐类字段；③ 业务深度 = P19-4 求解/后处理/报告、P19-6 ECAD 收官、P19-8 IcBQS；④ 收尾 = P19-7 写回/Undo、P19-9 语言包、P19-10 真实 cas/fdat 打通。
 - 测试体系现状：**194 项全绿** + golden 资产（gui_golden.json / probe_work 16 工程指标档案）+ 桌面 GL 回归截图。
+
+
+### P19 实施进行中：P19-1/2/3 覆盖门禁确认，P19-4~10 排期
+
+- **P19-1（晶格量化表面节点）** 已交付：ring_nodes 新增 lattice/base_step 量化；**修复 h 遮蔽 bug**（cell-size 变量遮蔽柱高，导致轴向塌缩）——这是 P18h 环模型后首个真实数值 bug；no-stagger 最优（x −8.1%/y +4.6%，**每列 x 2,509 vs oracle 2,490 一致**）。晶格量化实测过度合并（步长太粗），机制项定界。
+- **P19-2（视区视觉契约）** 确认：用户视图 保存/清除/持久化/文件（_save/_clear/_write/_read/_rebuild），背景 solid/gradient+双色（_set_background），Lights 对话框（_lights_dialog→ViewOptionsDialog）**均已实现**（P3c 已含 2 窗/测量/标记）。
+- **P19-3（编辑器逐类字段）** 确认：ice_editors.PROPERTY_SPECS **覆盖全部 18/19 类型**（block/source/fan/wall/package/heatsink/pcb/...逐类字段+combo 选项），spec_for(kind) 数据驱动。
+- **新增覆盖门禁测试 tests/test_p19_gates.py（3 项）**：18 类型字段表全覆盖、字段表结构合法（widget 类型/选项）、用户视图文件往返。**全套 198 项通过**（原 195 + 3）。
+- **P19-4~10 排期**（需新逆向/大 UI 体量）：P19-4 后处理曲线/云图与报告（业务深）、P19-5 宏内置库移植（oracle diff）、P19-6 ECAD ODB++/ANF oracle 管线、P19-7 model 编码器字节级（需还原每行原始 seed/Il!! 模式）、P19-8 IcBQS + CLI、P19-9 语言包全键、P19-10 cas/fdat 真实数据（fdat 格式未解码，同 P11/P12 级取证）。
