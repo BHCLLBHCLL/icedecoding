@@ -458,3 +458,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **P19-3（编辑器逐类字段）** 确认：ice_editors.PROPERTY_SPECS **覆盖全部 18/19 类型**（block/source/fan/wall/package/heatsink/pcb/...逐类字段+combo 选项），spec_for(kind) 数据驱动。
 - **新增覆盖门禁测试 tests/test_p19_gates.py（3 项）**：18 类型字段表全覆盖、字段表结构合法（widget 类型/选项）、用户视图文件往返。**全套 198 项通过**（原 195 + 3）。
 - **P19-4~10 排期**（需新逆向/大 UI 体量）：P19-4 后处理曲线/云图与报告（业务深）、P19-5 宏内置库移植（oracle diff）、P19-6 ECAD ODB++/ANF oracle 管线、P19-7 model 编码器字节级（需还原每行原始 seed/Il!! 模式）、P19-8 IcBQS + CLI、P19-9 语言包全键、P19-10 cas/fdat 真实数据（fdat 格式未解码，同 P11/P12 级取证）。
+
+### P19-10 - Fluent .fdat real data source (field parser) complete
+
+- fluent_fdat.py: fdat binary parser - header (machine-config, (33 (cells faces nodes)), (37 ...) vars) + float64 LE field sections ((3300 (args)) + N x 8 doubles).
+- 10-1transient: header cells=58908/faces=185451/nodes=62626 (matches cas); 125 field sections (SV_P pressure, SV_U/V/W velocity, SV_FLUX, _M1 variants); SV_T temp = 295.4..305.25 K (mean 299.0) - physically plausible (room 20C -> slightly heated).
+- Real data bridge: load_real_temperature(project_dir) -> (vals, centers|None); parse_cas_cells parses cas node triples ((10 (1 1 N 1 3) (  section); cell connectivity is per-block (;;; cells for ...) - next sub-step.
+- Tests: tests/test_p19_fdat.py (4: header counts match cas, temp plausible, real loader, synthetic field roundtrip) - full suite 202 passed (198+4).
+- P19-4 remaining (next sub-step): cas per-block cell connectivity -> cell centers -> VTK temp cloud on real geometry. fdat source is ready; P19-4 needs only the center mapping.
