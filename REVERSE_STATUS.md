@@ -481,3 +481,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **已交付**：`load_real_fields`（真实温度 295-305K）、`load_real_temperature`、`cas_cell_zones`（block 区解析）、`structured_cell_centers`（结构化区的近似中心，非 HDM 用）、`real_temp_cloud`（HDM 下返回 None，记为受限）。
 - **P19-4 剩余（唯一阻塞）**：HDM poly-cell 单元连接解析（variable-length 行）→ 单元中心 → VTK 云图。真实字段源已就绪，仅差连接解析这一硬块。
 - 测试：全套 **203 项通过**（含 fluet_fdat 5 项）。
+
+
+### P19-4 突破 — cas face-zone 重建 cell→node → 真实 VTK 温度云 完成
+
+- **cas 面行格式解出**：`num_nodes n1..nN c1 c2`（节点/单元 id 全十六进制）；面子区 `(13 (zone type count 11 0) (`。
+- **cell→node 重建**（`parse_cas_faces + cell_centers_from_faces`）：从面左右单元收集节点 → 单元中心。**实测 10-1：58,908 单元（与全局单元数一致）、边界 0.053-0.347 × 0.103-0.548（cabinet 域）**——HDM poly-cell 硬块已解。
+- **真实温度云**（`real_temp_cloud_face` + `temp_cloud_polys`）：**47,474 点、293.15-304.88 K（均值 294.9，环境 20°C→略加热，物理合理）**、范围 0.053-0.347。按 fdat 干净温度区（finite 占比 >80%）的 cell-id 起始偏移映射（args[6]）。
+- **GUI 接入**：`ice_gui._show_real_temp_cloud`（加载真实 fdat→VTK PointGaussian 点云 actor→加入渲染器+统计日志）。
+- **测试**：tests/test_p19_cloud.py（3 项：面重建单元中心=58908/cabinet 域、真实温度物理合理、VTK 云构建）——**全套 206 项通过**（203+3）。
+- **结论**：后处理**端到端真实化达成**——真实 fdat 温度源 + 真实 cas 单元中心 → VTK 温度云图，可直接接入报告/云图渲染。剩余（可选）：流体全温度区（部分区未初始化）、云图到 PlotWindow/报告的衔接。

@@ -1343,6 +1343,35 @@ class IceGui(QMainWindow):
             return [(0.0, 0.0, 0.0, max(objtemps))]
         return None
 
+    def _show_real_temp_cloud(self, project_dir=None):
+        """Display the REAL fdat temperature cloud (post data source)."""
+        base = project_dir or self._job_base()
+        if not base:
+            self.log("No active project for real temperature cloud", "WARN")
+            return None
+        try:
+            from fluent_fdat import real_temp_cloud_face, temp_cloud_polys
+            r = real_temp_cloud_face(base)
+            if r is None:
+                self.log("No real temperature data for %s" % base, "WARN")
+                return None
+            centers, temps = r
+            cloud, tmin, tmax = temp_cloud_polys(centers, temps)
+            if hasattr(self, "renderer") and self.renderer is not None:
+                mapper = _vtk_glyph_points(cloud)
+                actor = _vtk_actor(mapper, 0.0028)
+                self.renderer.AddActor(actor)
+                self.renderer.ResetCamera()
+                self.log("Real temperature cloud: %d cells, %.2f..%.2f K"
+                         % (len(centers), tmin, tmax))
+            else:
+                self.log("Real temperature cloud: %d cells, %.2f..%.2f K"
+                         % (len(centers), tmin, tmax))
+            return cloud
+        except Exception as e:
+            self.log("real temp cloud: %r" % e, "WARN")
+            return None
+
     def _open_plot(self, kind):
         from ice_solve import (read_resd, sample_along, simulate_history,
                                trials_from_problem, synthetic_cell_temps)
@@ -3218,3 +3247,18 @@ def main(argv=None):
 
 if __name__ == "__main__":
     sys.exit(main())
+
+def _vtk_glyph_points(cloud):
+    import vtk
+    mapper = vtk.vtkPointGaussianMapper()
+    mapper.SetInputData(cloud)
+    return mapper
+
+
+def _vtk_actor(mapper, size=0.0028):
+    import vtk
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+    if hasattr(mapper, "SetScaleFactor"):
+        mapper.SetScaleFactor(size)
+    return actor

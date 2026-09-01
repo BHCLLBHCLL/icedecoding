@@ -271,3 +271,135 @@ def real_temp_cloud(project_dir):
     centers = np.concatenate(centers, axis=0)
     temps = np.concatenate(temps)
     return centers, temps
+
+# ---- P19-4: cell centers via FACE zones (reconstruct cell->node) ----
+
+def parse_cas_faces(text):
+    """Parse ALL face rows in (13)/(18) sub-zones:
+    'num_nodes n1..nN c1 c2' with hex ids.  Returns [(nodes, c1, c2), ...]."""
+    faces = []
+    # each face row: N n1..nN c1 c2  (N = num nodes)
+    for m in re.finditer(
+            r"\b([0-9])\s+((?:[0-9a-fA-F]+\s+){3})(?:[0-9a-fA-F]+\s+)?"
+            r"([0-9a-fA-F]+)\s+([0-9a-fA-F]+)\s*$",
+            text, re.M):
+        nn = int(m.group(1))
+        ids = m.group(2).split()
+        if nn >= 3:
+            # last two tokens = c1 c2; the rest (up to nn) = nodes
+            tail = m.group(3) + " " + m.group(4)
+            c1, c2 = tail.split()[-2], tail.split()[-1]
+            nodes = ids + tail.split()[:-2]
+            nodes = [int(x, 16) for x in nodes[:nn]]
+            faces.append((nodes, int(c1, 16), int(c2, 16)))
+    return faces
+
+
+def cell_centers_from_faces(text, node_coords):
+    """Reconstruct cell->node (from face adjacency) then cell centers.
+    node_coords: {id: (x,y,z)}.  Returns {cell_id: (cx,cy,cz)}."""
+    faces = parse_cas_faces(text)
+    cell_nodes = {}
+    for nodes, c1, c2 in faces:
+        for c in (c1, c2):
+            if c > 0:
+                cell_nodes.setdefault(c, set()).update(nodes)
+    centers = {}
+    for c, ns in cell_nodes.items():
+        pts = [node_coords[n] for n in ns if n in node_coords]
+        if len(pts) >= 4:
+            centers[c] = (sum(p[0] for p in pts) / len(pts),
+                          sum(p[1] for p in pts) / len(pts),
+                          sum(p[2] for p in pts) / len(pts))
+    return centers
+
+
+def parse_cas_nodes(text):
+    """node id -> (x,y,z) from the (10 (1 1 N 1 3) (  triple block."""
+    import numpy as np
+    m = re.search(r"\(10 \(1 1 ([0-9a-fA-F]+) 1 3\) \(\s*", text)
+    if not m:
+        return {}
+    nnode = int(m.group(1), 16)
+    nodes = {}
+    cur = re.finditer(r"([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+"
+                      r"([-+0-9.eE]+)", text[m.end():])
+    k = 0
+    for mm in cur:
+        if k >= nnode:
+            break
+        nodes[k + 1] = (float(mm.group(1)), float(mm.group(2)),
+                        float(mm.group(3)))
+        k += 1
+    return nodes
+
+# ---- P19-4: real temperature cloud (face-based cell centers + fdat) ----
+
+def real_temp_cloud_face(project_dir):
+    """Return (centers[N,3], temps[N]) — real cell centers (face-zones)
+    with real fdat temperatures ordered by cell id.  None if unavailable."""
+    import os
+    import numpy as np
+    cas = os.path.join(project_dir, "transient00.cas")
+    fdat = os.path.join(project_dir, "transient00.fdat")
+    if not os.path.exists(cas) or not os.path.exists(fdat):
+        return None
+    text = open(cas, encoding="latin-1", errors="replace").read()
+    nodes = parse_cas_nodes(text)
+    centers = cell_centers_from_faces(text, nodes)
+    pf = parse_fdat(fdat)
+    # pick the clean (finite-dominant) temperature section; map by its
+    # cell-id start offset (args[6]) so temp[cell] = vals[cell - start].
+    best = None
+    for name, args, vals in pf["fields"]:
+        if "SV_T" not in name or "SV_T_M1" in name:
+            continue
+        nf = sum(1 for v in vals if v == v and abs(v) < 1e6)
+        if nf < len(vals) * 0.8:
+            continue
+        if best is None or nf > best[2]:
+            best = (args, vals, nf)
+    if best is None:
+        return None
+    args, vals, _ = best
+    start = args[6] if len(args) > 6 else 1
+    cell_ids = sorted(centers.keys())
+    pts = []
+    ts = []
+    for cid in cell_ids:
+        idx = cid - start
+        if 0 <= idx < len(vals):
+            v = vals[idx]
+            if abs(v) < 1e6:
+                pts.append(centers[cid])
+                ts.append(v)
+    if not pts:
+        return None
+    return np.array(pts), np.array(ts)
+
+
+def temp_cloud_polys(centers, temps):
+    """VTK point cloud with per-point temperature -> (vtkPoints, rgba array).
+    Colours via a blue->red lookup normalised to [tmin, tmax]."""
+    import vtk
+    n = len(centers)
+    pts = vtk.vtkPoints()
+    pts.SetNumberOfPoints(n)
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(4)
+    colors.SetName("Temperature")
+    tmin = float(temps.min())
+    tmax = float(temps.max())
+    span = max(tmax - tmin, 1e-12)
+    for i in range(n):
+        pts.SetPoint(i, float(centers[i][0]), float(centers[i][1]),
+                     float(centers[i][2]))
+        f = (float(temps[i]) - tmin) / span
+        # blue (cold) -> red (hot)
+        r = int(255 * f)
+        b = int(255 * (1 - f))
+        colors.InsertNextTuple4(r, 10, b, 255)
+    cloud = vtk.vtkPolyData()
+    cloud.SetPoints(pts)
+    cloud.GetPointData().SetScalars(colors)
+    return cloud, tmin, tmax
