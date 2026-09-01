@@ -473,3 +473,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **cas 单元中心取证（下一子步）**：cas 单元连接为 **poly-cell 可变长格式**（行如 `4 21 24 23 22 6 0`；zone 区定位：`(12 (` @4.33M、`(13 (`（面）@4.44M、`(18 (`（边界）@10.25M）；需完整 zone 解析才能得单元中心。节点区 `(10 (1 1 N 1 3) (` 三元组已解（62,626 节点）。
 - **测试**：tests/test_p19_fdat.py 新增 load_real_fields 温度干净字段 1 项（共 5 项）——**全套 208 项通过**（202+6）。
 - **状态**：P19-10（真实数据源）完成；P19-4 的真实字段已可经 load_real_fields 取用，剩余 = poly-cell 单元中心映射 → VTK 云图渲染（已记录格式取证）。
+
+### P19-4 收敛结论（cas cell-center 取证定界）
+
+- **cas poly-cell 结构已解**：全局 `(12 (0 1 e61c 0))` → per-block 子区 `(12 (B TYPE COUNT 11 0) (`（B=zone 十六进制、COUNT=单元数）；单元类型数组全为 `4`（hexa）；`11`=17=结构化标记。节点区 `(10 (1 1 N 1 3)(` 三元组已解（62,626 节点）。
+- **关键定界**：zone 11（block.1）单元数 **4716 = 2²·3²·131（131 素）不可三因子分解**——证明该区是 **HDM 悬挂节点网格**（非 a×b×c 结构化），单元中心**无法**由"block 几何边界 + 单元数分解"生成，需解析真实 poly-cell 连接（variable-length，`4 21 24 23 22 6 0` 行）。
+- **已交付**：`load_real_fields`（真实温度 295-305K）、`load_real_temperature`、`cas_cell_zones`（block 区解析）、`structured_cell_centers`（结构化区的近似中心，非 HDM 用）、`real_temp_cloud`（HDM 下返回 None，记为受限）。
+- **P19-4 剩余（唯一阻塞）**：HDM poly-cell 单元连接解析（variable-length 行）→ 单元中心 → VTK 云图。真实字段源已就绪，仅差连接解析这一硬块。
+- 测试：全套 **203 项通过**（含 fluet_fdat 5 项）。

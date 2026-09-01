@@ -173,3 +173,101 @@ def scalar_minmax(rows):
     lo = min(min(r) for r in rows if r)
     hi = max(max(r) for r in rows if r)
     return lo, hi
+
+# ---- P19-4: real temperature cloud via block bounds + per-zone cell counts ---
+
+def cas_cell_zones(text):
+    """Map cell-zone headers: ';;; cells for block <name>' + (12 (zhex nhex
+    11 0) (  -> [(name, count, zone_id)] in file order."""
+    out = []
+    for m in re.finditer(
+            r";;;\s+cells for\s+\S+\s+(\S+)\s+[^\n]*\n"
+            r"(?:[^\n]*\n)*?"
+            r"\(12 \(([0-9a-fA-F]+) [0-9]+ ([0-9a-fA-F]+) 11 0\) \(",
+            text):
+        name = m.group(1)
+        zid = int(m.group(2), 16)
+        count = int(m.group(3), 16)
+        out.append((name, count, zid))
+    return out
+
+
+def _factor3(n):
+    """Approx 3D factorization a*b*c == n, near-cubic."""
+    import math
+    ia = int(round(n ** (1.0 / 3.0)))
+    for a in range(max(1, ia - 6), ia + 7):
+        for b in range(max(1, ia - 6), ia + 7):
+            if n % (a * b) == 0:
+                c = n // (a * b)
+                return (a, b, c)
+    return (max(1, ia), max(1, ia), max(1, n // (ia * ia)))
+
+
+def structured_cell_centers(lo, hi, n):
+    """Approximate cell centers of a structured hex block with n cells."""
+    import numpy as np
+    la = _factor3(n)
+    centers = []
+    for i in range(la[0]):
+        for j in range(la[1]):
+            for k in range(la[2]):
+                centers.append((
+                    lo[0] + (i + 0.5) * (hi[0] - lo[0]) / la[0],
+                    lo[1] + (j + 0.5) * (hi[1] - lo[1]) / la[1],
+                    lo[2] + (k + 0.5) * (hi[2] - lo[2]) / la[2]))
+    return np.array(centers)
+
+
+def real_temp_cloud(project_dir):
+    """Return (centers, temps) — real fdat temperatures on approximate cell
+    centers (block bounds + per-zone counts).  None if unavailable."""
+    import os
+    import numpy as np
+    cas = os.path.join(project_dir, "transient00.cas")
+    fdat = os.path.join(project_dir, "transient00.fdat")
+    if not os.path.exists(cas) or not os.path.exists(fdat):
+        return None
+    text = open(cas, encoding="latin-1", errors="replace").read()
+    zones = cas_cell_zones(text)
+    pf = parse_fdat(fdat)
+    # temperature sections by zone id: match section (name 'SV_T... zone X')
+    temps_by_zone = {}
+    for name, args, vals in pf["fields"]:
+        if "SV_T" not in name:
+            continue
+        # zone id = second arg of the (3300 (1 <zid> ...))
+        zid = args[2] if len(args) > 2 else -1
+        temps_by_zone.setdefault(zid, []).append(vals)
+    # build geometry
+    from icepak_parser.project import IcepakProject
+    from ice_mesh import _bounds_of
+    proj = IcepakProject(project_dir)
+    model = proj.model
+    centers = []
+    temps = []
+    for name, count, zid in zones:
+        obj = next((o for o in model._all_objects()
+                    if o.name == name), None)
+        if obj is None:
+            continue
+        b = _bounds_of(obj)
+        if b is None:
+            continue
+        vals = temps_by_zone.get(zid)
+        if not vals:
+            continue
+        v = vals[-1]
+        v = v[:count]
+        if len(v) != count:
+            continue
+        c = structured_cell_centers(b[0], b[1], count)
+        if len(c) != count:
+            continue
+        centers.append(c)
+        temps.append(np.asarray(v))
+    if not centers:
+        return None
+    centers = np.concatenate(centers, axis=0)
+    temps = np.concatenate(temps)
+    return centers, temps
