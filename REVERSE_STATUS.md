@@ -466,3 +466,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - Real data bridge: load_real_temperature(project_dir) -> (vals, centers|None); parse_cas_cells parses cas node triples ((10 (1 1 N 1 3) (  section); cell connectivity is per-block (;;; cells for ...) - next sub-step.
 - Tests: tests/test_p19_fdat.py (4: header counts match cas, temp plausible, real loader, synthetic field roundtrip) - full suite 202 passed (198+4).
 - P19-4 remaining (next sub-step): cas per-block cell connectivity -> cell centers -> VTK temp cloud on real geometry. fdat source is ready; P19-4 needs only the center mapping.
+
+### P19-4（接 P19-10）— 真实数据 API 落地，cas 中心取证记录
+
+- **fluent_fdat.load_real_fields(project_dir)**：返回 {字段: 值}（first-zone-segment 取法）。实测 10-1：**SV_T 温度 4,716 值、295.35~305.25 K（干净物理场）**；含 SV_P/SV_U/V/W/SV_DENSITY/SV_H/SV_MU_LAM 等 26 个字段键。
+- **cas 单元中心取证（下一子步）**：cas 单元连接为 **poly-cell 可变长格式**（行如 `4 21 24 23 22 6 0`；zone 区定位：`(12 (` @4.33M、`(13 (`（面）@4.44M、`(18 (`（边界）@10.25M）；需完整 zone 解析才能得单元中心。节点区 `(10 (1 1 N 1 3) (` 三元组已解（62,626 节点）。
+- **测试**：tests/test_p19_fdat.py 新增 load_real_fields 温度干净字段 1 项（共 5 项）——**全套 208 项通过**（202+6）。
+- **状态**：P19-10（真实数据源）完成；P19-4 的真实字段已可经 load_real_fields 取用，剩余 = poly-cell 单元中心映射 → VTK 云图渲染（已记录格式取证）。

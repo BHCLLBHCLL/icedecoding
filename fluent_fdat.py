@@ -152,3 +152,24 @@ def load_real_temperature(project_dir):
         if len(c):
             centers = c
     return list(vals), centers
+
+
+def load_real_fields(project_dir):
+    """Return {field_key: values} for every fdat field (real data for
+    postprocessing).  field_key = e.g. 'SV_T' (last zone segment wins)."""
+    import os
+    fdat = os.path.join(project_dir, "transient00.fdat")
+    if not os.path.exists(fdat):
+        return {}
+    pf = parse_fdat(fdat)
+    out = {}
+    for name, args, vals in pf["fields"]:
+        base = name.split(",")[0].strip()
+        out.setdefault(base, vals)   # first zone segment is the clean one
+    return out
+
+
+def scalar_minmax(rows):
+    lo = min(min(r) for r in rows if r)
+    hi = max(max(r) for r in rows if r)
+    return lo, hi

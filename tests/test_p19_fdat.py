@@ -62,3 +62,11 @@ def test_fdat_synthetic_section():
     assert t is not None
     assert t[2] == pytest.approx([300.0, 301.0, 302.0, 303.0, 304.0,
                                   305.0, 306.0, 307.0])
+
+
+def test_load_real_fields_temperature_clean():
+    from fluent_fdat import load_real_fields
+    f = load_real_fields(os.path.dirname(FDAT))
+    t = f.get("SV_T")
+    assert t and len(t) > 1000
+    assert 293.0 < min(t) < max(t) < 330.0
