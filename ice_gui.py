@@ -1022,8 +1022,20 @@ class IceGui(QMainWindow):
                 os.makedirs(path)
             except OSError:
                 return None
-        model_text = encode_text(serialize_model(proj.model))
+        from icepak_parser.decoder import encode_text_faithful, decode_text
+        model_text = None
         mpath = os.path.join(path, "model")
+        if os.path.exists(mpath):
+            try:
+                raw = open(mpath, "r", encoding="latin-1",
+                           errors="replace").read()
+                # unchanged model -> byte-identity re-encode of the original
+                if serialize_model(proj.model) == decode_text(raw):
+                    model_text = encode_text_faithful(decode_text(raw), raw)
+            except OSError:
+                model_text = None
+        if model_text is None:
+            model_text = encode_text(serialize_model(proj.model))
         try:
             with open(mpath, "w", encoding="latin-1") as fh:
                 fh.write(model_text)
