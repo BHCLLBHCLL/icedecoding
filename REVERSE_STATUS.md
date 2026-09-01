@@ -530,3 +530,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_gui._maybe_real_post_actor**：加载真实温度云 → 按 kind（Isosurface/Plane cut/Min-max）生成标量筛选点带 → VTK 点云 actor（红色）入渲染器；`_create_post` 接入（有真实数据优先）。
 - 实测 12-1datacenter：iso 839 点、极值 24 点；并**修复 _job_base None 漏洞**（无项目时 os.path.isdir(None) 崩溃）。
 - **测试**：tests/test_p19_post.py（3 项：真实 iso 带、真实极值 20 点、合成平面切 2 点）——**全套 214 项通过**（211+3）。
+
+
+### P19 Phase A/B/C/D 实施完成（已按序提交推送）
+
+- **Phase A（后处理真实链路）完成**：A1 标量视区（iso/平面切/极值，12-1=839点）、A2 矢量（SV_U/V/W→vtkGlyph3D，124k 箭头）、A3 真实曲线（real_line_sample/Variation）、A4 Solve 字段门禁（BASIC 19/ADVANCED 12/PARALLEL 4）、A5 报告套件（summary/point/full+SVG）。
+- **Phase B（写回/Undo）完成**：B1 字节级编码器（encode_text_faithful，**18/18 工程 model 字节恒等往返**）、B2 忠实 Save（未编辑原样写回）。
+- **Phase C（IcBQS+CLI）完成**：ice_batch（IcBQS 客户端 submit/status/poll + BatchScheduler）、ice_cli（run/batch/icbqs submit）。
+- **Phase D（ECAD/宏/语言）部分**：D1 AEdt 脚本导出+metal 汇总、D2 宏 builder 覆盖、D3 i18n tr 存在。剩余：ODB++/ANF→ICB oracle 沙箱管线、宏库全量移植、语言全键。
+- 测试 **230 项通过**（Phase 各关键功能点均提交推送，HEAD 9c27fd8）。
