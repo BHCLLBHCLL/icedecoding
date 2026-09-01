@@ -56,3 +56,17 @@ def test_real_velocity_cloud():
     glyph = vector_glyph_cloud(centers[:500], vecs[:500])
     assert glyph.GetNumberOfPoints() == 500
     assert glyph.GetPointData().GetVectors().GetNumberOfTuples() == 500
+
+
+
+@pytest.mark.skipif(not os.path.exists(FDAT), reason="oracle fdat missing")
+def test_real_line_sample_and_point():
+    from fluent_fdat import real_line_sample, real_point_temp
+    base = os.path.dirname(FDAT)
+    r = real_line_sample(base, (0.2, 0.2, 0.2), (0.5, 0.3, 0.3), n=25)
+    assert r is not None
+    pts, temps = r
+    assert len(pts) == 25 and len(temps) == 25
+    assert 280.0 < temps.min() < temps.max() < 320.0
+    pt = real_point_temp(base, (0.3, 0.2, 0.2))
+    assert pt is not None and 280.0 < pt < 320.0

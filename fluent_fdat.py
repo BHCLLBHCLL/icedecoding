@@ -540,3 +540,34 @@ def vector_glyph_cloud(centers, vectors, scale=1.0):
     p.SetPoints(pts)
     p.GetPointData().SetVectors(vecs)
     return p
+
+# ---- Phase A3: real curves from fdat (line sample + point probe) ----
+
+def real_line_sample(project_dir, p0, p1, n=41):
+    """(centers, temps) sampled at n points along the line p0->p1 using the
+    NEAREST real cell centre's temperature.  Returns (points[N,3], temps[N])."""
+    import numpy as np
+    from scipy.spatial import cKDTree
+    r = real_temp_cloud_face(project_dir)
+    if r is None:
+        return None
+    centers, temps = r
+    tree = cKDTree(centers)
+    ts = np.linspace(0.0, 1.0, n)
+    p0 = np.asarray(p0, dtype=np.float64)
+    p1 = np.asarray(p1, dtype=np.float64)
+    pts = p0[None, :] + ts[:, None] * (p1 - p0)[None, :]
+    _, idx = tree.query(pts)
+    return pts, temps[idx]
+
+
+def real_point_temp(project_dir, p):
+    """Nearest real cell temperature at point p -> value or None."""
+    import numpy as np
+    r = real_temp_cloud_face(project_dir)
+    if r is None:
+        return None
+    centers, temps = r
+    from scipy.spatial import cKDTree
+    d, i = cKDTree(centers).query(np.asarray(p, dtype=np.float64))
+    return float(temps[i])

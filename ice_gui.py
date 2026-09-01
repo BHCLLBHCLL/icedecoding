@@ -1495,6 +1495,21 @@ class IceGui(QMainWindow):
             data = sample_along(result, (0.0, 0.0, 0.0),
                                 (result.nx * 0.05, 0.0, 0.0), temps, 31)
             win.set_data([data], title="Variation", xlabel="Distance")
+            base = self._job_base()
+            if base:
+                try:
+                    from fluent_fdat import real_line_sample
+                    rr = real_line_sample(base, (0.0, 0.0, 0.0),
+                                          (result.nx * 0.05, 0.0, 0.0), 31)
+                    if rr is not None:
+                        pts, tv = rr
+                        real = [(float(pt[0]), float(v)) for pt, v in
+                                zip(pts, tv)]
+                        win.set_data([real], title="Variation (real)",
+                                     xlabel="Position",
+                                     ylabel="Temperature")
+                except Exception:
+                    pass
         elif kind == "History":
             pts = simulate_history("mon_pt", 20, 20.0, 85.0)
             win.set_data([pts], title="History", xlabel="Time")
