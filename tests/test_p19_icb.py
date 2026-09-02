@@ -59,3 +59,28 @@ def test_full_anf_to_icb_parse():
     icb = parse_icb(O.icb_text_of(res["icb_file"]))
     assert len(icb["layers"]) >= 2
     assert len(icb["shapes"]) > 0
+
+
+
+@pytest.mark.skipif(not os.path.exists(
+        os.path.join("D:", os.sep, "training", "icepak", "6-2traces", "A1.anf")),
+        reason="ANF oracle input missing")
+def test_icb_to_objects_and_metal_display():
+    from ice_ecad import icb_to_objects, metal_fraction_display
+    from icepak_parser.project import IcepakProject
+    # regenerate ICB in temp
+    import tempfile, shutil
+    d = tempfile.mkdtemp(prefix="icb_")
+    out = os.path.join(d, "out")
+    anf = os.path.join(d, "A1.anf")
+    shutil.copy(os.path.join("D:", os.sep, "training", "icepak", "6-2traces",
+                            "A1.anf"), anf)
+    res = O.convert_anf_to_icb(anf, out)
+    assert res["returncode"] == 0
+    icb = parse_icb(O.icb_text_of(res["icb_file"]))
+    proj = IcepakProject.empty("icb")
+    n = icb_to_objects(proj.model, icb)
+    assert len(n) >= 2
+    assert len(list(proj.model._all_objects())) >= 2
+    tbl = metal_fraction_display(icb)
+    assert "Layer" in tbl and "TOP" in tbl

@@ -631,3 +631,43 @@ def metal_fraction_summary(icb, board_area=None):
         out.append("%-12s %8.3f%%" % (row.get("layer", "?"),
                                       row.get("fraction", 0.0) * 100))
     return "\n".join(out)
+
+# ---- Phase D1 (continued): ICB layer -> objects + metal display ----
+def _icb_layer_scale(icb):
+    return 0.05, 0.05
+def icb_to_objects(model, icb, scale=0.001):
+    created = []
+    bl = icb.get('board_outline') or []
+    for name in icb.get('layers', []):
+        parts = [p.strip() for p in name.split(',')]
+        if len(parts) < 3:
+            continue
+        lname, mat, ltype = parts[0], parts[1], parts[2]
+        thick = float(parts[3]) if len(parts) > 3 and parts[3].replace('.','').isdigit() else 1.0
+        sx, sy = _icb_layer_scale(icb)
+        z = thick * scale
+        base = (0.0, 0.0, 0.0)
+        if bl:
+            xs=[p[0] for p in bl]; ys=[p[1] for p in bl]
+            sx=(max(xs)-min(xs))*scale; sy=(max(ys)-min(ys))*scale
+            base=(min(xs)*scale, min(ys)*scale, 0.0)
+        kind = 'pcb' if ltype.upper().startswith('COND') else 'block'
+        from ice_create import default_object
+        obj = default_object(kind, lname)
+        _ensure_shape(obj, base, (base[0]+sx, base[1]+sy, base[2]+z))
+        if getattr(obj, 'setvals', None) is None:
+            obj.setvals = {}
+        obj.setvals['material'] = [mat]
+        obj.setvals['layer_type'] = [ltype]
+        obj.setvals['thickness'] = [str(thick)]
+        model.objects.append(obj)
+        created.append(lname)
+    return created
+def metal_fraction_display(icb, board_area=None):
+    rows = ['Layer                Material              Type          Thickness(mm)']
+    for name in icb.get('layers', []):
+        parts = [p.strip() for p in name.split(',')]
+        if len(parts) < 3:
+            continue
+        rows.append('%-20s %-21s %-12s %s' % (parts[0][:20], parts[1][:21], parts[2][:12], parts[3] if len(parts)>3 else '-'))
+    return chr(10).join(rows)
