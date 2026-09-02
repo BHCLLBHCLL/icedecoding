@@ -537,5 +537,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **Phase A（后处理真实链路）完成**：A1 标量视区（iso/平面切/极值，12-1=839点）、A2 矢量（SV_U/V/W→vtkGlyph3D，124k 箭头）、A3 真实曲线（real_line_sample/Variation）、A4 Solve 字段门禁（BASIC 19/ADVANCED 12/PARALLEL 4）、A5 报告套件（summary/point/full+SVG）。
 - **Phase B（写回/Undo）完成**：B1 字节级编码器（encode_text_faithful，**18/18 工程 model 字节恒等往返**）、B2 忠实 Save（未编辑原样写回）。
 - **Phase C（IcBQS+CLI）完成**：ice_batch（IcBQS 客户端 submit/status/poll + BatchScheduler）、ice_cli（run/batch/icbqs submit）。
-- **Phase D（ECAD/宏/语言）部分**：D1 AEdt 脚本导出+metal 汇总、D2 宏 builder 覆盖、D3 i18n tr 存在。剩余：ODB++/ANF→ICB oracle 沙箱管线、宏库全量移植、语言全键。
+- **Phase D（ECAD/宏/语言）部分**：D1 AEdt 脚本导出+metal 汇总、D2 宏库全量移植（845 部件扫描/构建 + **每部件向导页 UI**）、D3 i18n tr 存在。剩余：ODB++/ANF→ICB oracle 沙箱管线、语言全键。
 - 测试 **230 项通过**（Phase 各关键功能点均提交推送，HEAD 9c27fd8）。
+
+### D2b — 宏库 845 部件向导页 UI 完成
+
+- **ice_macros_gui.LibraryMacroWizard**：数据驱动向导页——参数页(FormPage, `macro_param_rows` 按值类型推断 kind: 数字→spin/计数键→int、布尔→check、字符串→text，标签按数字组/下划线拆分)+确认页(库/pitch/rows/参数数)。Finish 回调父级 `_run_library_macro` 调 `build_library_part` 生成 package 对象。
+- **ice_gui**：Macros 菜单新增 `Library parts` 级联——库(library)→pitch→rows→部件名，每个叶子打开该部件的向导页；`_run_library_macro` 合并编辑参数后建封装对象。
+- **ice_macros.scan_macro_library** 加模块级缓存（845 文件仅读一次，菜单重建不重复 IO）。
+- **测试**：tests/test_p19_libwizard.py（4 项：kind 推断、目录页填充、Finish 建部件、菜单含 BGA/FPBGA_library 及叶子路由）。

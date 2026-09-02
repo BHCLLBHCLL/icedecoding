@@ -770,7 +770,7 @@ class IceGui(QMainWindow):
 
     def _rebuild_macros_menu(self, macros=None):
         """P7: Macros menu from the three-level macro registry."""
-        from ice_macros import BUILTIN_MACROS as _B
+        from ice_macros import BUILTIN_MACROS as _B, scan_macro_library
         m = self._menus.get("Macros")
         if m is None:
             return
@@ -788,8 +788,35 @@ class IceGui(QMainWindow):
                 act = sm.addAction(name)
                 act.triggered.connect(
                     lambda _=False, k=key, n=name: self._run_macro(k, n))
-        self.log("Macros menu: %d groups, %d macros" %
-                 (len(grouped), sum(len(v) for v in grouped.values())),
+        # Macro-library parts catalog (library -> pitch -> rows -> part),
+        # each leaf opens a per-part wizard page (845-part catalog).
+        libs = getattr(self, '_library_parts', None)
+        if libs is None:
+            libs = scan_macro_library()
+            self._library_parts = libs
+        if libs:
+            mlib = m.addMenu("Library parts")
+            tree = {}
+            for part in libs:
+                tree.setdefault(part['library'], {})
+                tree[part['library']].setdefault(part['pitch'], {})
+                tree[part['library']][part['pitch']].setdefault(
+                    part['rows'], []).append(part)
+            for lib, pitches in sorted(tree.items()):
+                lsub = mlib.addMenu(lib)
+                for pitch, rows in sorted(pitches.items()):
+                    psub = lsub.addMenu(pitch)
+                    for rows_name, parts in sorted(rows.items()):
+                        rsub = psub.addMenu(rows_name)
+                        for part in parts:
+                            pname = part['name']
+                            pact = rsub.addAction(pname)
+                            pact.triggered.connect(
+                                lambda _=False, pt=part:
+                                self._open_library_macro_wizard(pt))
+        self.log("Macros menu: %d groups, %d macros%s" %
+                 (len(grouped), sum(len(v) for v in grouped.values()),
+                  ", %d library parts" % len(libs) if libs else ""),
                  "DEBUG")
 
     def _run_macro(self, key, name=None):
@@ -819,6 +846,28 @@ class IceGui(QMainWindow):
                              (key, len(created)))
             self.log("Macro %s: %s" %
                      (key, ", ".join(o.name for o in created[:5])))
+        self._refresh()
+
+    def _open_library_macro_wizard(self, part):
+        """Open a per-part wizard page from the macro-library catalog."""
+        from ice_macros_gui import LibraryMacroWizard
+        dlg = LibraryMacroWizard(self, macro=part,
+                                 title=part.get('name', 'Library part'))
+        dlg.exec_()
+
+    def _run_library_macro(self, macro, params):
+        """Library-part wizard Finish -> create the package object."""
+        from ice_macros import build_library_part
+        if self.project is None:
+            self._new_project()
+        merged = dict(macro)
+        if params:
+            merged['params'] = {**macro.get('params', {}), **params}
+        obj = build_library_part(self.project.model, merged)
+        self._mark_dirty("Library part %s created" % obj.name)
+        self.log("Library part %s: %s" %
+                 (obj.name, ', '.join('%s=%s' % (k, v[0] if isinstance(v, list) else v)
+                                      for k, v in (obj.setvals or {}).items())))
         self._refresh()
 
     def _open_edit_toolbars(self):

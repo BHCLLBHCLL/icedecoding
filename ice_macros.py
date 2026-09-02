@@ -321,10 +321,17 @@ def parse_macro_params(text):
             except ValueError: pass
             out[k] = v
     return out
+_LIBRARY_PARTS_CACHE = None
+
+
 def scan_macro_library(root=None):
+    global _LIBRARY_PARTS_CACHE
     root = root or default_macro_library()
     if not root: return []
-    out = []
+    cached = _LIBRARY_PARTS_CACHE
+    if cached is not None:
+        return cached
+    parts = []
     for lib in sorted(_os.listdir(root)):
         libd = _os.path.join(root, lib)
         if not _os.path.isdir(libd): continue
@@ -340,8 +347,9 @@ def scan_macro_library(root=None):
                     try:
                         params = parse_macro_params(open(fp, encoding='latin-1', errors='replace').read())
                     except Exception: params = {}
-                    out.append({'library': lib, 'pitch': pitch, 'rows': rows, 'name': fn, 'params': params, 'path': fp})
-    return out
+                    parts.append({'library': lib, 'pitch': pitch, 'rows': rows, 'name': fn, 'params': params, 'path': fp})
+    _LIBRARY_PARTS_CACHE = parts
+    return parts
 def build_library_part(model, macro):
     """Create a package part from a macro-lib parameter set (BGA/QFP)."""
     from ice_create import default_object

@@ -3,6 +3,8 @@
 P7 GUI: macro wizard shell (nav tree + pages, cabdecoding WizardBase parity)
 and dynamic Macros menu rebuild (type/subtype/macro three-level cascades).
 """
+import re
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QPushButton,
                              QSplitter, QStackedWidget, QTreeWidget,
@@ -132,3 +134,77 @@ class MacroWizard(QDialog):
     @property
     def _parent(self):
         return self.parent()
+
+
+# ---- Phase D2: per-part wizard pages for the macro-library catalog (845) ---
+_CNT_RE = re.compile(r"(^|_)(num|rows|count|via_num|row_sup|ball_mid)(?=_|$|\d)", re.I)
+
+
+def _is_count_key(key):
+    """Parameters that encode a count rather than a physical dimension."""
+    return bool(_CNT_RE.search(key))
+
+
+def _param_label(key):
+    """Human-friendly label: split digit groups, underscores to spaces."""
+    s = re.sub(r'(?<=[a-zA-Z])(?=\d)', ' ', key)
+    return s.replace('_', ' ').title()
+
+
+def macro_param_rows(macro, max_rows=None):
+    """Turn a library macro's param dict into add_row 5-tuples (key,label,kind,default,options).
+
+    Kinds are inferred from the value type: bool->check, whole count keys->int,
+    floats->spin, everything else->text. max_rows limits the number of rows
+    (used by tests) while keeping the full catalog editable in the GUI.
+    """
+    params = macro.get('params') or {}
+    rows = []
+    for key, val in list(params.items())[:max_rows]:
+        label = _param_label(key)
+        if isinstance(val, bool):
+            rows.append((key, label, 'check', val, None))
+        elif isinstance(val, int):
+            rows.append((key, label, 'int', val, None))
+        elif isinstance(val, float):
+            if val == int(val) and _is_count_key(key):
+                rows.append((key, label, 'int', int(val), None))
+            else:
+                rows.append((key, label, 'spin', val, None))
+        else:
+            rows.append((key, label, 'text', val, None))
+    return rows
+
+
+class LibraryMacroWizard(MacroWizard):
+    """Wizard page for one macro-library part (library / pitch / rows / name).
+
+    Emits the edited param dict to the parent ``_run_library_macro``, which
+    builds the package object via :func:`ice_macros.build_library_part`.
+    """
+
+    def __init__(self, parent=None, macro=None, title=None):
+        macro = macro or {}
+        self._library_macro = macro
+        title = title or macro.get('name') or 'Library part'
+        super().__init__(parent, title=title, params=macro_param_rows(macro))
+
+    def _build_pages(self):
+        super()._build_pages()
+        lbl = getattr(self, 'lbl_confirm', None)
+        if lbl is not None:
+            m = self._library_macro
+            lbl.setText(
+                "Create part %s\nLibrary: %s\nPitch: %s  Rows: %s"
+                "  (%d parameters)" %
+                (m.get('name', 'part'), m.get('library', ''),
+                 m.get('pitch', ''), m.get('rows', ''),
+                 len(m.get('params') or {})))
+
+    def _finish(self):
+        params = self.form.values() if hasattr(self, 'form') else {}
+        parent = self.parent() or self.window()
+        run = getattr(parent, '_run_library_macro', None)
+        if run is not None:
+            run(self._library_macro, params)
+        self.accept()
