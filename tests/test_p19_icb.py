@@ -31,3 +31,11 @@ def test_icb_oracle_locate():
     # locate returns a path or None; no crash
     p = O.locate_iceecad()
     assert p is None or isinstance(p, str)
+
+
+def test_trace_iceecad_watcher_returns_list():
+    import tools.trace_iceecad as T
+    procs = T.iceecad_processes()
+    assert isinstance(procs, list)
+    for p in procs:
+        assert "cmdline" in p or "error" in p
