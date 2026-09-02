@@ -1,8 +1,31 @@
 # -*- coding: utf-8 -*-
 """P9: i18n — tr(key, lang) with EN identity table + own ZH translations."""
 import os
+import re
 
 _LANG = os.environ.get("ICE_LANG", "en").lower()
+
+_EN_LANG_FILE = r"C:\Program Files\ANSYS Inc\v195\Icepak\icepak19.5"
+_EN_LANG_FILE = os.path.join(
+    r"C:\Program Files\ANSYS Inc\v195\Icepak\icepak19.5",
+    "lib", "icepak", "language_text_icepak_English.tcl")
+
+
+def language_keys():
+    """Key registry from the official English language file (help_define)."""
+    keys = []
+    if not os.path.exists(_EN_LANG_FILE):
+        return keys
+    try:
+        text = open(_EN_LANG_FILE, encoding="latin-1",
+                    errors="replace").read()
+    except OSError:
+        return keys
+    for m in re.finditer(r'help_define\s+"([^"]+)"', text):
+        key = m.group(1).strip()
+        if key:
+            keys.append(key)
+    return keys
 
 # Own ZH translations for the UI labels used by menus / tree / panels.
 # (interface-functional terms; written for this project, not copied.)

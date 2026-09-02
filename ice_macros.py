@@ -300,3 +300,68 @@ def build_blower(model, p):
     o.setvals = sv
     model.objects.append(o)
     return [o]
+
+# ---- Phase D2: full macro-library port (libraries/*/pitch/rows/* params) ----
+import os as _os
+def default_macro_library():
+    for base in (r'C:\Program Files\ANSYS Inc\v195\Icepak\icepak19.5\icepak_lib\macros\libraries',
+                 os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'icepak_lib', 'macros', 'libraries')):
+        if _os.path.isdir(base): return base
+    return None
+def parse_macro_params(text):
+    out = {}
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or '#' in line[:1]: continue
+        line = line.replace(chr(9), ' ')
+        parts = line.split(None, 1)
+        if len(parts) == 2:
+            k, v = parts[0], parts[1].strip()
+            try: v = float(v)
+            except ValueError: pass
+            out[k] = v
+    return out
+def scan_macro_library(root=None):
+    root = root or default_macro_library()
+    if not root: return []
+    out = []
+    for lib in sorted(_os.listdir(root)):
+        libd = _os.path.join(root, lib)
+        if not _os.path.isdir(libd): continue
+        for pitch in sorted(_os.listdir(libd)):
+            pd = _os.path.join(libd, pitch)
+            if not _os.path.isdir(pd): continue
+            for rows in sorted(_os.listdir(pd)):
+                rd = _os.path.join(pd, rows)
+                if not _os.path.isdir(rd): continue
+                for fn in sorted(_os.listdir(rd)):
+                    fp = _os.path.join(rd, fn)
+                    if not _os.path.isfile(fp): continue
+                    try:
+                        params = parse_macro_params(open(fp, encoding='latin-1', errors='replace').read())
+                    except Exception: params = {}
+                    out.append({'library': lib, 'pitch': pitch, 'rows': rows, 'name': fn, 'params': params, 'path': fp})
+    return out
+def build_library_part(model, macro):
+    """Create a package part from a macro-lib parameter set (BGA/QFP)."""
+    from ice_create import default_object
+    from ice_ecad import _ensure_shape
+    p = macro.get('params', {})
+    n1 = int(p.get('ball_num1', 8)); n2 = int(p.get('ball_num2', 8))
+    bp = float(p.get('ball_pitch', 1.0)) * 0.001
+    dd = float(p.get('die_dim1', 3.0)) * 0.001
+    t = float(p.get('package_thickness', 2.0)) * 0.001
+    name = (macro.get('name') or 'part')[:40]
+    base = (0.0, 0.0, 0.0)
+    obj = default_object('package', name)
+    _ensure_shape(obj, base, (n2*bp, n1*bp, t))
+    if getattr(obj, 'setvals', None) is None: obj.setvals = {}
+    obj.setvals['package_type'] = ['bga' if 'BGA' in name.upper() or 'bga' in str(macro.get('library','')).lower() else 'qfp']
+    obj.setvals['ball_pitch'] = [str(p.get('ball_pitch', ''))]
+    obj.setvals['ball_num1'] = [str(p.get('ball_num1', ''))]
+    obj.setvals['ball_num2'] = [str(p.get('ball_num2', ''))]
+    obj.setvals['die_dim1'] = [str(p.get('die_dim1', ''))]
+    obj.setvals['die_dim2'] = [str(p.get('die_dim2', ''))]
+    obj.setvals['library'] = [str(macro.get('library', ''))]
+    model.objects.append(obj)
+    return obj
