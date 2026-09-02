@@ -671,3 +671,63 @@ def metal_fraction_display(icb, board_area=None):
             continue
         rows.append('%-20s %-21s %-12s %s' % (parts[0][:20], parts[1][:21], parts[2][:12], parts[3] if len(parts)>3 else '-'))
     return chr(10).join(rows)
+# ---- Phase D1 (final): nested [net/layer/loop] -> per-copper objects + net graph ----
+def icb_nets(text):
+    import re
+    nets = []
+    stack = []
+    in_nets = False
+    current = None
+    for line in text.splitlines():
+        low = line.strip().lower()
+        if low.startswith('[start nets]'): in_nets = True; continue
+        if low.startswith('[end nets]'): in_nets = False; continue
+        if not in_nets: continue
+        if low.startswith('[start net]'): current = {'name': None, 'layers': []}; stack = ['net']; continue
+        if low.startswith('[end net]'):
+            if current: nets.append(current)
+            current = None; stack = []; continue
+        if low.startswith('[start layer]'): stack.append('layer'); current['layers'].append({'id': None, 'shapes': [], 'islands': []}); continue
+        if low.startswith('[end layer]'):
+            if stack and stack[-1]=='layer': stack.pop()
+            continue
+        if low.startswith('[start loop]'): stack.append('loop'); current['layers'][-1].setdefault('islands', []); continue
+        if low.startswith('[end loop]'):
+            if stack and stack[-1]=='loop': stack.pop()
+            continue
+        if current is None: continue
+        if stack and stack[-1] == 'loop':
+            s = line.strip()
+            if s and not s.lower().startswith('island') and not s.lower().startswith('shape'):
+                cot = [p.strip() for p in s.split(',')]
+                if len(cot) >= 2: current['layers'][-1]['islands'].append(cot)
+        elif stack and stack[-1] == 'layer':
+            s = line.strip()
+            if s.startswith('shape'):
+                toks = [p.strip() for p in s.split(',')]
+                if len(toks) >= 5: current['layers'][-1]['shapes'].append(tuple(toks[1:5]))
+            elif s.isdigit(): current['layers'][-1]['id'] = int(s)
+        elif stack == ['net']:
+            s = line.strip()
+            if current['name'] is None and s and not s.lower().startswith('shape'): current['name'] = s
+    return nets
+def icb_net_objects(model, nets, scale=0.001):
+    graph = {}; created = []
+    for net in nets:
+        name = net.get('name') or 'NET'
+        objs = []
+        for lay in net.get('layers', []):
+            for (sh_id, x, y, rot) in lay.get('shapes', []):
+                from ice_create import default_object
+                b = (float(x) * scale, float(y) * scale, 0.0)
+                on = '%s__L%s__s%s' % (name, lay.get('id', 0), sh_id)
+                o = default_object('source', on)
+                _ensure_shape(o, b, (b[0]+0.002, b[1]+0.002, b[2]+0.0002))
+                if getattr(o, 'setvals', None) is None: o.setvals = {}
+                o.setvals['net'] = [name]
+                o.setvals['layer'] = [str(lay.get('id', 0))]
+                o.setvals['source_type'] = ['heat']
+                model.objects.append(o)
+                created.append(o.name); objs.append(o.name)
+        if objs: graph[name] = objs
+    return graph, created
