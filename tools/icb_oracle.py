@@ -13,9 +13,24 @@ def locate_iceecad():
         return P.locate().get('iceecad.exe')
     except Exception:
         return None
+def probe_version(exe):
+    import subprocess
+    try:
+        r = subprocess.run([exe, "--version"], cwd=os.getcwd(), timeout=20,
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if r.returncode == 0:
+            return r.stdout.decode("latin-1", "replace").strip()
+    except Exception:
+        pass
+    return None
+
+
 def run_iceecad(anf_text, sandbox):
     exe = locate_iceecad()
     if not exe or not os.path.exists(exe): return {'available': False, 'reason': 'iceecad not found'}
+    ver = probe_version(exe)
+    if ver is None:
+        return {'available': False, 'reason': 'iceecad --version failed'}
     anf = os.path.join(sandbox, 'demo.anf')
     open(anf, 'w', encoding='latin-1').write(anf_text)
     found = None; proc=None
