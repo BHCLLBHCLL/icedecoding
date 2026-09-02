@@ -8,3 +8,5 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+tests/test01/
+trace.log

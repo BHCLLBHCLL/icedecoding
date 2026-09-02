@@ -39,3 +39,23 @@ def test_trace_iceecad_watcher_returns_list():
     assert isinstance(procs, list)
     for p in procs:
         assert "cmdline" in p or "error" in p
+
+
+@pytest.mark.skipif(not os.path.exists(
+        os.path.join("D:", os.sep, "training", "icepak", "6-2traces", "A1.anf")),
+        reason="ANF oracle input missing")
+def test_full_anf_to_icb_parse():
+    import shutil
+    import tempfile
+    from ice_ecad import parse_icb
+    d = tempfile.mkdtemp(prefix="icb_")
+    out = os.path.join(d, "out")
+    anf = os.path.join(d, "A1.anf")
+    shutil.copy(os.path.join("D:", os.sep, "training", "icepak", "6-2traces",
+                            "A1.anf"), anf)
+    res = O.convert_anf_to_icb(anf, out)
+    assert res["returncode"] == 0, res
+    assert res.get("icb_file")
+    icb = parse_icb(O.icb_text_of(res["icb_file"]))
+    assert len(icb["layers"]) >= 2
+    assert len(icb["shapes"]) > 0
