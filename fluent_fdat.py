@@ -457,6 +457,64 @@ def iso_band_data(centers, temps, value, rel_tol=0.02):
     return sel, _mk_scalar_cloud(sel)[0]
 
 
+def iso_surface_polys(centers, temps, value, dims=40):
+    """True interpolated isosurface (triangle mesh) at an iso-temperature.
+
+    Scattered cell centres -> KD-tree nearest fill onto a bounded voxel grid
+    (voxels outside the data occupancy get a sentinel far below tmin, so the
+    contour stays inside the data region) -> vtkContourFilter -> vtkPolyData
+    of triangles.  Returns the contour output (or None if no cells).
+
+    O(N + V log N) in the cloud/grid, so 58k/124k-cell real clouds are usable.
+    """
+    import numpy as np
+    import vtk
+    from scipy.spatial import cKDTree
+    from vtk.util import numpy_support
+    centers = np.asarray(centers, dtype=np.float64)
+    temps = np.asarray(temps, dtype=np.float64)
+    if centers.ndim != 2 or centers.shape[1] != 3 or len(centers) < 4:
+        return None
+    lo = centers.min(0)
+    hi = centers.max(0)
+    span = hi - lo
+    # degenerate axis protection
+    for a in range(3):
+        if span[a] < 1e-12:
+            lo[a] -= 1e-6
+            hi[a] += 1e-6
+            span[a] = hi[a] - lo[a]
+    axes = [np.linspace(lo[a], hi[a], dims) for a in range(3)]
+    gx, gy, gz = np.meshgrid(np.arange(dims), np.arange(dims),
+                             np.arange(dims), indexing='ij')
+    vc = np.stack([axes[0][gx], axes[1][gy], axes[2][gz]], axis=-1)
+    vc = vc.reshape(-1, 3)
+    tree = cKDTree(centers)
+    d, idx = tree.query(vc, k=1)
+    cell = float(np.median(span)) / (dims - 1)
+    vox = temps[idx]
+    tmin = float(temps.min())
+    t = np.full(vox.shape, tmin - 10.0)
+    mask = d <= 1.5 * cell
+    t[mask] = vox[mask]
+    img = vtk.vtkImageData()
+    sp = [span[a] / (dims - 1) for a in range(3)]
+    img.SetSpacing(sp[0], sp[1], sp[2])
+    img.SetOrigin(lo[0], lo[1], lo[2])
+    img.SetDimensions(dims, dims, dims)
+    arr = numpy_support.numpy_to_vtk(t.astype(np.float64), deep=True)
+    arr.SetName('Temperature')
+    img.GetPointData().SetScalars(arr)
+    cf = vtk.vtkContourFilter()
+    cf.SetInputData(img)
+    cf.SetValue(0, float(value))
+    cf.Update()
+    out = cf.GetOutput()
+    if out is None or out.GetNumberOfCells() == 0:
+        return None
+    return out
+
+
 def plane_band_data(centers, temps, axis, offset, tol=0.0008):
     """Real plane cut = points whose <axis> coord is within tol of offset."""
     import numpy as np

@@ -1356,14 +1356,34 @@ class IceGui(QMainWindow):
             return None
         try:
             from fluent_fdat import (real_temp_cloud_face, iso_band_data,
-                                     plane_band_data, extrema_data,
-                                     temp_cloud_polys)
+                                     iso_surface_polys, plane_band_data,
+                                     extrema_data, temp_cloud_polys)
             r = real_temp_cloud_face(base)
             if r is None:
                 return None
             centers, temps = r
             if kind == "Isosurface":
                 value = float(params.get("value", 0.0)) or float(temps.mean())
+                # P19-4: true interpolated iso surface (triangle mesh) first
+                surf = iso_surface_polys(centers, temps, value)
+                if surf is not None and hasattr(self, "renderer") and \
+                        self.renderer is not None:
+                    import vtk
+                    mapper = vtk.vtkPolyDataMapper()
+                    mapper.ScalarVisibilityOff()
+                    mapper.SetInputData(surf)
+                    actor = vtk.vtkActor()
+                    actor.SetMapper(mapper)
+                    tmin, tmax = float(temps.min()), float(temps.max())
+                    frac = (value - tmin) / max(tmax - tmin, 1e-12)
+                    actor.GetProperty().SetColor(
+                        min(1.0, frac), 0.25, min(1.0, 1.0 - frac))
+                    actor.GetProperty().SetOpacity(0.6)
+                    self.renderer.AddActor(actor)
+                    self.renderer.ResetCamera()
+                    self.log("Isosurface (real, triangle): %d cells @ %.2f K" %
+                             (surf.GetNumberOfCells(), value))
+                    return surf
                 sel, _ = iso_band_data(centers, temps, value)
             elif kind == "Plane cut":
                 axis = "xyz".find(str(params.get("axis", "x")).lower())

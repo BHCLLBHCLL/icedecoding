@@ -585,3 +585,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **fluent_fdat.real_history(project_dir)**：解析 Icepak 瞬态监测点 `transientNN.M.mon_pt_*_<id>.out`（行：`<time-step> <flow-time> <value>`），取最新文件 → [(flow-time, value)]；无文件/空返回 None（含局部 `import os` 修正）。
 - **ice_gui._open_plot(History)**：优先用 `real_history(self._job_base())`——真实历史曲线（标题 `History (real)`，x=Time, y=Temperature）；无 .out 时回退 `simulate_history` 合成。
 - **测试**：tests/test_p19_history.py（4 项：真实 .out 解析成 (flowtime,value)、空目录/None 返回 None、GUI History 用真实数据且 `_title` 含 real、GUI 回退合成标题为 History）；test_p19_post/cloud/solve/report 19 项通过无回归。
+
+### P19-4c — 真插值等值面（vtkContourFilter 三角面）完成
+
+- **fluent_fdat.iso_surface_polys(centers, temps, value, dims=40)**：离散单元中心云 → KD-tree 最近邻填充到有界体素网格（占用外体素设哨兵 tmin-10，使等值面限制在数据区）→ `vtkContourFilter` → 三角化 vtkPolyData；O(N + V·log N)，58k/124k 单元真实云可用；无单元/退化返回 None。
+- **ice_gui._maybe_real_post_actor(Isosurface)**：优先渲染真三角化等值面 actor（vtkPolyDataMapper，按等值温度在蓝→红标尺上的归一化着色、半透明 0.6）+ ResetCamera + 日志（cell 数/温度）；无则回退点带。
+- **测试**：tests/test_p19_isosurface.py（4 项：输出全三角化（VTK_TRIANGLE）、表面跨越真实等值面 x≈0.5、退化云(<4 点)返回 None、等值超出范围返回 None）；post/cloud/iso/tempcloud/history 20 项通过无回归。
