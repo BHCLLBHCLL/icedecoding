@@ -767,6 +767,7 @@ class IceGui(QMainWindow):
         build_menus(self)
         apply_hotkeys(self)
         self._rebuild_macros_menu()
+        self._rebuild_ecad_import_menu()
 
     def _rebuild_macros_menu(self, macros=None):
         """P7: Macros menu from the three-level macro registry."""
@@ -1702,6 +1703,48 @@ class IceGui(QMainWindow):
         from ice_ecad import export_idf
         export_idf(path, self.project.model)
         self.log("IDF export -> %s" % path)
+
+    def _rebuild_ecad_import_menu(self):
+        """P19-D6: File -> 'Import ECAD (ANF/ODB++) -> ICB' oracle submenu."""
+        m = self._menus.get("File")
+        if m is None:
+            return
+        if getattr(self, "_ecad_import_menu", None) is not None:
+            m.removeAction(self._ecad_import_menu.menuAction())
+            self._ecad_import_menu = None
+        from tools import icb_oracle as O
+        sm = m.addMenu("Import ECAD (ANF/ODB++) -> ICB")
+        self._ecad_import_menu = sm
+        act = sm.addAction("Import ANF/ODB++ board...")
+        act.triggered.connect(self._import_ecad_oracle)
+        sm.setEnabled(O.locate_iceecad() is not None)
+
+    def _import_ecad_oracle(self):
+        """Import an ANF/ODB++ board via the real iceecad oracle pipeline."""
+        if self.project is None:
+            self.log("Import ECAD: no project", "WARN")
+            return
+        path = self._file_dialog_open(
+            "Import ANF/ODB++ board",
+            "ECAD (*.anf *.tgz *.tar.gz *.odb);;ANF (*.anf);;"
+            "ODB++ (*.tgz *.tar.gz *.odb)")
+        if not path:
+            return
+        from ice_ecad import import_ecad_oracle
+        created, meta = import_ecad_oracle(path, self.project.model)
+        if not created:
+            why = meta.get('error') if meta.get('error') else (
+                'no ICB produced' if meta.get('returncode') is None else
+                'returncode %s' % meta.get('returncode'))
+            self.log("ECAD import failed: %s" % why, "WARN")
+            return
+        self._mark_dirty(
+            "Imported ECAD %s: %d objects (mode %s, %d layers)" %
+            (meta.get('input_type'), len(created), meta.get('mode'),
+             meta.get('layers', 0)))
+        self.log("ECAD import %s: %s" %
+                 (meta.get('input_type'), meta.get('icb_name')))
+        self._refresh()
 
     def _import_networks(self):
         if self.project is None:

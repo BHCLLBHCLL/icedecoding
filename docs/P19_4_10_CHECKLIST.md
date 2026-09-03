@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | **P19-4** 求解/后处理/报告 | **部分(~40%)** | fdat 真实数据源；cas 面重建 cell→node（58,908 单元）；真实 VTK 温度云（12-1:124k 点）；PlotWindow 温度直方图；报告 HTML 温度统计段+SVG | ① 3D 标量/矢量渲染（iso 面/平面切/矢量箭头按真实温对着色）——视区目前只有点云，0 个 iso/vector/contour actor；② 6 种曲线真实数据（convergence 用模拟 residual、其余部分合成）；③ 瞬态设置/单位/zoom-in 模型/powermap 显示；④ Solve 面板字段全集（Basic/Advanced/Parallel/Patch/trials/ROM）；⑤ 报告全套（Summary/Point/Full/Overview/网络块值/Fan 工作点/EM/Solar/Autotherm/5 导出）——ice_report 仅 html_report+summary_data |
 | **P19-5** 宏内置库 | **部分(~30%)** | 动态三级注册扫描；向导壳；内置宏 5 个（heat_sink/bga/tec/sot/blower） | 官方 icelib/macros 三级库全量移植（参数化部件宏+全套向导页）；每个宏与官方产物 diff 校验（oracle 沙箱） |
-| **P19-6** ECAD 收官 | **部分(~60%)** | ECXML/IDF/IDX/Networks/JEDEC/powermap/ICB 解析 + export_idf/network/jedec；icb_metal_fractions | ODB++/ANF→ICB oracle 管线（iceecad.exe 沙箱）；AEdt 脚本导出；Show metal fractions 显示（解析有、显示无）；Export AE 脚本等剩余导出 |
+| **P19-6** ECAD 收官 | **大部分(~80%)** | ECXML/IDF/IDX/Networks/JEDEC/powermap/ICB 解析 + export_idf/network/jedec；icb_metal_fractions；AEdt 脚本导出；**ODB++/ANF→ICB oracle 管线**（iceecad 广义 mode Table + GUI 导入，tools/icb_oracle + ice_ecad.import_ecad_oracle） | Show metal fractions 视区显示（解析有、显示无）；Export AE 脚本等剩余导出格式 |
 | **P19-7** 写回/Undo | **部分(~50%)** | model 编码器（encode_line/text，可逆）；Save/Save-as 链路；快照 Undo | **字节级往返**（fn 每行原始 seed + Il!! 模式——实测 encode 非字节一致）；全对象状态 Undo；脏标记细化 |
 | **P19-8** IcBQS + CLI | **未实现(0%)** | 无 | IcBQS 批队列（6791 协议/状态机/任务属性）；批部署 CLI（启动/任务参数等价） |
 | **P19-9** 语言包 | **部分(~40%)** | ice_i18n tr(key,lang) EN 恒等 + 自译 ZH（~78 行模块） | EN 完整表 + ZH 全键覆盖（当前仅覆盖已用标签）；三态切换测试；@UI 字符串全部走 tr() |

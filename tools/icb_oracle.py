@@ -59,18 +59,87 @@ ICE_INST = r'C:/Program Files/ANSYS Inc/v195/Icepak/bin//../icepak19.5'
 ICE_VERSION = '19.5'
 def convert_anf_to_icb(anf_path, out_dir, board_name='BOARD_OUTLINE_1'):
     """Run iceecad with the GUI's exact arg template (captured by
-    tools/trace_iceecad.py during an ECAD import):
-    iceecad <mode=1> <input.anf> <board_name> <out_dir> <bin_dir> <inst_dir>
-        <version> spike 0 smooth 0 nocheckoverlap sliver <s> use_edb 1 is_pkg 0 is_dstk 0"""
+    tools/trace_iceecad.py during an ECAD import).  Delegates to
+    convert_ecad_to_icb with input_type='anf'."""
+    return convert_ecad_to_icb(anf_path, out_dir, board_name, input_type='anf')
+
+
+# ---- P19-D6: ODB++/ANF -> ICB oracle sandbox pipeline (generalized) ---------
+# iceecad <mode> selects the input format (probed from the binary on A1.anf):
+#   mode=1  ANF V4/V2 -> EDB -> ICB         (rc 0, produces <board>.icb)
+#   mode=2  EDB (existing directory) -> ICB
+#   mode=3  ODB++ -> EDB -> ICB
+#   mode=8  ICB -> BOOL/INFO (output postprocess)
+INPUT_MODES = {'anf': 1, 'edb': 2, 'odbpp': 3}
+_EXT_BY_TYPE = {'.anf': 'anf', '.tgz': 'odbpp', '.tar.gz': 'odbpp',
+                '.odb': 'odbpp', '.edb': 'edb', '.aedb': 'edb'}
+
+
+def sniff_ecad_type(path):
+    """Guess the ECAD input type from path: anf / odpbb / edb / None."""
+    if not path:
+        return None
+    low = str(path).lower()
+    if os.path.isdir(str(path)):
+        # an EDB project: .aedb dir with edbdata/ + an .aedb proj file
+        for cand in ('edbdata', 'aedb'):
+            if os.path.exists(os.path.join(str(path), cand)):
+                return 'edb'
+        # ODB++ job has matrix/ and steps/ subdirectories
+        for cand in ('matrix', 'steps'):
+            if os.path.isdir(os.path.join(str(path), cand)):
+                return 'odbpp'
+        return None
+    for ext in ('.tar.gz', '.tgz', '.anf', '.odb', '.edb', '.aedb'):
+        if low.endswith(ext):
+            return _EXT_BY_TYPE[ext]
+    return None
+
+
+def convert_ecad_to_icb(input_path, out_dir, board_name='BOARD_OUTLINE_1',
+                        input_type=None):
+    """Generalized ANF / ODB++ / EDB -> ICB oracle conversion.
+
+    Runs the real iceecad.exe in a sandbox output dir with the GUI's exact arg
+    template; the input format is selected by the mode (from INPUT_MODES).
+    Returns a dict; never raises on oracle absence.
+    """
     exe = locate_iceecad()
-    if not exe or not os.path.exists(exe): return {'available': False, 'reason': 'iceecad not found'}
+    if not exe or not os.path.exists(exe):
+        return {'available': False, 'reason': 'iceecad not found'}
+    itype = input_type or sniff_ecad_type(input_path)
+    if itype is None:
+        return {'available': True, 'input_type': None, 'mode': None,
+                'error': 'unknown ECAD input type', 'returncode': None,
+                'icb_file': None}
+    mode = INPUT_MODES.get(itype)
+    if mode is None:
+        return {'available': True, 'input_type': itype, 'mode': None,
+                'error': 'unsupported input type %r' % itype,
+                'returncode': None, 'icb_file': None}
     os.makedirs(out_dir, exist_ok=True)
-    args = [exe, '1', os.path.abspath(anf_path), board_name, os.path.abspath(out_dir), ICE_BIN, ICE_INST, ICE_VERSION, 'spike', '0', 'smooth', '0', 'nocheckoverlap', 'sliver', '15.0', 'use_edb', '1', 'is_pkg', '0', 'is_dstk', '0']
+    args = [exe, str(mode), os.path.abspath(input_path), board_name,
+            os.path.abspath(out_dir), ICE_BIN, ICE_INST, ICE_VERSION,
+            'spike', '0', 'smooth', '0', 'nocheckoverlap', 'sliver', '15.0',
+            'use_edb', '1', 'is_pkg', '0', 'is_dstk', '0']
     import subprocess
-    r = subprocess.run(args, cwd=out_dir, timeout=600, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    r = subprocess.run(args, cwd=out_dir, timeout=600,
+                       stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     icb = None
     for n in sorted(os.listdir(out_dir)):
-        if n.endswith('.icb'): icb = os.path.join(out_dir, n); break
-    return {'available': True, 'returncode': r.returncode, 'icb_file': icb, 'n_icb': 1 if icb else 0}
+        if n.endswith('.icb'):
+            icb = os.path.join(out_dir, n)
+            break
+    return {'available': True, 'input_type': itype, 'mode': mode,
+            'returncode': r.returncode, 'icb_file': icb,
+            'icb_name': os.path.basename(icb) if icb else None}
+
+
+def parse_icb_file(icb_path):
+    """Parse an .icb file written by iceecad into the sectioned dict."""
+    from ice_ecad import parse_icb
+    return parse_icb(open(icb_path, encoding='latin-1', errors='replace').read())
+
+
 def icb_text_of(icb_path):
     return open(icb_path, encoding='latin-1', errors='replace').read()

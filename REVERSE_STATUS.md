@@ -537,7 +537,7 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **Phase A（后处理真实链路）完成**：A1 标量视区（iso/平面切/极值，12-1=839点）、A2 矢量（SV_U/V/W→vtkGlyph3D，124k 箭头）、A3 真实曲线（real_line_sample/Variation）、A4 Solve 字段门禁（BASIC 19/ADVANCED 12/PARALLEL 4）、A5 报告套件（summary/point/full+SVG）。
 - **Phase B（写回/Undo）完成**：B1 字节级编码器（encode_text_faithful，**18/18 工程 model 字节恒等往返**）、B2 忠实 Save（未编辑原样写回）。
 - **Phase C（IcBQS+CLI）完成**：ice_batch（IcBQS 客户端 submit/status/poll + BatchScheduler）、ice_cli（run/batch/icbqs submit）。
-- **Phase D（ECAD/宏/语言）部分**：D1 AEdt 脚本导出+metal 汇总、D2 宏库全量移植（845 部件扫描/构建 + **每部件向导页 UI**）、D3 i18n 语言全键。剩余：ODB++/ANF→ICB oracle 沙箱管线。
+- **Phase D（ECAD/宏/语言）全部完成**：D1 AEdt 脚本导出+metal 汇总、D2 宏库全量移植（845 部件扫描/构建 + **每部件向导页 UI**）、D3 i18n 语言全键、D6 **ODB++/ANF→ICB oracle 沙箱管线**（iceecad 广义转换+GUI 导入）。Phase D 收官。
 - 测试 **230 项通过**（Phase 各关键功能点均提交推送，HEAD 9c27fd8）。
 
 ### D2b — 宏库 845 部件向导页 UI 完成
@@ -551,3 +551,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 - **ice_i18n.ZH**：补齐官方 EN 语言文件全部 196 条 `help_define` key（192 个唯一键）的自撰中文翻译——菜单/对象类型/包尺寸/基板/焊料/芯片/瞬态/后处理等图谱全覆盖，`tr(key, 'zh')` 无恒等回退（identity=0）。
 - **测试**：test_p19_macrolang.py::test_i18n_language_keys 增强——断言 `>=190` 键、每个键 `tr(k,'zh') != k`（全量覆盖）、返回 str。
+
+### D6 — ODB++/ANF→ICB oracle 沙箱管线 完成（Phase D 收官）
+
+- **模式映射取证**：对真实 iceecad.exe 用 A1.anf 做 mode=1..8 扫描，得到 `mode=1 ANF→EDB→ICB`、`mode=2 EDB→ICB`、`mode=3 ODB++→EDB→ICB`、`mode=8 ICB→BOOL/INFO`（rc 证据）。
+- **tools/icb_oracle.py**：`INPUT_MODES={'anf':1,'edb':2,'odbpp':3}`、`sniff_ecad_type`（.anf/.tgz/.tar.gz/.odb/.edb + 目录 EDB/ODB++ 识别）、广义 `convert_ecad_to_icb(input,out,input_type)`（GUI arg 模板，兼容 `convert_anf_to_icb` 委托）、`parse_icb_file`。
+- **ice_ecad.import_ecad_oracle**：沙箱跑 oracle→parse ICB→`icb_to_objects`→返回 (created, meta{input_type/mode/layers/shapes/nets})；oracle 缺失不抛。
+- **ice_gui**：File 菜单新增 `Import ECAD (ANF/ODB++) -> ICB` 动态子菜单（无 iceecad 时置灰）；`_import_ecad_oracle` 文件对话框→管线→建板/层对象。
+- **测试**：tests/test_p19_ecad_oracle.py（5 项：模式表、类型探测、未知类型优雅、ANF 转换、导入建对象；oracle 缺失自动 skip）。

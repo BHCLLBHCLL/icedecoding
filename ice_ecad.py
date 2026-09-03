@@ -731,3 +731,32 @@ def icb_net_objects(model, nets, scale=0.001):
                 created.append(o.name); objs.append(o.name)
         if objs: graph[name] = objs
     return graph, created
+
+
+# ---- P19-D6: ODB++/ANF -> ICB oracle sandbox pipeline (GUI/CLI import) ------
+def import_ecad_oracle(path, model, out_dir=None, input_type=None,
+                       board_name='BOARD_OUTLINE_1'):
+    """Run the real iceecad.exe oracle (ANF/ODB++ -> ICB) in a sandbox and
+    build the board/layer objects.  Returns (created, meta).
+
+    ``created`` is the list of ModelObjects added; ``meta`` carries
+    input_type/mode/returncode/icb_file/layers/shapes/nets.  Never raises on
+    oracle absence (returns ([], meta) with available=False).
+    """
+    import os
+    import tempfile
+    from tools import icb_oracle as O
+    if out_dir is None:
+        out_dir = tempfile.mkdtemp(prefix='icb_')
+    meta = O.convert_ecad_to_icb(path, out_dir, board_name,
+                                 input_type=input_type)
+    icb_file = meta.get('icb_file')
+    if not icb_file or not os.path.exists(icb_file):
+        return [], meta
+    icb = O.parse_icb_file(icb_file)
+    created = icb_to_objects(model, icb)
+    meta['layers'] = len(icb.get('layers', []))
+    meta['shapes'] = len(icb.get('shapes', []))
+    meta['nets'] = len(icb.get('nets', []))
+    meta['board_outline'] = len(icb.get('board_outline', [])) > 0
+    return created, meta
