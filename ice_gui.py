@@ -1401,9 +1401,9 @@ class IceGui(QMainWindow):
             import numpy as np
             cloud, tmin, tmax = temp_cloud_polys(sel[:, :3], sel[:, 3])
             if hasattr(self, "renderer") and self.renderer is not None:
-                mapper = _vtk_glyph_points(cloud)
-                actor = _vtk_actor(mapper, 0.0028)
-                actor.GetProperty().SetColor(0.9, 0.2, 0.2)
+                # P19-4 fine point: colour iso/plane/extrema by real temperature
+                # (blue->red ramp from temp_cloud_polys) instead of uniform red.
+                actor = _temp_colored_actor(cloud, 0.0028)
                 self.renderer.AddActor(actor)
                 self.renderer.ResetCamera()
                 self.log("%s (real): %d pts, %.1f..%.1f K" %
@@ -3525,3 +3525,21 @@ def _vtk_actor(mapper, size=0.0028):
     if hasattr(mapper, "SetScaleFactor"):
         mapper.SetScaleFactor(size)
     return actor
+
+
+def _temp_colored_actor(cloud, size=0.0028):
+    """Actor whose points are coloured by their temperature scalar (RGBA).
+
+    temp_cloud_polys() emits a blue(cold)->red(hot) 4-component point colour;
+    this keeps direct-scalar colouring on the gaussian mapper instead of the
+    old uniform-red override, so iso/plane/extrema clouds show the real
+    temperature ramp (P19-4 fine point: '按真实温对着色').
+    """
+    import vtk
+    mapper = _vtk_glyph_points(cloud)
+    mapper.ScalarVisibilityOn()
+    try:
+        mapper.SetColorModeToDirectScalars()
+    except Exception:
+        pass
+    return _vtk_actor(mapper, size)

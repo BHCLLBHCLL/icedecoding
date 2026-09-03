@@ -34,7 +34,7 @@
 | 对象编辑器 | ice_editors + ice_forms | Form/Notebook 引擎；Info/Properties/Geometry 通用三页；CopyFrom | D2 | **18 类逐类字段全集**（golden 字段表驱动）；多体编辑；右下几何信息窗橙色按钮 |
 | 网格 | ice_mesh + ice_refine + ice_hdm | AutoHex 六页签；生成管线；复刻引擎（保形/自适应/连续细分/HDM） | D4 | 真实 mesher 沙箱对接；质量统计面板；优先级/挖空面板 |
 | 求解 | ice_solve(_gui) + heat_solver | 设置面板；运行+残差监控；自研稳态导热求解器 | D2 | Basic/Advanced/Parallel 字段全集；Patch；trials/report；ROM/优化；IcBQS 队列 UI；solution ID |
-| 后处理 | ice_solve + ice_gui | post 对象创建；平面切/等值/采样点/对象温度 | D2 | 视区云图/矢量/等值面着色；6 种曲线；瞬态设置；单位；zoom-in；powermap 显示 |
+| 后处理 | ice_solve + ice_gui | post 对象创建；平面切/等值/采样点/对象温度；**iso/平面切/极值云按实温着色（蓝→红）**；矢量 glyph（124k 箭头） | D3 | 真插值等值面（vtkContourFilter 三角面）；6 种曲线；瞬态设置；单位；zoom-in；powermap 显示 |
 | 报告 | ice_report | HTML 报告 | D2 | Summary/Point/Full/Overview；网络块值/Fan 工作点/EM/Solar；Autotherm；5 导出格式 |
 | 宏 | ice_macros(_gui) | 动态三级注册；向导壳；内置宏参数化 | D2 | 内置宏库全量移植（部件宏+向导页，oracle=官方宏产物 diff） |
 | ECAD | ice_ecad | ECXML/IDF/IDX/Networks/JEDEC/powermap 解析+导出/ICB 解析/EM mapping/metal fractions/**ODB++/ANF→ICB oracle 管线**/AEdt 导出/**Show metal fractions 视区显示**/**Export AE+5 powermap 导出** | D4 | —（ECAD 收官） |
@@ -70,7 +70,7 @@
 - 验收：字段与 params 表 100% 对表；test_editors_fields golden 测试。
 
 **P19-4 求解/后处理/报告全链路**
-- Solve 面板字段全集（Basic/Advanced/Parallel/Patch/Trials/ROM）；批队列 UI（IcBQS 语义）；post 视区云图/矢量/等值面/探针/极值 + 6 曲线 + 瞬态设置 + 单位；报告 Summary/Point/Full/Overview + 网络块值/Fan 工作点/EM/Solar + Autotherm + 5 导出。
+- Solve 面板字段全集（Basic/Advanced/Parallel/Patch/Trials/ROM）；批队列 UI（IcBQS 语义）；post 视区云图/矢量/等值面/探针/极值（iso/平面切/极值云已按实温着色；真插值等值面待做）+ 6 曲线 + 瞬态设置 + 单位；报告 Summary/Point/Full/Overview + 网络块值/Fan 工作点/EM/Solar + Autotherm + 5 导出。
 - 验收：面板字段对表；后处理与 heat_solver 数据打通（结构化网格先，HDM 网格后）；报告 golden 样例。
 
 **P19-5 宏内置库全量移植**

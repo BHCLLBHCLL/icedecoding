@@ -572,3 +572,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **File→Export「ANSYS Electronics Desktop script」**（Export AE，此前 NYI）：SLOT_MAP 加 `_export_aedt`；`ice_gui._export_aedt` 保存对话框→`ice_ecad.export_aedt` 写 pyaedt 脚本。
 - **Report→Export 5 powermap 导出格式**（Gradient Firebolt p2i/Cadence TPKG/SIwave temp data/Sentinel TI HTC/RedHawk Back Annotation）：新增 `ice_ecad.export_powermap(path, rows, fmt)`（parse_powermap 逆编码器，fmt=tab/i2p/ctm/sentinel/apache，往返一致）；SLOT_MAP 5 槽位→`_export_powermap:fmt`；`ice_gui._export_powermap(fmt)` 取导入的 powermap 行写出。
 - **测试**：tests/test_p19_export.py（5 项：5 种格式导出往返 == 解析、AEdt/5 槽位解析、AEdt 脚本内容、GUI 导出写出文件并往返、无数据 WARN）。
+
+### P19-4a — 真实温度云按温着色（iso/平面切/极值细项）完成
+
+- **冰点**：`temp_cloud_polys` 已产生蓝(冷)→红(热)的 4 分量 RGBA 点温度标量，但 `_maybe_real_post_actor` 用 `SetColor(0.9,0.2,0.2)` 统一覆盖为红色——即等值/切面/极值云虽用真实数据、却未按温度着色。
+- **ice_gui._temp_colored_actor(cloud, size)**：vtkPointGaussianMapper 开启 `ScalarVisibilityOn()` + `SetColorModeToDirectScalars()`（实测 mode 2 == VTK_COLOR_MODE_DIRECT_SCALARS），按每点 RGBA 温度标量着蓝→红；不再用统一红覆盖。
+- **ice_gui._maybe_real_post_actor**：iso/平面切/极值云改用 `_temp_colored_actor`（P19-4 细项「按真实温对着色」）。
+- **测试**：tests/test_p19_tempcloud.py（3 项：云含 4 分量 Temperature 标量、actor direct-scalar 着色且非旧统一红、iso_band 保留温度标量）；test_p19_post/cloud 9 项通过无回归。
