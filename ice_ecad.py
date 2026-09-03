@@ -498,6 +498,28 @@ def powermap_extent(rows):
     return (min(xs), min(ys)), (max(xs), max(ys))
 
 
+def export_powermap(path, rows, fmt):
+    """Reverse of parse_powermap: write x/y-value rows in the given format.
+
+    fmt in {'tab','i2p','ctm','sentinel','apache'}; returns the path.  Rows are
+    (x, y, value) triples; round-trips with parse_powermap for the same fmt.
+    """
+    lines = []
+    for row in rows:
+        x, y, v = (float(row[0]), float(row[1]), float(row[2]))
+        if fmt == 'i2p':
+            lines.append('POINT %g %g %g' % (x, y, v))
+        elif fmt == 'sentinel':
+            lines.append('%g,%g,%g' % (x, y, v))
+        elif fmt == 'apache':
+            lines.append('%g,%g,%g' % (x, y, v))
+        else:  # tab / ctm
+            lines.append('%g %g %g' % (x, y, v))
+    with open(path, 'w', encoding='latin-1') as fh:
+        fh.write('\n'.join(lines) + ('\n' if lines else ''))
+    return path
+
+
 def apply_em_mapping(model, losses, kind="volumetric"):
     """EM Mapping: dict name->watt -> source objects / setvals."""
     from ice_create import default_object

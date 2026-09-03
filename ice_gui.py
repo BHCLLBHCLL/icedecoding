@@ -1799,6 +1799,36 @@ class IceGui(QMainWindow):
         export_jedec(path, self.project.model)
         self.log("JEDEC export -> %s" % path)
 
+    def _export_aedt(self):
+        """Export the model as an ANSYS Electronics Desktop (AEdt) script."""
+        if self.project is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export ANSYS Electronics Desktop script", "board_export.py",
+            "Python script (*.py)")
+        if not path:
+            return
+        from ice_ecad import export_aedt
+        export_aedt(path, self.project.model)
+        self.log("AEdt script export -> %s" % path)
+
+    def _export_powermap(self, fmt):
+        """Export the last imported powermap rows in the given format."""
+        pm = getattr(self, "_powermaps", None) or []
+        if not pm:
+            self.log("No powermap imported", "WARN")
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Export powermap (%s)" % fmt, "powermap.%s" % fmt,
+            "Powermap (*.txt *.dat)")
+        if not path:
+            return
+        from ice_ecad import export_powermap
+        rows = pm[-1]["rows"]
+        export_powermap(path, rows, fmt)
+        self.log("Powermap %s export -> %s (%d rows)" %
+                 (fmt, path, len(rows)))
+
     def _import_powermap(self, fmt):
         if self.project is None:
             return

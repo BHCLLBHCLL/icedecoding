@@ -566,3 +566,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_gui._show_metal_fractions**：改为视区显示——取 ICB 文本（优先 `self._icb_text`，回退对象 `setvals['icb']`）→ `icb_metal_fractions` → `metal_fraction_actors` 渲染逐层铜箔 + ResetCamera + 逐层占比图例日志；无数据时 WARN。
 - **ice_ecad.import_ecad_oracle**：meta 增加 `icb_text` 回传，供视图显示。
 - **测试**：tests/test_p19_metal.py（4 项：fractions 数值、actor 几何计数、GUI 渲染添加 actor、无数据 WARN）。
+
+### D6d — 剩余导出格式（Export AE 脚本 + 5 powermap）完成
+
+- **File→Export「ANSYS Electronics Desktop script」**（Export AE，此前 NYI）：SLOT_MAP 加 `_export_aedt`；`ice_gui._export_aedt` 保存对话框→`ice_ecad.export_aedt` 写 pyaedt 脚本。
+- **Report→Export 5 powermap 导出格式**（Gradient Firebolt p2i/Cadence TPKG/SIwave temp data/Sentinel TI HTC/RedHawk Back Annotation）：新增 `ice_ecad.export_powermap(path, rows, fmt)`（parse_powermap 逆编码器，fmt=tab/i2p/ctm/sentinel/apache，往返一致）；SLOT_MAP 5 槽位→`_export_powermap:fmt`；`ice_gui._export_powermap(fmt)` 取导入的 powermap 行写出。
+- **测试**：tests/test_p19_export.py（5 项：5 种格式导出往返 == 解析、AEdt/5 槽位解析、AEdt 脚本内容、GUI 导出写出文件并往返、无数据 WARN）。
