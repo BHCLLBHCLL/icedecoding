@@ -39,3 +39,8 @@ def test_i18n_language_keys():
     assert "Main" in keys
     # tr() returns a string (EN identity at minimum)
     assert isinstance(ice_i18n.tr("Main"), str)
+    # D3: every official key has a self-authored ZH translation, no identity gap
+    uniq = set(keys)
+    assert len(uniq) >= 190
+    assert all(ice_i18n.tr(k, "zh") != k for k in uniq)
+    assert all(isinstance(ice_i18n.tr(k, "zh"), str) for k in uniq)

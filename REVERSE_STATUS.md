@@ -537,7 +537,7 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **Phase A（后处理真实链路）完成**：A1 标量视区（iso/平面切/极值，12-1=839点）、A2 矢量（SV_U/V/W→vtkGlyph3D，124k 箭头）、A3 真实曲线（real_line_sample/Variation）、A4 Solve 字段门禁（BASIC 19/ADVANCED 12/PARALLEL 4）、A5 报告套件（summary/point/full+SVG）。
 - **Phase B（写回/Undo）完成**：B1 字节级编码器（encode_text_faithful，**18/18 工程 model 字节恒等往返**）、B2 忠实 Save（未编辑原样写回）。
 - **Phase C（IcBQS+CLI）完成**：ice_batch（IcBQS 客户端 submit/status/poll + BatchScheduler）、ice_cli（run/batch/icbqs submit）。
-- **Phase D（ECAD/宏/语言）部分**：D1 AEdt 脚本导出+metal 汇总、D2 宏库全量移植（845 部件扫描/构建 + **每部件向导页 UI**）、D3 i18n tr 存在。剩余：ODB++/ANF→ICB oracle 沙箱管线、语言全键。
+- **Phase D（ECAD/宏/语言）部分**：D1 AEdt 脚本导出+metal 汇总、D2 宏库全量移植（845 部件扫描/构建 + **每部件向导页 UI**）、D3 i18n 语言全键。剩余：ODB++/ANF→ICB oracle 沙箱管线。
 - 测试 **230 项通过**（Phase 各关键功能点均提交推送，HEAD 9c27fd8）。
 
 ### D2b — 宏库 845 部件向导页 UI 完成
@@ -546,3 +546,8 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_gui**：Macros 菜单新增 `Library parts` 级联——库(library)→pitch→rows→部件名，每个叶子打开该部件的向导页；`_run_library_macro` 合并编辑参数后建封装对象。
 - **ice_macros.scan_macro_library** 加模块级缓存（845 文件仅读一次，菜单重建不重复 IO）。
 - **测试**：tests/test_p19_libwizard.py（4 项：kind 推断、目录页填充、Finish 建部件、菜单含 BGA/FPBGA_library 及叶子路由）。
+
+### D3b — 语言全键（196 key 自撰 ZH 补齐）完成
+
+- **ice_i18n.ZH**：补齐官方 EN 语言文件全部 196 条 `help_define` key（192 个唯一键）的自撰中文翻译——菜单/对象类型/包尺寸/基板/焊料/芯片/瞬态/后处理等图谱全覆盖，`tr(key, 'zh')` 无恒等回退（identity=0）。
+- **测试**：test_p19_macrolang.py::test_i18n_language_keys 增强——断言 `>=190` 键、每个键 `tr(k,'zh') != k`（全量覆盖）、返回 str。
