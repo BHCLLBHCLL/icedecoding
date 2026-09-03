@@ -398,6 +398,86 @@ def mesh_actor_from_lines(lines, color=(0.25, 0.45, 0.70), opacity=0.9):
     return actor
 
 
+# ---- P19-D6: Show metal fractions viewport display (per-layer copper) --------
+_LAYER_COLORS = [(0.85, 0.60, 0.20), (0.20, 0.60, 0.85), (0.85, 0.30, 0.25),
+                 (0.35, 0.75, 0.35), (0.65, 0.35, 0.75), (0.75, 0.70, 0.20),
+                 (0.25, 0.70, 0.65), (0.70, 0.45, 0.25), (0.45, 0.45, 0.75),
+                 (0.80, 0.55, 0.65)]
+
+
+def metal_fraction_actors(renderer, icb, scale=0.001):
+    """Build per-layer copper block actors for the Show metal fractions viewport
+    display.  Shapes (layer x0 y0 x1 y1 ...) become thin boxes stacked along z by
+    layer thickness; colors cycle per layer.  Returns a dict:
+      {'actors': [...], 'legend': [(layer, material, fraction), ...]}
+    Returns {'actors': [], 'legend': []} when vtk/geometry unavailable."""
+    try:
+        import vtk
+        from ice_ecad import icb_metal_fractions
+    except Exception:
+        return {'actors': [], 'legend': []}
+    bl = icb.get('board_outline') or []
+    layers = icb.get('layers') or []
+    shapes = icb.get('shapes') or []
+    if not bl or not layers:
+        return {'actors': [], 'legend': []}
+    xs = [p[0] for p in bl]
+    ys = [p[1] for p in bl]
+    fracs = icb_metal_fractions(icb)
+    layer_rows = []
+    for row in layers:
+        parts = [p.strip() for p in row.split(',')]
+        if len(parts) < 3:
+            continue
+        thick = 1.0
+        if len(parts) > 3 and parts[3].replace('.', '').isdigit():
+            try:
+                thick = float(parts[3])
+            except ValueError:
+                pass
+        layer_rows.append((parts[0], parts[1], thick))
+    if not layer_rows:
+        return {'actors': [], 'legend': []}
+    board_area = (max(xs) - min(xs)) * (max(ys) - min(ys))
+    actors = []
+    legend = []
+    z = 0.0
+    for i, (lname, mat, thick) in enumerate(layer_rows):
+        z0, z1 = z, z + max(thick, 0.05) * scale
+        color = _LAYER_COLORS[i % len(_LAYER_COLORS)]
+        for row in shapes:
+            parts = row.split()
+            if len(parts) < 5 or parts[0] != lname:
+                continue
+            try:
+                sx = [float(v) for v in parts[1::2]]
+                sy = [float(v) for v in parts[2::2]]
+            except ValueError:
+                continue
+            if not sx or not sy:
+                continue
+            x0, x1 = min(sx) * scale, max(sx) * scale
+            y0, y1 = min(sy) * scale, max(sy) * scale
+            cube = vtk.vtkCubeSource()
+            cube.SetBounds(x0, x1, y0, y1, z0, z1)
+            mapper = vtk.vtkPolyDataMapper()
+            mapper.SetInputConnection(cube.GetOutputPort())
+            actor = vtk.vtkActor()
+            actor.SetMapper(mapper)
+            prop = actor.GetProperty()
+            prop.SetColor(*color)
+            prop.SetOpacity(0.55)
+            prop.SetRepresentationToSurface()
+            actor.SetPickable(0)
+            if renderer is not None:
+                renderer.AddActor(actor)
+            actors.append(actor)
+        f = fracs.get(lname, 0.0)
+        legend.append((lname, mat, f))
+        z = z1
+    return {'actors': actors, 'legend': legend}
+
+
 def _mid(bounds):
     lo, hi = bounds
     return tuple((lo[i] + hi[i]) / 2.0 for i in range(3))

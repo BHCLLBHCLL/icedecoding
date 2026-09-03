@@ -559,3 +559,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_ecad.import_ecad_oracle**：沙箱跑 oracle→parse ICB→`icb_to_objects`→返回 (created, meta{input_type/mode/layers/shapes/nets})；oracle 缺失不抛。
 - **ice_gui**：File 菜单新增 `Import ECAD (ANF/ODB++) -> ICB` 动态子菜单（无 iceecad 时置灰）；`_import_ecad_oracle` 文件对话框→管线→建板/层对象。
 - **测试**：tests/test_p19_ecad_oracle.py（5 项：模式表、类型探测、未知类型优雅、ANF 转换、导入建对象；oracle 缺失自动 skip）。
+
+### D6c — Show metal fractions 视区显示 完成（P19-6 剩余缺口）
+
+- **ice_view3d.metal_fraction_actors(renderer, icb)**：从 ICB 的 board_outline/layers/shapes 生成逐层铜箔 vtkCubeSource 块 actor——每层按厚度沿 z 堆叠，颜色逐层轮换循环，半透明；返回 {actors, legend[(layer, material, fraction)]}；renderer 可选（纯几何可测）。
+- **ice_gui._show_metal_fractions**：改为视区显示——取 ICB 文本（优先 `self._icb_text`，回退对象 `setvals['icb']`）→ `icb_metal_fractions` → `metal_fraction_actors` 渲染逐层铜箔 + ResetCamera + 逐层占比图例日志；无数据时 WARN。
+- **ice_ecad.import_ecad_oracle**：meta 增加 `icb_text` 回传，供视图显示。
+- **测试**：tests/test_p19_metal.py（4 项：fractions 数值、actor 几何计数、GUI 渲染添加 actor、无数据 WARN）。

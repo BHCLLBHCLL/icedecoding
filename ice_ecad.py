@@ -755,6 +755,7 @@ def import_ecad_oracle(path, model, out_dir=None, input_type=None,
         return [], meta
     icb = O.parse_icb_file(icb_file)
     created = icb_to_objects(model, icb)
+    meta['icb_text'] = O.icb_text_of(icb_file)
     meta['layers'] = len(icb.get('layers', []))
     meta['shapes'] = len(icb.get('shapes', []))
     meta['nets'] = len(icb.get('nets', []))

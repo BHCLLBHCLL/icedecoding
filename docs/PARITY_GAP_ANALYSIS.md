@@ -37,7 +37,7 @@
 | 后处理 | ice_solve + ice_gui | post 对象创建；平面切/等值/采样点/对象温度 | D2 | 视区云图/矢量/等值面着色；6 种曲线；瞬态设置；单位；zoom-in；powermap 显示 |
 | 报告 | ice_report | HTML 报告 | D2 | Summary/Point/Full/Overview；网络块值/Fan 工作点/EM/Solar；Autotherm；5 导出格式 |
 | 宏 | ice_macros(_gui) | 动态三级注册；向导壳；内置宏参数化 | D2 | 内置宏库全量移植（部件宏+向导页，oracle=官方宏产物 diff） |
-| ECAD | ice_ecad | ECXML/IDF/IDX/Networks/JEDEC/powermap 5 格式/ICB 解析/EM mapping/metal fractions/**ODB++/ANF→ICB oracle 管线**/AEdt 导出 | D3/D4 | Show metal fractions 视区显示；5 导出格式收尾 |
+| ECAD | ice_ecad | ECXML/IDF/IDX/Networks/JEDEC/powermap 5 格式/ICB 解析/EM mapping/metal fractions/**ODB++/ANF→ICB oracle 管线**/AEdt 导出/**Show metal fractions 视区显示** | D3/D4 | 剩余 5 导出格式收尾 |
 | 偏好/语言 | ice_prefs(_gui) + ice_i18n | Preferences 页签；en/zh 词典 | D3 | ~/.icepak_config 变量级兼容导入导出；Annotations |
 | 周边 | — | Python console 等价；图像导出；批部署 CLI | D2 | IcBQS 批队列协议；Command prompt 全命令 |
 | HDM 位置复刻 | ice_hdm | 八叉树+尺寸场+曲面投影+曲率判据+局部容差+均匀环；相位/重叠机制定案 | D4 | **晶格量化表面节点**（最后一块，见下） |
@@ -49,7 +49,7 @@
 3. **对象编辑器逐类字段**：18 类对象 × Info/Properties/Geometry 的逐类字段布局（golden 字段表尚需按类固化）。
 4. **求解/后处理/报告链路深度**：真实 mesher/solver 数据打通（cas/fdat 读、云图、6 曲线、5 类报告）。
 5. **宏内置库全量移植**（官方 icelib/macros 三级库 → 参数化部件宏+向导）。
-6. **ECAD 收官**：ODB++/ANF→ICB oracle 管线（已交付，iceecad 广义 mode + GUI 导入）、AEdt 导出（已交付）；剩余 metal fractions 视区显示。
+6. **ECAD 收官**：ODB++/ANF→ICB oracle 管线（已交付）、AEdt 导出（已交付）、Show metal fractions 视区显示（已交付）；仅剩余 5 导出格式收尾。
 7. **写回与 Undo**：model 编码器字节级往返 + 全对象状态 Undo。
 8. **IcBQS 批队列**（端口 6791 协议）+ 批部署 CLI。
 9. **语言包**：EN 完整表 + ZH 自译收尾。
@@ -78,7 +78,7 @@
 - 验收：宏清单对表；产物 diff golden。
 
 **P19-6 ECAD 收官**
-- ODB++/ANF→ICB oracle 管线（iceecad.exe 沙箱，已交付：广义 `convert_ecad_to_icb` mode 表 + GUI 导入）；AEdt 脚本导出（已交付）；**剩余** Show metal fractions 视区显示；5 导出格式收尾。
+- ODB++/ANF→ICB oracle 管线（iceecad.exe 沙箱，已交付：广义 `convert_ecad_to_icb` mode 表 + GUI 导入）；AEdt 脚本导出（已交付）；Show metal fractions 视区显示（已交付：`metal_fraction_actors` 逐层铜箔 + 图例）；**剩余** 5 导出格式收尾。
 - 验收：与 oracle 同一输入的产物比对。
 
 **P19-7 写回与 Undo**

@@ -1732,6 +1732,7 @@ class IceGui(QMainWindow):
             return
         from ice_ecad import import_ecad_oracle
         created, meta = import_ecad_oracle(path, self.project.model)
+        self._icb_text = meta.get('icb_text')
         if not created:
             why = meta.get('error') if meta.get('error') else (
                 'no ICB produced' if meta.get('returncode') is None else
@@ -1845,15 +1846,31 @@ class IceGui(QMainWindow):
             o.name for o in created[:8])))
 
     def _show_metal_fractions(self):
+        """Show metal fractions: per-layer copper rendered in the viewport
+        (P19-D6) with a per-layer fraction legend."""
         from ice_ecad import parse_icb, icb_metal_fractions
-        fracs = None
-        for o in self.project.model._all_objects() if self.project else []:
-            sv = getattr(o, "setvals", None) or {}
-            if "icb" in sv:
-                fracs = icb_metal_fractions(parse_icb(sv["icb"][0]))
-                self.log("Metal fractions: %s" % fracs)
-                return
-        self.log("No ECAD/ICB data loaded (use IDF/ICB import)", "WARN")
+        text = getattr(self, "_icb_text", None)
+        if not text:
+            for o in (self.project.model._all_objects()
+                      if self.project else []):
+                sv = getattr(o, "setvals", None) or {}
+                if "icb" in sv:
+                    text = sv["icb"][0]
+                    break
+        if not text:
+            self.log("No ECAD/ICB data loaded (use IDF/ICB import)", "WARN")
+            return
+        icb = parse_icb(text)
+        fracs = icb_metal_fractions(icb)
+        self.log("Metal fractions: %s" % fracs)
+        if hasattr(self, "renderer") and self.renderer is not None:
+            from ice_view3d import metal_fraction_actors
+            res = metal_fraction_actors(self.renderer, icb)
+            if res["actors"]:
+                self.renderer.ResetCamera()
+                for (lname, mat, f) in res["legend"]:
+                    self.log("  layer %-14s %-16s %.3f%%"
+                             % (lname, mat, f * 100))
 
     def _preferences_dialog(self):
         """Edit -> Preferences: seven tabs, live apply."""
