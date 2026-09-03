@@ -1573,8 +1573,20 @@ class IceGui(QMainWindow):
                 except Exception:
                     pass
         elif kind == "History":
-            pts = simulate_history("mon_pt", 20, 20.0, 85.0)
-            win.set_data([pts], title="History", xlabel="Time")
+            hist = None
+            base = self._job_base()
+            if base:
+                try:
+                    from fluent_fdat import real_history
+                    hist = real_history(base)
+                except Exception:
+                    hist = None
+            if hist:
+                win.set_data([hist], title="History (real)", xlabel="Time",
+                             ylabel="Temperature")
+            else:
+                pts = simulate_history("mon_pt", 20, 20.0, 85.0)
+                win.set_data([pts], title="History", xlabel="Time")
         elif kind == "Trials":
             tr = trials_from_problem(getattr(self.project, "problem", None)) \
                 or []

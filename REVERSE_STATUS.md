@@ -579,3 +579,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_gui._temp_colored_actor(cloud, size)**：vtkPointGaussianMapper 开启 `ScalarVisibilityOn()` + `SetColorModeToDirectScalars()`（实测 mode 2 == VTK_COLOR_MODE_DIRECT_SCALARS），按每点 RGBA 温度标量着蓝→红；不再用统一红覆盖。
 - **ice_gui._maybe_real_post_actor**：iso/平面切/极值云改用 `_temp_colored_actor`（P19-4 细项「按真实温对着色」）。
 - **测试**：tests/test_p19_tempcloud.py（3 项：云含 4 分量 Temperature 标量、actor direct-scalar 着色且非旧统一红、iso_band 保留温度标量）；test_p19_post/cloud 9 项通过无回归。
+
+### P19-4b — History 曲线用真实瞬态监测点数据 完成
+
+- **fluent_fdat.real_history(project_dir)**：解析 Icepak 瞬态监测点 `transientNN.M.mon_pt_*_<id>.out`（行：`<time-step> <flow-time> <value>`），取最新文件 → [(flow-time, value)]；无文件/空返回 None（含局部 `import os` 修正）。
+- **ice_gui._open_plot(History)**：优先用 `real_history(self._job_base())`——真实历史曲线（标题 `History (real)`，x=Time, y=Temperature）；无 .out 时回退 `simulate_history` 合成。
+- **测试**：tests/test_p19_history.py（4 项：真实 .out 解析成 (flowtime,value)、空目录/None 返回 None、GUI History 用真实数据且 `_title` 含 real、GUI 回退合成标题为 History）；test_p19_post/cloud/solve/report 19 项通过无回归。

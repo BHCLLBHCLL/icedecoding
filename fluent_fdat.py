@@ -571,3 +571,38 @@ def real_point_temp(project_dir, p):
     from scipy.spatial import cKDTree
     d, i = cKDTree(centers).query(np.asarray(p, dtype=np.float64))
     return float(temps[i])
+
+
+def real_history(project_dir, pattern='*.mon_pt_*.out'):
+    """Parse a transient monitor-point .out history file -> [(flow_time, value)].
+
+    Icepak writes 'transientNN.M.mon_pt_*_<id>.out' with rows:
+        <time-step> <flow-time> <vertex-average-static-temperature>
+    Returns the latest matching file's (flow-time, value) pairs, or None.
+    """
+    import glob as _glob
+    import os
+    if not project_dir or not os.path.isdir(project_dir):
+        return None
+    files = sorted(_glob.glob(os.path.join(project_dir, pattern)))
+    if not files:
+        return None
+    rows = []
+    try:
+        with open(files[-1], encoding='latin-1', errors='replace') as fh:
+            for line in fh:
+                s = line.strip()
+                if not s or s.startswith('"') or s.startswith('('):
+                    continue
+                parts = s.split()
+                if len(parts) < 3:
+                    continue
+                try:
+                    t = float(parts[1])
+                    v = float(parts[2])
+                except ValueError:
+                    continue
+                rows.append((t, v))
+    except OSError:
+        return None
+    return rows or None
