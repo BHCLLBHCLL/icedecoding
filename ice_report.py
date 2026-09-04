@@ -62,6 +62,68 @@ def fan_operating_points_html(project):
     return "".join(parts)
 
 
+def network_block_values_html(project):
+    """Network block values section: nodes + positions from network objects."""
+    model = getattr(project, "model", None)
+    nodes = []
+    if model is not None:
+        try:
+            from fluent_fdat import network_nodes
+            nodes = network_nodes(model)
+        except Exception:
+            nodes = []
+    if not nodes:
+        return "<h2>Network block values</h2><p>No network nodes.</p>"
+    parts = ["<h2>Network block values</h2><table><tr><th>Node</th>"
+             "<th>X</th><th>Y</th><th>Z</th></tr>"]
+    for (label, (x, y, z)) in nodes:
+        parts.append("<tr><td>%s</td><td>%.4f</td><td>%.4f</td><td>%.4f</td>"
+                     "</tr>" % (html.escape(label), x, y, z))
+    parts.append("</table>")
+    return "".join(parts)
+
+
+def em_mapping_html(project):
+    """EM mapping section: sources created by EM Mapping with kind + power."""
+    model = getattr(project, "model", None)
+    rows = []
+    if model is not None:
+        for o in model._all_objects():
+            sv = getattr(o, "setvals", None) or {}
+            if "em_mapping" in sv:
+                rows.append((o.name, (sv.get("em_mapping") or [""])[0],
+                             (sv.get("power") or ["-"])[0]))
+    if not rows:
+        return "<h2>EM mapping</h2><p>No EM mapping applied.</p>"
+    parts = ["<h2>EM mapping</h2><table><tr><th>Source</th><th>Kind</th>"
+             "<th>Power</th></tr>"]
+    for (name, kind, power) in rows:
+        parts.append("<tr><td>%s</td><td>%s</td><td>%s</td></tr>" %
+                     (html.escape(name), html.escape(kind), html.escape(power)))
+    parts.append("</table>")
+    return "".join(parts)
+
+
+def solar_loads_html(project):
+    """Solar loads section: objects carrying a solar load setval."""
+    model = getattr(project, "model", None)
+    rows = []
+    if model is not None:
+        for o in model._all_objects():
+            sv = getattr(o, "setvals", None) or {}
+            if "solar_load" in sv or "solar" in sv:
+                rows.append((o.name, sv.get("solar_load",
+                                            sv.get("solar", ["-"])[0])))
+    if not rows:
+        return "<h2>Solar loads</h2><p>No solar loads.</p>"
+    parts = ["<h2>Solar loads</h2><table><tr><th>Object</th><th>Load</th></tr>"]
+    for (name, load) in rows:
+        parts.append("<tr><td>%s</td><td>%s</td></tr>" %
+                     (html.escape(name), html.escape(str(load))))
+    parts.append("</table>")
+    return "".join(parts)
+
+
 def html_report(project, mesh=None, title="ANSYS Icepak model report"):
     parts = ["<!DOCTYPE html><html><head><meta charset='utf-8'>",
              "<title>%s</title>" % html.escape(title),
@@ -163,8 +225,9 @@ def point_report_html(project_dir, points):
 
 
 def full_report_html(project_dir, title="ANSYS Icepak report",
-                     points=None):
-    """Full report: header + real temperature summary + histogram section."""
+                     points=None, project=None):
+    """Full report: header + real temperature summary/histogram (Overview) +
+    Fan operating points + network block values + EM mapping + solar loads."""
     try:
         from fluent_fdat import real_temp_cloud_face
         r = real_temp_cloud_face(project_dir)
@@ -180,15 +243,20 @@ def full_report_html(project_dir, title="ANSYS Icepak report",
     else:
         parts.append("<p>No real temperature data.</p>")
     parts.append(real_summary_table_html(project_dir))
+    if project is not None:
+        parts.append(fan_operating_points_html(project))
+        parts.append(network_block_values_html(project))
+        parts.append(em_mapping_html(project))
+        parts.append(solar_loads_html(project))
     if points:
         parts.append(point_report_html(project_dir, points))
     parts.append("</body></html>")
     return "".join(parts)
 
 
-def write_real_report(path, project_dir, points=None):
+def write_real_report(path, project_dir, points=None, project=None):
     with open(path, "w", encoding="utf-8") as fh:
-        fh.write(full_report_html(project_dir, points=points))
+        fh.write(full_report_html(project_dir, points=points, project=project))
     return path
 
 

@@ -644,6 +644,24 @@ def export_aedt(path, model):
     return path
 
 
+def export_autotherm(path, model):
+    """Write an Autotherm-style thermal model file (sources/fans/blocks)."""
+    lines = ["# Autotherm thermal model (ice viewer export)"]
+    for o in model._all_objects():
+        sv = getattr(o, "setvals", None) or {}
+        if o.kind == "source":
+            lines.append("source %s %s" %
+                         (o.name, (sv.get("power") or ["0"])[0]))
+        elif o.kind in ("fan", "blower"):
+            lines.append("fan %s %s" %
+                         (o.name, (sv.get("flow") or ["-"])[0]))
+        elif o.kind == "block":
+            lines.append("block %s" % o.name)
+    with open(path, "w", encoding="latin-1") as fh:
+        fh.write("\n".join(lines) + "\n")
+    return path
+
+
 def metal_fraction_summary(icb, board_area=None):
     """Human-readable metal fraction / layer summary (Show metal fractions
     display).  board_area: optional gross board area (m^2)."""

@@ -631,3 +631,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **fluent_fdat.real_3d_variation(project_dir, p0, p1, n)**：`real_line_sample` 沿 3D 路径采样 → [(距离, 温度)]。
 - **ice_gui._open_plot**：Network temperature / 3D Variation 优先真实数据（标题后缀 (real)，x=Node/Distance, y=Temperature），无数据回退原合成分支。
 - **测试**：tests/test_p19_curves.py（6 项：network_nodes 收集、无真实数据返回 None、3D 变化距离累计、GUI 两曲线用真实系列、3D Variation 回退合成标题）；curves/history/solve/post 18 项通过无回归。
+
+### P19-4j — 报告其余（Overview 接线 + 网络块值/EM/Solar + Autotherm）完成
+
+- **ice_report**：新增 `network_block_values_html`（网络节点+位置表）、`em_mapping_html`（EM 映射源 kind/power 表）、`solar_loads_html`（太阳能载荷表）；`full_report_html(..., project=None)` 追加 Fan/网络块值/EM/Solar 段，`write_real_report` 同步。
+- **ice_gui._full_report**：有 job base 时写真实完整报告（`write_real_report`，Overview=真实温度汇总 + 各段），否则回退 html_report。
+- **Autotherm**：`ice_ecad.export_autotherm(path, model)`（source/fan/blower/block 热模型文本）；`ice_gui._export_autotherm` 保存对话框；SLOT_MAP `"Write Autotherm file"`（此前 NYI）。
+- **测试**：tests/test_p19_report4.py（5 项：完整报告含 5 段、空项目各段 No 文案、write_real_report 含段、Autotherm 文件内容、Autotherm 槽位）；report/export/golden 29 项通过无回归。

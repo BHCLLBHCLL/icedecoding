@@ -239,6 +239,7 @@ SLOT_MAP = {
     "SIwave temp data": "_export_powermap:tab",
     "Sentinel TI HTC file": "_export_powermap:sentinel",
     "RedHawk Back Annotation": "_export_powermap:apache",
+    "Write Autotherm file": "_export_autotherm",
     "Apache Sentinel TI profile": "_import_powermap:sentinel",
     "Cadence tab file": "_import_powermap:tab",
     "Cadence Stacked Die tab files": "_import_powermap:tab",

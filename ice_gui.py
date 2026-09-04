@@ -1743,7 +1743,16 @@ class IceGui(QMainWindow):
         self._show_named_settings("Point report")
 
     def _full_report(self):
-        self._html_report()
+        """Full report: real Overview + fan/network/EM/solar sections."""
+        base = self._job_base()
+        if base:
+            from ice_report import write_real_report
+            name = (getattr(self.project, "name", "project") or "project")
+            path = os.path.join(base, "%s_full_report.html" % name)
+            write_real_report(path, base, project=self.project)
+            self.log("Full report written: %s" % path)
+        else:
+            self._html_report()
 
     def _trials_results(self):
         from ice_solve import trials_from_problem
@@ -1936,6 +1945,19 @@ class IceGui(QMainWindow):
         from ice_ecad import export_aedt
         export_aedt(path, self.project.model)
         self.log("AEdt script export -> %s" % path)
+
+    def _export_autotherm(self):
+        """Write Autotherm file: thermal model export (sources/fans/blocks)."""
+        if self.project is None:
+            return
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Write Autotherm file", "model.autotherm",
+            "Autotherm (*.txt *.autotherm)")
+        if not path:
+            return
+        from ice_ecad import export_autotherm
+        export_autotherm(path, self.project.model)
+        self.log("Autotherm file written: %s" % path)
 
     def _export_powermap(self, fmt):
         """Export the last imported powermap rows in the given format."""
