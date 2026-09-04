@@ -664,3 +664,51 @@ def real_history(project_dir, pattern='*.mon_pt_*.out'):
     except OSError:
         return None
     return rows or None
+
+
+# ---- P19-4: remaining real curves (network temperature / 3D variation) ------
+def network_nodes(model):
+    """Collect network node labels + positions from model network objects.
+    Returns [(label, (x, y, z)), ...]."""
+    import json as _json
+    out = []
+    for o in model._all_objects():
+        if getattr(o, 'kind', None) != 'network':
+            continue
+        sv = getattr(o, 'setvals', None) or {}
+        raw = (sv.get('net_nodes') or ['{}'])[0]
+        try:
+            nd = _json.loads(raw)
+        except (ValueError, TypeError):
+            continue
+        for n, p in nd.items():
+            try:
+                out.append((n, tuple(float(v) for v in p)))
+            except (TypeError, ValueError):
+                pass
+    return out
+
+
+def network_temperatures(project_dir, model):
+    """Real network node temperatures: [(label, temp)] from the nearest real
+    cell centre at each node position.  None without nodes or real data."""
+    nodes = network_nodes(model)
+    if not nodes:
+        return None
+    out = []
+    for label, p in nodes:
+        t = real_point_temp(project_dir, p)
+        if t is not None:
+            out.append((label, t))
+    return out or None
+
+
+def real_3d_variation(project_dir, p0, p1, n=41):
+    """Real temperature along a 3D path p0->p1 -> [(distance, temp), ...]."""
+    import numpy as np
+    r = real_line_sample(project_dir, p0, p1, n)
+    if r is None:
+        return None
+    pts, temps = r
+    d = np.linalg.norm(pts - pts[0], axis=1)
+    return [(float(di), float(ti)) for di, ti in zip(d, temps)]

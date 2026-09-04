@@ -624,3 +624,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_refine.zoom_object_names(model)**：候选对象名（排除 domain）；**zoom_bounds(model, names)**：选中对象的合并包围盒。
 - **ice_gui._zoom_in_modeling**：Model→Zoom-in modeling 复选框多选对话框（选中对象存入 `self._zoom_object_names`）；`_run_mesh` 的 refine_mesh 传给 zoom_names。Model 菜单动态项 `_rebuild_model_zoom_menu`。
 - **测试**：tests/test_p19_zoom.py（6 项：对象名/包围盒、zoom 网格单元数少于全细化、共形面切保留（未列对象面仍被切）、Model 菜单含 Zoom-in modeling、无项目 → _nyi）；test_p13_refine 5 项无回归。
+
+### P19-4i — 剩余曲线真实化（Network temperature / 3D Variation）完成
+
+- **fluent_fdat.network_nodes(model)**：从 network 对象的 net_nodes JSON 收集 (标签, 位置)。**network_temperatures(project_dir, model)**：每个网络节点用 `real_point_temp` 取最近真实单元温度 → [(label, temp)]；无节点/无数据返回 None。
+- **fluent_fdat.real_3d_variation(project_dir, p0, p1, n)**：`real_line_sample` 沿 3D 路径采样 → [(距离, 温度)]。
+- **ice_gui._open_plot**：Network temperature / 3D Variation 优先真实数据（标题后缀 (real)，x=Node/Distance, y=Temperature），无数据回退原合成分支。
+- **测试**：tests/test_p19_curves.py（6 项：network_nodes 收集、无真实数据返回 None、3D 变化距离累计、GUI 两曲线用真实系列、3D Variation 回退合成标题）；curves/history/solve/post 18 项通过无回归。

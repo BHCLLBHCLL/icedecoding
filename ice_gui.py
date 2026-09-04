@@ -1673,6 +1673,38 @@ class IceGui(QMainWindow):
                 or []
             win.set_data([[(i, i + 1) for i, (k, v) in enumerate(tr)]],
                          title="Trials")
+        elif kind == "Network temperature":
+            series = None
+            base = self._job_base()
+            if base and self.project is not None:
+                try:
+                    from fluent_fdat import network_temperatures
+                    series = network_temperatures(base, self.project.model)
+                except Exception:
+                    series = None
+            if series:
+                win.set_data([[(i, t) for i, (n, t) in enumerate(series)]],
+                             title="Network temperature (real)",
+                             xlabel="Node", ylabel="Temperature")
+            else:
+                win.set_data([[(i, 50.0 + 5 * i) for i in range(11)]],
+                             title="Network temperature")
+        elif kind == "3D Variation":
+            series = None
+            base = self._job_base()
+            if base:
+                try:
+                    from fluent_fdat import real_3d_variation
+                    series = real_3d_variation(base, (0.0, 0.0, 0.0),
+                                               (0.5, 0.4, 0.3), 41)
+                except Exception:
+                    series = None
+            if series:
+                win.set_data([series], title="3D Variation (real)",
+                             xlabel="Distance", ylabel="Temperature")
+            else:
+                win.set_data([[(i, 50.0 + 5 * i) for i in range(11)]],
+                             title="3D Variation")
         else:
             win.set_data([[(i, 50.0 + 5 * i) for i in range(11)]],
                          title=kind)
