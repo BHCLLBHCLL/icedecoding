@@ -383,14 +383,15 @@ def kind_color(kind):
 # ===========================================================================
 
 class SceneObject:
-    __slots__ = ("name", "kind", "color", "polydata", "bounds")
+    __slots__ = ("name", "kind", "color", "polydata", "bounds", "opacity")
 
-    def __init__(self, name, kind, color, polydata, bounds):
+    def __init__(self, name, kind, color, polydata, bounds, opacity=1.0):
         self.name = name
         self.kind = kind
         self.color = color
         self.polydata = polydata
         self.bounds = bounds
+        self.opacity = float(opacity)
 
 
 def build_scene(model, layer_on, wireframe=False):
@@ -405,8 +406,15 @@ def build_scene(model, layer_on, wireframe=False):
         if g is None:
             continue
         pd, bounds = g
+        sv = getattr(o, 'setvals', None) or {}
+        op = 1.0
+        if 'opacity' in sv:
+            try:
+                op = float((sv['opacity'] or ['1.0'])[-1])
+            except (TypeError, ValueError):
+                op = 1.0
         objs.append(SceneObject(o.name, o.kind, kind_color(o.kind), pd,
-                                bounds))
+                                bounds, op))
     return objs
 
 
@@ -3302,6 +3310,11 @@ class IceGui(QMainWindow):
                 prop.SetRepresentationToWireframe()
                 prop.LightingOff()
                 prop.SetAmbient(1.0)
+        # P19-2: per-object transparency from the scene object's opacity
+        try:
+            prop.SetOpacity(float(getattr(so, "opacity", 1.0)))
+        except (TypeError, ValueError):
+            prop.SetOpacity(1.0)
         if so.kind == "domain":
             prop.SetRepresentationToWireframe()
             prop.SetLineWidth(1.4)

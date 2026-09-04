@@ -660,3 +660,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **右下几何信息窗橙色对齐按钮族**（已有 GeometryWindow，本轮补锁定测试）：6 个橙色（#f3a53a）xS..zE 对齐/拉伸按钮 + 坐标框 + set_object 填充 + Apply 双写。
 - **测试**：tests/test_p19_editors.py 增至 8 项（新增：数值键 spin/int/check 断言、spreadsheet 多体编辑写回、几何窗 6 橙色按钮+填充）；editors/forms/create/gui/golden/tree 53 项通过无回归。
 - **P19-3 收官**（字段全集+控件类型+spreadsheet+几何窗全部落地）。
+
+### P19-2 — 3D 视区视觉契约全集（逐对象透明度 + 全项锁定）完成
+
+- **盘点**：Lights 面板（_lights_dialog→ViewOptionsDialog）、背景 solid/双色渐变（_set_background）、5 种着色模式 per-type 颜色/线宽（_make_actor/shading menus）、user views 保存/清除/读写（_save/_write/_read/_clear_user_views）、面/边循环选择红黄高亮（AlignSession）、对象拖放移动（_drag_move）、Visible grid/Origin/Rulers/Title/Date/Construction 显示层（make_display_actors + _toggle_display_layer）、Depthcue（renderer.SetFog 切换）、右下实时坐标（_mouse_pos_label）均已实现。
+- **新增（真实缺口）逐对象透明度**：SceneObject 增 `opacity` 字段；build_scene 读 `setvals['opacity']` 传入；`_make_actor` 应用 `prop.SetOpacity(so.opacity)`。
+- **测试**：tests/test_p19_viewcontract.py（5 项：build_scene 读取 opacity、_make_actor 应用到 actor、display_actors 含 grid/origin/rulers/title/date/mesh、Depthcue 切换无异常、背景 solid 路径）；view3d/align/gui/golden 49 项通过无回归。

@@ -61,9 +61,9 @@
 - 做法：全局细晶格（0.02/2^k，k=壳深度）采样柱面邻域点 → 投影锥面 → 量化回晶格；晶格相位=当前 best (0,0.008)；调 k 与量化步长使同列柱 x 集重叠率≈30-40%（oracle 实测）。
 - 验收：x/y 偏差与重叠率双达标；golden 化 10-1 指标。
 
-**P19-2 3D 视区视觉契约全集**
-- Lights 面板（多光源/强度/位置）；背景纯色/双色切换+颜色设定；per-type 颜色/线宽/着色/装饰；逐对象透明度；user views 保存/清除/文件；面/边循环选择（红/黄高亮、中键接受）；对象拖放移动（Interaction 规则）；Visible grid/Origin/Rulers/Title/Date/Construction/Depthcue 视觉落地；右下实时坐标与状态栏 4 段。
-- 验收：对照教程图 3-31/3-62/3-65 截图回归（_report/screenshots）。
+**P19-2 3D 视区视觉契约全集**（大部分已交付）
+- **已交付**：Lights 面板（ViewOptionsDialog）；背景 solid/双色渐变（_set_background）；5 着色模式 per-type 颜色/线宽（_make_actor）；**逐对象透明度**（SceneObject.opacity + setvals['opacity'] → prop.SetOpacity）；user views 保存/清除/读写；面/边循环选择（AlignSession 红黄/MmB）；对象拖放移动；显示层 grid/origin/rulers/title/date/construction + Depthcue（SetFog）；右下实时坐标。
+- 剩余（渐进/截图级）：per-type 装饰/线宽/透明度细粒度面板、construction 线/点显示层、右下实时坐标状态栏 4 段、教程截图视觉回归。
 
 **P19-3 对象编辑器逐类字段全集**（已收官）
 - **已交付**：`ice_editors.GOLDEN_KEYS`——从 26 个解码工程 `properties` 取证得到 15 类真实逐类属性键全集；`spec_for(kind)` 合并人工精修行 + 自动可编辑行，**数值键经 `kind_of` 推断为 spin/int/check**（人工精修行 temp/heat/power/… 已 text→spin）；golden 键并入 `COMMON_SETVAL_KEYS` 持久化；ObjectEditDialog 三页签逐类展示；**spreadsheet 多体编辑**（SpreadsheetDialog，rows=多对象，编辑写回 setvals/shape）；**右下几何信息窗橙色对齐按钮族**（GeometryWindow 6 个橙色 xS..zE 按钮 + 坐标框 + Apply 双写）——三者均已有测试锁定。
