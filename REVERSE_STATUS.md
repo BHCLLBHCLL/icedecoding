@@ -605,3 +605,15 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_gui._show_postprocessing_units**：`_show_problem_keys("Postprocessing units", SOLUTION_UNITS_KEYS)`——golden 命令「Postprocessing units」（此前 NYI）打开单位键表单。
 - **ice_actions SLOT_MAP**：`"Postprocessing units" -> _show_postprocessing_units`。
 - **测试**：tests/test_p19_units.py（3 项：槽位解析、单位键集、GUI `_show_postprocessing_units` 委托 `_show_problem_keys("Postprocessing units", KEYS)`）。
+
+### P19-4f — powermap 视区显示 完成
+
+- **ice_view3d.powermap_actors(renderer, rows, extent, size=None)**：powermap (x,y,value) 行 → 板顶彩色热力小方块（蓝冷→红热，按归一化 value 着色、半透明 0.65），cell 尺寸由 extent/√n 自动推；返回 {actors, n, vmin, vmax, extent}。
+- **ice_gui._show_powermap**：改为视区渲染——最近导入 powermap 的 rows + extent → `powermap_actors` → ResetCamera + 范围/补丁数日志；无数据 WARN。
+- **测试**：tests/test_p19_powermap.py（4 项：actor 几何计数/vmin-vmax、空 rows、GUI 渲染添加 N 个补丁 actor、无数据 WARN）。
+
+### P19-4g — 报告 Fan 工作点段 完成（报告全套增量）
+
+- **ice_report.fan_operating_points(project)**：从 model 的 fan/blower 对象读 flow/power/rpm 工作点行。
+- **ice_report.fan_operating_points_html(project)**：报告 HTML「Fan operating points」表；`html_report` 在对象表之后插入该段。
+- **测试**：tests/test_p19_report3.py（4 项：工作点行、html_report 含 Fan 段/风扇名、无风扇显示 No fans、block 不误判为风扇）；report/report2/report3/powermap 15 项通过无回归。

@@ -32,6 +32,36 @@ def object_table(project):
     return rows
 
 
+def fan_operating_points(project):
+    """Real per-fan/blower operating point rows: (name, flow, power, rpm)."""
+    model = getattr(project, "model", None)
+    out = []
+    if model is None:
+        return out
+    for o in model._all_objects():
+        if getattr(o, "kind", None) not in ("fan", "blower"):
+            continue
+        sv = getattr(o, "setvals", None) or {}
+        out.append((o.name, sv.get("flow", "-"), sv.get("power", "-"),
+                    sv.get("rpm", "-")))
+    return out
+
+
+def fan_operating_points_html(project):
+    """HTML section listing each fan/blower operating point (report suite)."""
+    rows = fan_operating_points(project)
+    if not rows:
+        return "<h2>Fan operating points</h2><p>No fans.</p>"
+    parts = ["<h2>Fan operating points</h2><table><tr><th>Fan</th>"
+             "<th>Flow</th><th>Power</th><th>RPM</th></tr>"]
+    for (name, flow, power, rpm) in rows:
+        parts.append("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td>"
+                     "</tr>" % tuple(html.escape(str(v))
+                                      for v in (name, flow, power, rpm)))
+    parts.append("</table>")
+    return "".join(parts)
+
+
 def html_report(project, mesh=None, title="ANSYS Icepak model report"):
     parts = ["<!DOCTYPE html><html><head><meta charset='utf-8'>",
              "<title>%s</title>" % html.escape(title),
@@ -52,7 +82,9 @@ def html_report(project, mesh=None, title="ANSYS Icepak model report"):
                      "<td>%s</td></tr>" % tuple(
                          html.escape(str(v)) for v in (name, kind, stype,
                                                        p1, p2)))
-    parts.append("</table><h2>Generated</h2><p>ice viewer report</p>"
+    parts.append("</table>")
+    parts.append(fan_operating_points_html(project))
+    parts.append("<h2>Generated</h2><p>ice viewer report</p>"
                  "</body></html>")
     return "".join(parts)
 

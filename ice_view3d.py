@@ -478,6 +478,58 @@ def metal_fraction_actors(renderer, icb, scale=0.001):
     return {'actors': actors, 'legend': legend}
 
 
+# ---- P19-4: powermap viewport display (colored heat patches) ---------------
+def powermap_actors(renderer, rows, extent=None, size=None):
+    """Build colored heat-map actors from powermap (x,y,value) rows.
+
+    Each row is a small board-top cube at (x,y) coloured blue(cold)->red(hot)
+    by its normalised value.  `size` defaults to a cell inferred from extent.
+    Returns {'actors': [...], 'n': n, 'vmin': vmin, 'vmax': vmax, 'extent': e}.
+    """
+    try:
+        import vtk
+    except Exception:
+        return {'actors': [], 'n': 0, 'vmin': 0.0, 'vmax': 0.0, 'extent': None}
+    if not rows:
+        return {'actors': [], 'n': 0, 'vmin': 0.0, 'vmax': 0.0, 'extent': extent}
+    xs = [float(r[0]) for r in rows]
+    ys = [float(r[1]) for r in rows]
+    vals = [float(r[2]) for r in rows]
+    vmin, vmax = min(vals), max(vals)
+    span = (vmax - vmin) or 1e-12
+    if size is None:
+        # infer a cell so the patches tile roughly like the source lattice
+        n = max(1, int(len(rows) ** 0.5))
+        if extent is not None:
+            (x0, y0), (x1, y1) = extent
+            size = max((x1 - x0), (y1 - y0)) / max(n, 1)
+        else:
+            size = max((max(xs) - min(xs)), (max(ys) - min(ys))) / max(n, 1) or 1.0
+    h = size * 0.9
+    z = 0.0
+    actors = []
+    for (x, y, v) in rows:
+        frac = (float(v) - vmin) / span
+        r, b = min(1.0, frac), min(1.0, 1.0 - frac)
+        cube = vtk.vtkCubeSource()
+        cube.SetBounds(float(x) - h / 2, float(x) + h / 2,
+                       float(y) - h / 2, float(y) + h / 2, z, z + h * 0.2)
+        mapper = vtk.vtkPolyDataMapper()
+        mapper.SetInputConnection(cube.GetOutputPort())
+        actor = vtk.vtkActor()
+        actor.SetMapper(mapper)
+        prop = actor.GetProperty()
+        prop.SetColor(r, 0.25, b)
+        prop.SetOpacity(0.65)
+        prop.SetRepresentationToSurface()
+        actor.SetPickable(0)
+        if renderer is not None:
+            renderer.AddActor(actor)
+        actors.append(actor)
+    return {'actors': actors, 'n': len(rows), 'vmin': vmin, 'vmax': vmax,
+            'extent': extent}
+
+
 def _mid(bounds):
     lo, hi = bounds
     return tuple((lo[i] + hi[i]) / 2.0 for i in range(3))

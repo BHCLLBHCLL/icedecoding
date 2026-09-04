@@ -1882,13 +1882,23 @@ class IceGui(QMainWindow):
                  (fmt, len(rows), self._powermaps[-1]["extent"]))
 
     def _show_powermap(self):
+        """Display the powermap as coloured heat patches in the viewport."""
         pm = getattr(self, "_powermaps", None) or []
         if not pm:
             self.log("No powermap imported", "WARN")
             return
         for p in pm[-1:]:
+            rows = p.get("rows", [])
             self.log("Powermap %s: extent=%s rows=%d" %
-                     (p["fmt"], p["extent"], len(p["rows"])))
+                     (p["fmt"], p.get("extent"), len(rows)))
+            if hasattr(self, "renderer") and self.renderer is not None:
+                from ice_view3d import powermap_actors
+                res = powermap_actors(self.renderer, rows, p.get("extent"))
+                if res["actors"]:
+                    self.renderer.ResetCamera()
+                    self.log("Powermap %s: %d patches, %.3g..%.3g %s" %
+                             (p["fmt"], res["n"], res["vmin"], res["vmax"],
+                              p.get("unit", "W")))
 
     def _em_mapping(self, kind):
         if self.project is None:

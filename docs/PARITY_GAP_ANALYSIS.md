@@ -70,7 +70,7 @@
 - 验收：字段与 params 表 100% 对表；test_editors_fields golden 测试。
 
 **P19-4 求解/后处理/报告全链路**
-- Solve 面板字段全集（Basic/Advanced/Parallel/Patch/Trials/ROM）；批队列 UI（IcBQS 语义）；post 视区云图/矢量/等值面/探针/极值（iso/平面切/极值云已按实温着色；History 曲线已用真实瞬态监测点；真插值等值面已用 KD 网格 + vtkContourFilter 三角面）+ 瞬态设置（已接线）+ 单位（已接线）；报告 Summary/Point/Full/Overview + 网络块值/Fan 工作点/EM/Solar + Autotherm + 5 导出。
+- Solve 面板字段全集（Basic/Advanced/Parallel/Patch/Trials/ROM）；批队列 UI（IcBQS 语义）；post 视区云图/矢量/等值面/探针/极值（iso/平面切/极值云已按实温着色；History 曲线已用真实瞬态监测点；真插值等值面已用 KD 网格 + vtkContourFilter 三角面；powermap 已视区显示）+ 瞬态设置（已接线）+ 单位（已接线）；报告 Summary/Point/Full/Overview + 网络块值/Fan 工作点（已加 Fan 段）/EM/Solar/Autotherm/5 导出。
 - 验收：面板字段对表；后处理与 heat_solver 数据打通（结构化网格先，HDM 网格后）；报告 golden 样例。
 
 **P19-5 宏内置库全量移植**
