@@ -652,3 +652,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **取证**：扫描 `_report/projects/*.json`（26 个解码工程）的每对象 `properties` 键，按 kind 归并得到 15 类的**真实逐类属性键全集**（如 block: solid_material/temp_total/res_rjc/res_rjb/res_jpow/thermal_heat_tr_face_profile；package: die_dim1/ball_diam/sub_*_trace_pct/via_*；wall: thermal_type/thermal_heat_tr*/convection_type/int_emis_on；pcb: kneff/kpeff/sbth/tth/tper…）。
 - **ice_editors**：新增 `GOLDEN_KEYS`（取证键全集）→ `spec_for(kind)` 合并：PROPERTY_SPECS 人工精修行 + 未收录的 golden 键自动变为可编辑行（数值类→text、开关类→check、标签 `_label_of`）；golden 键并入 `COMMON_SETVAL_KEYS`（模型编解码持久化）。
 - **测试**：tests/test_p19_editors.py（5 项：golden 全覆盖、golden 键持久化、键点检、编辑器 Properties 页含 block_type/solid_material/res_rjc、未知 kind 显示占位）；editors/forms/create/gui/golden 44 项通过无回归。
+
+### P19-3b — 剩余细项（数值键 spin 化 + spreadsheet/几何窗锁定）完成
+
+- **数值键控件类型细化**：`ice_editors.kind_of(key)`——check 键集→check、计数键（num1/via_num…）→int、数值形键（power/temp/res_*/dim*/coeff/conductivity/…，正则）→spin，其余→text；`spec_for` 自动行按 kind_of 推断；人工精修行 temp/heat/power/flow/pressure/rpm/rjc/rjb/area/loss/velocity 全部 text→spin。
+- **spreadsheet 多体编辑**（已有 SpreadsheetDialog，本轮补锁定测试）：rows=多对象、columns=Name/Kind+键集，编辑→`_apply` 写回 setvals/shape。
+- **右下几何信息窗橙色对齐按钮族**（已有 GeometryWindow，本轮补锁定测试）：6 个橙色（#f3a53a）xS..zE 对齐/拉伸按钮 + 坐标框 + set_object 填充 + Apply 双写。
+- **测试**：tests/test_p19_editors.py 增至 8 项（新增：数值键 spin/int/check 断言、spreadsheet 多体编辑写回、几何窗 6 橙色按钮+填充）；editors/forms/create/gui/golden/tree 53 项通过无回归。
+- **P19-3 收官**（字段全集+控件类型+spreadsheet+几何窗全部落地）。

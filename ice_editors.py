@@ -5,6 +5,8 @@ P4: 18-type object editors (Info/Properties/Geometry tabs) + Copy from.
 Property field specs are data-driven (kind -> key/label/widget), reading and
 writing through the same setval/attributes the model parser understands.
 """
+import re
+
 from PyQt5.QtWidgets import (
     QDialog, QGridLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QRadioButton, QTabWidget, QVBoxLayout, QWidget,
@@ -16,67 +18,67 @@ from ice_forms import FormPage
 PROPERTY_SPECS = {
     "block": [
         ("block_type", "Type", "combo", ["solid", "fluid", "hollow"]),
-        ("temp", "Temperature", "text"),
-        ("heat", "Heat flow", "text"),
+        ("temp", "Temperature", "spin"),
+        ("heat", "Heat flow", "spin"),
         ("material", "Material", "text"),
     ],
     "plate": [
         ("plate_type", "Type", "combo", ["solid", "hollow", "pcb"]),
-        ("temp", "Temperature", "text"),
-        ("heat", "Heat flow", "text"),
+        ("temp", "Temperature", "spin"),
+        ("heat", "Heat flow", "spin"),
         ("material", "Material", "text"),
         ("thickness", "Thickness", "spin"),
     ],
     "source": [
-        ("power", "Power", "text"),
-        ("temp", "Temperature", "text"),
-        ("heat", "Heat flow", "text"),
+        ("power", "Power", "spin"),
+        ("temp", "Temperature", "spin"),
+        ("heat", "Heat flow", "spin"),
         ("source_type", "Type", "combo", ["chip", "heat", "power", "current"]),
     ],
     "fan": [
         ("fan_type", "Type", "combo", ["axial", "radial", "p_external"]),
-        ("flow", "Flow rate", "text"),
-        ("pressure", "Pressure rise", "text"),
-        ("power", "Power", "text"),
-        ("rpm", "RPM", "text"),
+        ("flow", "Flow rate", "spin"),
+        ("pressure", "Pressure rise", "spin"),
+        ("power", "Power", "spin"),
+        ("rpm", "RPM", "spin"),
         ("kind", "Behavior", "combo", ["curve", "fixed", "none"]),
     ],
     "blower": [
         ("blower_type", "Type", "combo", ["centrifugal", "p_external"]),
-        ("flow", "Flow rate", "text"),
-        ("pressure", "Pressure rise", "text"),
-        ("power", "Power", "text"),
+        ("flow", "Flow rate", "spin"),
+        ("pressure", "Pressure rise", "spin"),
+        ("power", "Power", "spin"),
     ],
     "opening": [
         ("opening_type", "Type", "combo", ["free", "press_release", "vel"]),
-        ("temp", "Temperature", "text"),
-        ("pressure", "Pressure", "text"),
-        ("velocity", "Velocity", "text"),
+        ("temp", "Temperature", "spin"),
+        ("pressure", "Pressure", "spin"),
+        ("velocity", "Velocity", "spin"),
     ],
     "ventres": [
-        ("loss", "Loss coefficient", "text"),
-        ("area", "Open area", "text"),
+        ("loss", "Loss coefficient", "spin"),
+        ("area", "Open area", "spin"),
         ("resist", "Resistance", "text"),
     ],
     "grille": [
-        ("loss", "Loss coefficient", "text"),
-        ("area", "Open area", "text"),
+        ("loss", "Loss coefficient", "spin"),
+        ("area", "Open area", "spin"),
     ],
     "wall": [
         ("wall_type", "Type", "combo", ["solid", "thin", "plate"]),
-        ("temp", "Temperature", "text"),
-        ("heat", "Heat flow", "text"),
+        ("temp", "Temperature", "spin"),
+        ("heat", "Heat flow", "spin"),
         ("material", "Material", "text"),
     ],
     "resistance": [
-        ("area", "Open area", "text"),
-        ("loss", "Loss coefficient", "text"),
+        ("area", "Open area", "spin"),
+        ("loss", "Loss coefficient", "spin"),
     ],
     "package": [
         ("package_type", "Type", "combo", ["bga", "qfp", "soic", "sot", "generic"]),
-        ("rjc", "Rjc (C/W)", "text"),
-        ("rjb", "Rjb (C/W)", "text"),
-        ("power", "Power", "text"),
+        ("rjc", "Rjc (C/W)", "spin"),
+        ("rjb", "Rjb (C/W)", "spin"),
+        ("power", "Power", "spin"),
         ("material", "Material", "text"),
     ],
     "heatsink": [
@@ -91,7 +93,7 @@ PROPERTY_SPECS = {
         ("pcb_type", "Type", "combo", ["simple", "detailed"]),
         ("material", "Material", "text"),
         ("thickness", "Thickness", "spin"),
-        ("power", "Power", "text"),
+        ("power", "Power", "spin"),
     ],
     "enclosure": [
         ("enclosure_type", "Type", "combo", ["box", "cyl"]),
@@ -99,7 +101,7 @@ PROPERTY_SPECS = {
     ],
     "network": [
         ("network_type", "Type", "combo", ["two_resistor", "delphi", "multi_resistor"]),
-        ("power", "Power", "text"),
+        ("power", "Power", "spin"),
     ],
     "assembly": [
         ("assembly_type", "Type", "combo", ["generic", "pcb"]),
@@ -188,20 +190,42 @@ def _label_of(key):
     return key.replace('_', ' ').title()
 
 
+# P19-3: widget-kind inference for golden numeric keys (text -> spin/int)
+_CHECK_KEYS = {
+    'cres_heat_tr_on', 'thermal_heat_tr_on', 'int_emis_on', 'temp_transient',
+    'is_container', 'mesh_separate', 'grid_use_global', 'grid_hdm_uniform',
+    'grid_hdm_mlm_2d', 'all_emis_on', 'active',
+}
+_INT_KEYS = {'num1', 'via_num', 'num2', 'fin_count'}
+_NUM_RE = re.compile(
+    r'(power|temp|heat|res_|dim|num|sdim|height|radius|size|thickness|mass|'
+    r'flow|pct|per\b|diam|plate|trace|conduct|density|sp_heat|viscos|kneff|'
+    r'kpeff|sbth|tth|bth|mth|coeff|ratio|pressure|rpm|area|loss|velocity|rjc|'
+    r'rjb|grid_size|exp_a|exp_b|itemp|x[dces]$|y[dces]$|z[dces]$)', re.I)
+
+
+def kind_of(key):
+    """Widget kind for a golden key: check -> check, counts -> int,
+    numeric-looking -> spin, everything else -> text."""
+    if key in _CHECK_KEYS:
+        return 'check'
+    if key in _INT_KEYS:
+        return 'int'
+    if _NUM_RE.search(key):
+        return 'spin'
+    return 'text'
+
+
 def spec_for(kind):
     """Full per-class field spec: curated PROPERTY_SPECS rows + the golden
     real-project keys (any golden key not already curated becomes an editable
-    text row), so the editor covers the decoded Icepak field set per kind."""
+    row whose widget kind is inferred by kind_of), so the editor covers the
+    decoded Icepak field set per kind."""
     base = list(PROPERTY_SPECS.get(kind, []))
     seen = {item[0] for item in base}
     for key in GOLDEN_KEYS.get(kind, []):
         if key not in seen:
-            kind_ = 'check' if key in ('cres_heat_tr_on', 'thermal_heat_tr_on',
-                                       'int_emis_on', 'temp_transient',
-                                       'is_container', 'mesh_separate',
-                                       'grid_use_global', 'grid_hdm_uniform',
-                                       'grid_hdm_mlm_2d') else 'text'
-            base.append((key, _label_of(key), kind_))
+            base.append((key, _label_of(key), kind_of(key)))
             seen.add(key)
     return base
 

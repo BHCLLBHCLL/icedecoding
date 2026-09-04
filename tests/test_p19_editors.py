@@ -37,6 +37,27 @@ def test_golden_keys_spot_checks():
     assert spec_has("solid_conductivity_x", "material")
 
 
+def _kind_in(kind, key):
+    for item in E.spec_for(kind):
+        if item[0] == key:
+            return item[2]
+    return None
+
+
+def test_numeric_keys_are_spin_not_text():
+    assert _kind_in("block", "res_rjc") == "spin"
+    assert _kind_in("block", "power") == "spin"
+    assert _kind_in("block", "temp") == "spin"
+    assert _kind_in("block", "solid_material") == "text"
+    assert _kind_in("package", "via_num") == "int"
+    assert _kind_in("package", "ball_diam") == "spin"
+    assert _kind_in("wall", "thermal_heat_tr_on") == "check"
+    assert _kind_in("pcb", "kneff") == "spin"
+    assert _kind_in("fan", "case_thickness") == "spin"
+    assert E.kind_of("cres_heat_tr_on") == "check"
+    assert E.kind_of("dir_spec") == "text"
+
+
 @pytest.fixture(scope="module")
 def qapp():
     from PyQt5.QtWidgets import QApplication
@@ -63,3 +84,46 @@ def test_editor_dialog_unknown_kind_placeholder(qapp):
     keys = [r.key for r in prop._rows]
     assert "info" in keys  # read-only placeholder for unknown kinds
     dlg.close()
+
+
+def test_spreadsheet_multi_body_edit(qapp):
+    from ice_panes import SpreadsheetDialog
+    from icepak_parser.project import IcepakProject
+    proj = IcepakProject.empty("ss")
+    blk = default_object("block", "blk.1")
+    blk.setvals = {"power": ["2.0"], "material": ["Cu"]}
+    blk2 = default_object("block", "blk.2")
+    blk2.setvals = {"power": ["3.0"]}
+    proj.model.objects.append(blk)
+    proj.model.objects.append(blk2)
+    dlg = SpreadsheetDialog(parent=None, names=["blk.1", "blk.2"],
+                            project=proj)
+    assert dlg.table.rowCount() == 2
+    headers = [dlg.table.horizontalHeaderItem(c).text()
+               for c in range(dlg.table.columnCount())]
+    assert "Name" in headers and "Kind" in headers
+    assert "power" in headers and "material" in headers
+    pcol = headers.index("power")
+    dlg.table.item(0, pcol).setText("9.5")
+    dlg._apply()
+    assert blk.setvals["power"] == "9.5"
+    dlg.close()
+
+
+def test_geometry_window_orange_axis_buttons(qapp):
+    from PyQt5.QtWidgets import QPushButton
+    from ice_panes import GeometryWindow
+    w = GeometryWindow()
+    btns = [b for b in w.findChildren(QPushButton)
+            if b.text() in ("xS", "yS", "zS", "xE", "yE", "zE")]
+    assert len(btns) == 6
+    for b in btns:
+        assert "#f3a53a" in b.styleSheet()  # orange button family
+    blk = default_object("block", "blk.1")
+    blk.shape.setvals["point1"] = ["0.1", "0.2", "0.3"]
+    blk.shape.setvals["point2"] = ["0.4", "0.5", "0.6"]
+    w.set_object(blk)
+    assert w.txt_name.text() == "blk.1"
+    assert w._rows["xS"].text() == "0.1"
+    assert w._rows["zE"].text() == "0.6"
+    w.close()
