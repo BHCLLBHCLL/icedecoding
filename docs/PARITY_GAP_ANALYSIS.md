@@ -65,9 +65,9 @@
 - Lights 面板（多光源/强度/位置）；背景纯色/双色切换+颜色设定；per-type 颜色/线宽/着色/装饰；逐对象透明度；user views 保存/清除/文件；面/边循环选择（红/黄高亮、中键接受）；对象拖放移动（Interaction 规则）；Visible grid/Origin/Rulers/Title/Date/Construction/Depthcue 视觉落地；右下实时坐标与状态栏 4 段。
 - 验收：对照教程图 3-31/3-62/3-65 截图回归（_report/screenshots）。
 
-**P19-3 对象编辑器逐类字段全集**
-- 18 类对象的 Info/Properties/Geometry 字段表（golden JSON：类→页签→字段/控件/默认值/单位）；spreadsheet 多体编辑；右下几何信息窗橙色对齐按钮族。
-- 验收：字段与 params 表 100% 对表；test_editors_fields golden 测试。
+**P19-3 对象编辑器逐类字段全集**（字段集部分已交付）
+- **已交付**：`ice_editors.GOLDEN_KEYS`——从 26 个解码工程 `properties` 取证得到 15 类真实逐类属性键全集；`spec_for(kind)` 合并人工精修行 + 自动可编辑行（text/check），golden 键并入 `COMMON_SETVAL_KEYS` 持久化；ObjectEditDialog 三页签逐类展示。
+- 剩余：spreadsheet 多体编辑；右下几何信息窗橙色对齐按钮族；字段控件/默认值/单位 100% 对表细化（当前数值键多为 text 而非 spin）。
 
 **P19-4 求解/后处理/报告全链路**
 - ~~Solve 面板字段全集（Basic/Advanced/Parallel/Patch/Trials/ROM）~~ **已交付**（PATCH/TRIALS/ROM 字段表 golden 化 + Define trials/Create Krylov ROM 接线）；批队列 UI（IcBQS 语义，Phase C 已做）；post 视区云图/矢量/等值面/探针/极值（已全部真实化/着色）；+ 瞬态设置（已接线）+ 单位（已接线）+ Zoom-in 模型（已做）；报告 Summary/Point/Full/Overview + 网络块值/Fan 工作点/EM/Solar/Autotherm（已全部加段）+ 5 powermap 导出（已做）——**P19-4 收官**。

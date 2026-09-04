@@ -128,8 +128,86 @@ COMMON_SETVAL_KEYS = {
 }
 
 
+# ---- P19-3: golden per-class property keys (from decoded real projects) ----
+# union of 'properties' keys per kind across _report/projects/*.json (26 jobs).
+GOLDEN_KEYS = {
+    "block": ["solid_material", "power", "temp_total", "res_rjc",
+              "res_rjb", "res_jpow", "thermal_heat_tr_face_profile",
+              "group", "groups"],
+    "domain": ["minx_type", "maxx_type", "miny_type", "maxy_type",
+               "minz_type", "maxz_type", "fixvals"],
+    "enclosure": ["solid_material", "xd", "xe", "yd", "ye", "zd", "ze",
+                  "current_section"],
+    "fan": ["case_size", "case_thickness", "mass_flow", "flowtype",
+            "curvetype", "dir_spec", "side", "radius", "xc", "yc", "zc",
+            "xvec", "yvec", "zvec"],
+    "heatsink": ["dim1", "dim2", "num1", "sdim1", "base_height",
+                 "overall_height", "hi_rad", "low_rad"],
+    "material": ["mat_type", "mat_subtype", "solid_conductivity_x",
+                 "solid_conductivity_y", "solid_conductivity_z",
+                 "solid_density", "solid_sp_heat_constant", "fluid_density",
+                 "fluid_viscosity_constant", "fluid_conductivity_constant",
+                 "fluid_sp_heat_constant", "fluid_mol_weight",
+                 "normal_conductivity"],
+    "opening": ["xvecf", "yvecf", "zvecf", "xcoeffq", "ycoeffq", "zcoeffq",
+                "losstype", "mass_type", "heat_input", "heat_type",
+                "shtype", "vdepend"],
+    "package": ["die_dim1", "die_dim2", "pad_dim1", "pad_dim2", "ball_diam",
+                "package_thickness", "sub_material", "mold_material",
+                "pad_material", "sub_1trace_pct", "sub_2trace_pct",
+                "sub_3trace_pct", "sub_4trace_pct", "sub_btrace_pct",
+                "sub_ttrace_pct", "sub_inter_trace_pct", "via_num",
+                "via_diam", "via_plate_thickness", "sub_trace_thickness"],
+    "part": ["is_container", "grid_use_global", "grid_size_x", "grid_size_y",
+             "grid_size_z", "grid_hdm_uniform", "grid_hdm_mlm_2d",
+             "grid_type", "mesh_separate"],
+    "pcb": ["kneff", "kpeff", "sbth", "tth", "bth", "mth", "tper", "bper",
+            "mper"],
+    "plate": ["plate_type", "eff_thick", "sol_material", "power",
+              "cres_heat_tr_on"],
+    "resistance": ["xcoeffq", "ycoeffq", "zcoeffq", "losstype"],
+    "source": ["temp_total", "temp_transient", "temp_trans_type",
+               "temp_power_type", "current_voltage_type", "curr_source",
+               "usagetype_s", "all_emis_on", "temp_trans_exp_a",
+               "temp_trans_exp_b"],
+    "ventres": ["vent_type", "xcoeffq", "ycoeffq", "zcoeffq", "xratioq",
+                "dir_spec", "xvec", "yvec", "zvec"],
+    "wall": ["thermal_type", "thermal_rtype", "thermal_heat_tr",
+             "thermal_heat_tr_on", "thermal_heat_tr_type", "thermal_heat_area",
+             "thermal_itemp", "eff_thick", "sol_material", "vtype",
+             "forced_flow_dir", "convection_type", "external_orientation",
+             "int_emis_on", "active"],
+}
+
+# P19-3: golden per-class keys also persist through the model codec
+for _kind_keys in GOLDEN_KEYS.values():
+    COMMON_SETVAL_KEYS.update(_kind_keys)
+
+
+def _label_of(key):
+    return key.replace('_', ' ').title()
+
+
 def spec_for(kind):
-    return PROPERTY_SPECS.get(kind, [])
+    """Full per-class field spec: curated PROPERTY_SPECS rows + the golden
+    real-project keys (any golden key not already curated becomes an editable
+    text row), so the editor covers the decoded Icepak field set per kind."""
+    base = list(PROPERTY_SPECS.get(kind, []))
+    seen = {item[0] for item in base}
+    for key in GOLDEN_KEYS.get(kind, []):
+        if key not in seen:
+            kind_ = 'check' if key in ('cres_heat_tr_on', 'thermal_heat_tr_on',
+                                       'int_emis_on', 'temp_transient',
+                                       'is_container', 'mesh_separate',
+                                       'grid_use_global', 'grid_hdm_uniform',
+                                       'grid_hdm_mlm_2d') else 'text'
+            base.append((key, _label_of(key), kind_))
+            seen.add(key)
+    return base
+
+
+def spec_has(key, kind):
+    return any(item[0] == key for item in spec_for(kind))
 
 
 class ObjectEditDialog(QDialog):

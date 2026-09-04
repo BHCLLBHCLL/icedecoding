@@ -646,3 +646,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_gui**：`_define_trials` / `_create_krylov_rom` 打开对应字段对话框（无项目/无 problem → _nyi）；SLOT_MAP `"Define trials"`/`"Create Krylov ROM"`（此前 NYI）。
 - **测试**：tests/test_p19_solvefields.py（6 项：三字段表键名、槽位解析、KINDS 含两键、GUI 打开对话框 kind/title、无 problem → _nyi）；solvefields/solve/p6_solve/golden/gui 50 项通过无回归。
 - **P19-4 全部 5 项完成**（等值面/曲线/瞬态·单位·zoom·powermap/Solve 字段全集/报告全套）。
+
+### P19-3 — 编辑器逐类字段全集（golden 键取证 + 合并）完成
+
+- **取证**：扫描 `_report/projects/*.json`（26 个解码工程）的每对象 `properties` 键，按 kind 归并得到 15 类的**真实逐类属性键全集**（如 block: solid_material/temp_total/res_rjc/res_rjb/res_jpow/thermal_heat_tr_face_profile；package: die_dim1/ball_diam/sub_*_trace_pct/via_*；wall: thermal_type/thermal_heat_tr*/convection_type/int_emis_on；pcb: kneff/kpeff/sbth/tth/tper…）。
+- **ice_editors**：新增 `GOLDEN_KEYS`（取证键全集）→ `spec_for(kind)` 合并：PROPERTY_SPECS 人工精修行 + 未收录的 golden 键自动变为可编辑行（数值类→text、开关类→check、标签 `_label_of`）；golden 键并入 `COMMON_SETVAL_KEYS`（模型编解码持久化）。
+- **测试**：tests/test_p19_editors.py（5 项：golden 全覆盖、golden 键持久化、键点检、编辑器 Properties 页含 block_type/solid_material/res_rjc、未知 kind 显示占位）；editors/forms/create/gui/golden 44 项通过无回归。
