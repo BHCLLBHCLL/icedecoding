@@ -2673,6 +2673,16 @@ class IceGui(QMainWindow):
         from ice_panes import SOLUTION_PAR_KEYS
         self._show_problem_keys("Parallel settings", SOLUTION_PAR_KEYS)
 
+    def _show_transient_settings(self):
+        """Solve -> Transient settings (time step / steps / end time / save)."""
+        from ice_panes import SOLUTION_TRANSIENT_KEYS
+        self._show_problem_keys("Transient settings", SOLUTION_TRANSIENT_KEYS)
+
+    def _show_postprocessing_units(self):
+        """Post -> Postprocessing units (temp/pressure/length display units)."""
+        from ice_panes import SOLUTION_UNITS_KEYS
+        self._show_problem_keys("Postprocessing units", SOLUTION_UNITS_KEYS)
+
     def _load_post_objects(self, path=None):
         from icepak_parser.project import parse_post_objects
         if path is None:

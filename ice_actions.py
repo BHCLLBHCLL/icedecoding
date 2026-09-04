@@ -220,6 +220,8 @@ SLOT_MAP = {
     "Basic settings": "_show_basic_settings",
     "Advanced settings": "_show_advanced_settings",
     "Parallel settings": "_show_parallel_settings",
+    "Transient settings": "_show_transient_settings",
+    "Postprocessing units": "_show_postprocessing_units",
     # File / ECAD
     "Import Electronics Cooling XML": "_import_ecxml",
     "Export Electronics Cooling XML": "_export_ecxml",

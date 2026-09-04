@@ -68,6 +68,13 @@ SOLUTION_ADV_KEYS = (
 SOLUTION_PAR_KEYS = (
     "nproc", "parallel", "npartitions", "hosts", "parallel_type",
 )
+SOLUTION_TRANSIENT_KEYS = (
+    "time_step", "n_time_steps", "end_time", "problem_time",
+    "save_interval", "physical_time",
+)
+SOLUTION_UNITS_KEYS = (
+    "problem_temp_units", "problem_pressure_units", "problem_length_unit",
+)
 
 ICEPAK_LIB_CANDIDATES = (
     r"C:\Program Files\ANSYS Inc\v195\Icepak\icepak19.5\icepak_lib",

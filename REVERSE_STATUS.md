@@ -591,3 +591,17 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **fluent_fdat.iso_surface_polys(centers, temps, value, dims=40)**：离散单元中心云 → KD-tree 最近邻填充到有界体素网格（占用外体素设哨兵 tmin-10，使等值面限制在数据区）→ `vtkContourFilter` → 三角化 vtkPolyData；O(N + V·log N)，58k/124k 单元真实云可用；无单元/退化返回 None。
 - **ice_gui._maybe_real_post_actor(Isosurface)**：优先渲染真三角化等值面 actor（vtkPolyDataMapper，按等值温度在蓝→红标尺上的归一化着色、半透明 0.6）+ ResetCamera + 日志（cell 数/温度）；无则回退点带。
 - **测试**：tests/test_p19_isosurface.py（4 项：输出全三角化（VTK_TRIANGLE）、表面跨越真实等值面 x≈0.5、退化云(<4 点)返回 None、等值超出范围返回 None）；post/cloud/iso/tempcloud/history 20 项通过无回归。
+
+### P19-4d — 瞬态设置（Solve → Transient settings）接线完成
+
+- **ice_panes.SOLUTION_TRANSIENT_KEYS**：瞬态问题键（time_step / n_time_steps / end_time / problem_time / save_interval / physical_time）。
+- **ice_gui._show_transient_settings**：`_show_problem_keys("Transient settings", SOLUTION_TRANSIENT_KEYS)`——golden 命令「Transient settings」（此前 NYI）现打开瞬态问题键表单（与 Basic/Advanced/Parallel 同一 DetailsDialog 路径）。
+- **ice_actions SLOT_MAP**：`"Transient settings" -> _show_transient_settings`。
+- **测试**：tests/test_p19_transient.py（3 项：槽位解析、瞬态键集、GUI `_show_transient_settings` 委托 `_show_problem_keys("Transient settings", KEYS)`）；golden/solve 14 项通过无回归。
+
+### P19-4e — 后处理单位（Post → Postprocessing units）接线完成
+
+- **ice_panes.SOLUTION_UNITS_KEYS**：单位问题键（problem_temp_units / problem_pressure_units / problem_length_unit）。
+- **ice_gui._show_postprocessing_units**：`_show_problem_keys("Postprocessing units", SOLUTION_UNITS_KEYS)`——golden 命令「Postprocessing units」（此前 NYI）打开单位键表单。
+- **ice_actions SLOT_MAP**：`"Postprocessing units" -> _show_postprocessing_units`。
+- **测试**：tests/test_p19_units.py（3 项：槽位解析、单位键集、GUI `_show_postprocessing_units` 委托 `_show_problem_keys("Postprocessing units", KEYS)`）。
