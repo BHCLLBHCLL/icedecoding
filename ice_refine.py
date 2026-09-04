@@ -32,10 +32,14 @@ def object_cuts(objects, axis):
 
 
 def refine_axes(axes, objects, min_spacing=0.0045, interior_ratio=2,
-                adaptive=True):
+                adaptive=True, zoom_names=None):
     """Return refined axes (base + object faces + per-object adaptive
     interior splits).  adaptive=True: division count per object scaled by
-    its span so large bodies get denser interior lines (Icepak-like)."""
+    its span so large bodies get denser interior lines (Icepak-like).
+
+    zoom_names (P19 zoom-in modeling): when given, only the listed objects
+    get per-object interior splits (the rest keep face-only conformal cuts),
+    producing a locally refined 'zoom-in' mesh."""
     out = []
     for ax in range(3):
         base = list(axes[ax])
@@ -46,6 +50,8 @@ def refine_axes(axes, objects, min_spacing=0.0045, interior_ratio=2,
             span = hi[ax] - lo[ax]
             if span <= min_spacing:
                 continue
+            if zoom_names is not None and name not in zoom_names:
+                continue  # zoom-in: only listed objects get interior splits
             if adaptive:
                 # per-object density: ~1 cut per min_spacing*ratio, but at
                 # most sized by span so small bodies stay coarse
@@ -68,8 +74,11 @@ def refine_axes(axes, objects, min_spacing=0.0045, interior_ratio=2,
 
 
 def refine_mesh(result, model, min_spacing=0.0045, interior_ratio=2,
-                max_cells=400000):
-    """Build a refined conformal MeshResult over the existing base grid."""
+                max_cells=400000, zoom_names=None):
+    """Build a refined conformal MeshResult over the existing base grid.
+
+    zoom_names: subset of object names that get local 'zoom-in' interior
+    refinement; unlisted objects keep face-only conformal cuts."""
     objects = []
     for o in model._all_objects():
         if o.kind == "domain":
@@ -77,16 +86,43 @@ def refine_mesh(result, model, min_spacing=0.0045, interior_ratio=2,
         b = _bounds_of(o)
         if b is not None:
             objects.append((o.name, b))
-    axes = refine_axes(result.axes, objects, min_spacing, interior_ratio)
+    axes = refine_axes(result.axes, objects, min_spacing, interior_ratio,
+                       zoom_names=zoom_names)
     cells = (len(axes[0]) - 1) * (len(axes[1]) - 1) * (len(axes[2]) - 1)
     if cells > max_cells:
         # coarsen min_spacing iteratively to stay within budget
         scale = (cells / float(max_cells)) ** (1.0 / 3.0)
         axes = refine_axes(result.axes, objects,
-                           min_spacing * scale * 1.15, interior_ratio)
+                           min_spacing * scale * 1.15, interior_ratio,
+                           zoom_names=zoom_names)
         cells = (len(axes[0]) - 1) * (len(axes[1]) - 1) * (len(axes[2]) - 1)
     cell_obj = classify_cells(axes, objects)
     return MeshResult(axes, cell_obj)
+
+
+def zoom_object_names(model):
+    """Candidate object names for zoom-in modeling (excludes the domain)."""
+    return [o.name for o in model._all_objects()
+            if getattr(o, 'kind', '') != 'domain']
+
+
+def zoom_bounds(model, names):
+    """Merged bounding box of the zoom-in objects -> ((xmin,ymin,zmin),
+    (xmax,ymax,zmax)) or None when no listed object has bounds."""
+    lo = [1e30, 1e30, 1e30]
+    hi = [-1e30, -1e30, -1e30]
+    found = False
+    for o in model._all_objects():
+        if o.name not in names:
+            continue
+        b = _bounds_of(o)
+        if b is None:
+            continue
+        found = True
+        for i in range(3):
+            lo[i] = min(lo[i], b[0][i])
+            hi[i] = max(hi[i], b[1][i])
+    return (tuple(lo), tuple(hi)) if found else None
 
 
 def tune_for_target(project_dir, target, model=None, lo=0.002, hi=0.02,

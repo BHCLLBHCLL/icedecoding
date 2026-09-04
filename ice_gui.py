@@ -768,6 +768,7 @@ class IceGui(QMainWindow):
         apply_hotkeys(self)
         self._rebuild_macros_menu()
         self._rebuild_ecad_import_menu()
+        self._rebuild_model_zoom_menu()
 
     def _rebuild_macros_menu(self, macros=None):
         """P7: Macros menu from the three-level macro registry."""
@@ -1128,7 +1129,9 @@ class IceGui(QMainWindow):
                 ms = float(params.get("min_spacing", 0.003))
                 ratio_r = float(params.get("interior_ratio", 2.0))
                 result = refine_mesh(result, self.project.model,
-                                     min_spacing=ms, interior_ratio=ratio_r)
+                                     min_spacing=ms, interior_ratio=ratio_r,
+                                     zoom_names=getattr(
+                                         self, "_zoom_object_names", None))
         max_elems = int(params.get("grid_max_elements", 25000000))
         if result.cell_count > max_elems:
             self.log("Large mesh: %d cells > max %d" %
@@ -1170,6 +1173,64 @@ class IceGui(QMainWindow):
             self._run_mesh(dlg.params())
         else:
             self.log("Meshing cancelled")
+
+    def _rebuild_model_zoom_menu(self):
+        """Model -> Zoom-in modeling entry (P19 modeling feature)."""
+        m = self._menus.get("Model")
+        if m is None:
+            return
+        if getattr(self, "_zoom_menu", None) is not None:
+            m.removeAction(self._zoom_menu)
+            self._zoom_menu = None
+        act = m.addAction("Zoom-in modeling")
+        act.triggered.connect(self._zoom_in_modeling)
+        self._zoom_menu = act
+
+    def _zoom_in_modeling(self):
+        """Model -> Zoom-in modeling: pick objects for local mesh refinement."""
+        from PyQt5.QtCore import Qt as _Qt
+        from PyQt5.QtWidgets import (QDialog, QLabel, QListWidget,
+                                     QListWidgetItem, QHBoxLayout,
+                                     QPushButton, QVBoxLayout)
+        from ice_refine import zoom_object_names
+        model = self.project.model if self.project else None
+        if model is None:
+            self._nyi("Zoom-in modeling")
+            return
+        names = zoom_object_names(model)
+        if not names:
+            self.log("No objects to refine", "WARN")
+            self._zoom_object_names = []
+            return
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Zoom-in modeling")
+        dlg.setMinimumSize(360, 420)
+        lay = QVBoxLayout(dlg)
+        lay.addWidget(QLabel("Select objects to refine (zoom-in):", dlg))
+        lst = QListWidget(dlg)
+        prev = set(getattr(self, "_zoom_object_names", None) or [])
+        for n in names:
+            it = QListWidgetItem(n)
+            it.setFlags(it.flags() | _Qt.ItemIsUserCheckable)
+            it.setCheckState(_Qt.Checked if n in prev else _Qt.Unchecked)
+            lst.addItem(it)
+        lay.addWidget(lst, 1)
+        row = QHBoxLayout()
+        ok = QPushButton("OK", dlg)
+        ok.setDefault(True)
+        cancel = QPushButton("Cancel", dlg)
+        row.addStretch(1)
+        row.addWidget(ok)
+        row.addWidget(cancel)
+        lay.addLayout(row)
+        ok.clicked.connect(dlg.accept)
+        cancel.clicked.connect(dlg.reject)
+        if dlg.exec_() == QDialog.Accepted:
+            sel = [lst.item(i).text() for i in range(lst.count())
+                   if lst.item(i).checkState() == _Qt.Checked]
+            self._zoom_object_names = sel
+            self.log("Zoom-in modeling: %d object(s) selected for "
+                     "local refinement" % len(sel))
 
     def _mesh_actor_update(self):
         """Replace the mesh display actor with the generated grid."""

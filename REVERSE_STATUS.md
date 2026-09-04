@@ -617,3 +617,10 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_report.fan_operating_points(project)**：从 model 的 fan/blower 对象读 flow/power/rpm 工作点行。
 - **ice_report.fan_operating_points_html(project)**：报告 HTML「Fan operating points」表；`html_report` 在对象表之后插入该段。
 - **测试**：tests/test_p19_report3.py（4 项：工作点行、html_report 含 Fan 段/风扇名、无风扇显示 No fans、block 不误判为风扇）；report/report2/report3/powermap 15 项通过无回归。
+
+### P19-4h — Zoom-in 模型（局部网格细化）完成
+
+- **ice_refine.refine_axes / refine_mesh 增加 `zoom_names`**：给定对象名集合时，只有这些对象获得逐对象体内细分（其余对象保留共形面切、不做体内加细）→ 局部“zoom-in”加密网格；默认 None 不影响既有调用。
+- **ice_refine.zoom_object_names(model)**：候选对象名（排除 domain）；**zoom_bounds(model, names)**：选中对象的合并包围盒。
+- **ice_gui._zoom_in_modeling**：Model→Zoom-in modeling 复选框多选对话框（选中对象存入 `self._zoom_object_names`）；`_run_mesh` 的 refine_mesh 传给 zoom_names。Model 菜单动态项 `_rebuild_model_zoom_menu`。
+- **测试**：tests/test_p19_zoom.py（6 项：对象名/包围盒、zoom 网格单元数少于全细化、共形面切保留（未列对象面仍被切）、Model 菜单含 Zoom-in modeling、无项目 → _nyi）；test_p13_refine 5 项无回归。
