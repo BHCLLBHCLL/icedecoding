@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (QDialog, QHBoxLayout, QLabel, QLineEdit,
 
 from ice_forms import FormPage
 from ice_solve import (ADVANCED_FIELDS, BASIC_FIELDS, PARALLEL_FIELDS,
+                       TRIALS_FIELDS, ROM_FIELDS,
                        read_setters, write_setter)
 
 
@@ -33,7 +34,9 @@ class SolveSettingsDialog(QDialog):
 
     KINDS = {"Basic settings": BASIC_FIELDS,
              "Advanced settings": ADVANCED_FIELDS,
-             "Parallel settings": PARALLEL_FIELDS}
+             "Parallel settings": PARALLEL_FIELDS,
+             "Define trials": TRIALS_FIELDS,
+             "Create Krylov ROM": ROM_FIELDS}
 
     def __init__(self, parent=None, kind="Basic settings", problem=None,
                  title=None):

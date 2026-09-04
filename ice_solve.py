@@ -55,6 +55,32 @@ PARALLEL_FIELDS = [
     ("solve_parallel_cpus", "CPUs", "int", 1),
 ]
 
+# P19-4: Patch temperatures / trials / Krylov ROM field tables
+# (keys from oracle problem files: solve_do_trials / solve_trial_*,
+#  ss_krylov / krylov_* verified in D:/training/icepak/*/problem)
+PATCH_FIELDS = [
+    ("patch_object", "Object name", "text", ""),
+    ("patch_temp", "Temperature (C)", "spin", 80.0),
+    ("patch_apply_to", "Apply to", "combo", ["object", "assembly", "group"]),
+]
+
+TRIALS_FIELDS = [
+    ("solve_do_trials", "Run trials", "check", 0),
+    ("solve_trial_prefix", "Trial prefix", "text", "trial"),
+    ("solve_trial_fixed_prefix", "Fixed prefix", "check", 1),
+    ("solve_do_fast_trials", "Fast trials", "check", 0),
+]
+
+ROM_FIELDS = [
+    ("ss_krylov", "Krylov ROM", "check", 0),
+    ("krylov_input_objects", "Input objects", "text", ""),
+    ("krylov_cons_order", "Construction order", "int", 3),
+    ("krylov_eval_order", "Evaluation order", "int", 3),
+    ("krylov_heat_flux", "Heat flux", "check", 0),
+    ("krylov_eval_times", "Evaluation times", "text", 0.0),
+    ("krylov_trans_id", "Transient ID", "text", "transient00"),
+]
+
 SOLVE_FIELDS = {  # solution-id block
     "solve_id": "Solution ID",
     "solve_startmon": "Start monitor",

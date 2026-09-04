@@ -638,3 +638,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **ice_gui._full_report**：有 job base 时写真实完整报告（`write_real_report`，Overview=真实温度汇总 + 各段），否则回退 html_report。
 - **Autotherm**：`ice_ecad.export_autotherm(path, model)`（source/fan/blower/block 热模型文本）；`ice_gui._export_autotherm` 保存对话框；SLOT_MAP `"Write Autotherm file"`（此前 NYI）。
 - **测试**：tests/test_p19_report4.py（5 项：完整报告含 5 段、空项目各段 No 文案、write_real_report 含段、Autotherm 文件内容、Autotherm 槽位）；report/export/golden 29 项通过无回归。
+
+### P19-4k — Solve 面板字段全集（Patch / trials / ROM）完成，P19-4 收官
+
+- **ice_solve**：新增 `PATCH_FIELDS`（patch_object/patch_temp/patch_apply_to）、`TRIALS_FIELDS`（solve_do_trials/solve_trial_prefix/solve_trial_fixed_prefix/solve_do_fast_trials）、`ROM_FIELDS`（ss_krylov/krylov_input_objects/krylov_cons_order/krylov_eval_order/krylov_heat_flux/krylov_eval_times/krylov_trans_id）——键名从 oracle problem 文件实测（9-2Optimization/10-1transient）。
+- **ice_solve_gui.SolveSettingsDialog.KINDS**：新增 `Define trials`/`Create Krylov ROM`（与 Basic/Advanced/Parallel 同一 form 编辑路径，`write_setter` 写回 problem）。
+- **ice_gui**：`_define_trials` / `_create_krylov_rom` 打开对应字段对话框（无项目/无 problem → _nyi）；SLOT_MAP `"Define trials"`/`"Create Krylov ROM"`（此前 NYI）。
+- **测试**：tests/test_p19_solvefields.py（6 项：三字段表键名、槽位解析、KINDS 含两键、GUI 打开对话框 kind/title、无 problem → _nyi）；solvefields/solve/p6_solve/golden/gui 50 项通过无回归。
+- **P19-4 全部 5 项完成**（等值面/曲线/瞬态·单位·zoom·powermap/Solve 字段全集/报告全套）。

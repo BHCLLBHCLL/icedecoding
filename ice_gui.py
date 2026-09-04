@@ -3200,6 +3200,28 @@ class IceGui(QMainWindow):
         dlg = DetailsDialog("Basic settings", rows[:80], self)
         dlg.exec_()
 
+    def _define_trials(self):
+        """Solve -> Define trials: trial field dialog (TRIALS_FIELDS)."""
+        if self.project is None or self.project.problem is None:
+            self._nyi("Define trials")
+            return
+        from ice_solve_gui import SolveSettingsDialog
+        dlg = SolveSettingsDialog(self, kind="Define trials",
+                                  problem=self.project.problem,
+                                  title="Define trials")
+        dlg.exec_()
+
+    def _create_krylov_rom(self):
+        """Solve -> Create Krylov ROM: ROM field dialog (ROM_FIELDS)."""
+        if self.project is None or self.project.problem is None:
+            self._nyi("Create Krylov ROM")
+            return
+        from ice_solve_gui import SolveSettingsDialog
+        dlg = SolveSettingsDialog(self, kind="Create Krylov ROM",
+                                  problem=self.project.problem,
+                                  title="Create Krylov ROM")
+        dlg.exec_()
+
     # ------------------------------------------------------------- 3D scene
     def _rebuild_scene(self):
         if (not self._enable_3d or self.project is None

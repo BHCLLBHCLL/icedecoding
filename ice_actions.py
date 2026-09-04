@@ -217,6 +217,8 @@ SLOT_MAP = {
     "Run solution": "_run_solution",
     "Solution monitor": "_open_solution_monitor",
     "Patch temperatures": "_patch_temperatures",
+    "Define trials": "_define_trials",
+    "Create Krylov ROM": "_create_krylov_rom",
     "Basic settings": "_show_basic_settings",
     "Advanced settings": "_show_advanced_settings",
     "Parallel settings": "_show_parallel_settings",
