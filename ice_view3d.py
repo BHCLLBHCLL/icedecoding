@@ -286,6 +286,57 @@ def make_display_actors(renderer, bounds, prefix="_ice_lay"):
     mesh.GetProperty().SetColor(0.35, 0.55, 0.75)
     mesh.SetPickable(0)
     add_actor("mesh", mesh)
+
+    # P19-2: construction lines (box skeleton + internal gridlines)
+    cpd = vtk.vtkPolyData()
+    cpts = vtk.vtkPoints()
+    clines = vtk.vtkCellArray()
+    edges = ((0, 0, 0, 1, 0, 0), (1, 0, 0, 1, 1, 0), (1, 1, 0, 0, 1, 0),
+             (0, 1, 0, 0, 0, 0), (0, 0, 1, 1, 0, 1), (1, 0, 1, 1, 1, 1),
+             (1, 1, 1, 0, 1, 1), (0, 1, 1, 0, 0, 1), (0, 0, 0, 0, 0, 1),
+             (1, 0, 0, 1, 0, 1), (1, 1, 0, 1, 1, 1), (0, 1, 0, 0, 1, 1))
+    for e in edges:
+        p0 = (lo[0] + e[0] * size[0], lo[1] + e[1] * size[1],
+              lo[2] + e[2] * size[2])
+        p1 = (lo[0] + e[3] * size[0], lo[1] + e[4] * size[1],
+              lo[2] + e[5] * size[2])
+        cpts.InsertNextPoint(p0)
+        cpts.InsertNextPoint(p1)
+        i = cpts.GetNumberOfPoints() - 2
+        clines.InsertNextCell(2)
+        clines.InsertCellPoint(i)
+        clines.InsertCellPoint(i + 1)
+    cpd.SetPoints(cpts)
+    cpd.SetLines(clines)
+    con = vtk.vtkActor()
+    con.SetMapper(vtk.vtkPolyDataMapper())
+    con.GetMapper().SetInputData(cpd)
+    con.GetProperty().SetColor(0.42, 0.55, 0.68)
+    con.GetProperty().SetLineWidth(1.2)
+    con.SetPickable(0)
+    con.VisibilityOff()  # off by default (Display -> Construction lines)
+    add_actor("construction", con)
+
+    # P19-2: construction points (grid intersections on cabinet faces)
+    ppd = vtk.vtkPolyData()
+    ppts = vtk.vtkPoints()
+    m = 5
+    for i in range(m + 1):
+        fx = i / float(m)
+        x = lo[0] + fx * size[0]
+        for j in range(m + 1):
+            fy = j / float(m)
+            y = lo[1] + fy * size[1]
+            ppts.InsertNextPoint(x, y, lo[2])
+    ppd.SetPoints(ppts)
+    conp = vtk.vtkActor()
+    conp.SetMapper(vtk.vtkPolyDataMapper())
+    conp.GetMapper().SetInputData(ppd)
+    conp.GetProperty().SetColor(0.90, 0.60, 0.25)
+    conp.GetProperty().SetPointSize(4)
+    conp.SetPickable(0)
+    conp.VisibilityOff()  # off by default (Display -> Construction points)
+    add_actor("construction_points", conp)
     return out
 
 

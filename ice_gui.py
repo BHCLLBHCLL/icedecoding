@@ -378,6 +378,19 @@ def kind_color(kind):
     return KIND_COLORS.get(kind, DEFAULT_COLOR)
 
 
+# P19-2: per-type decorators (color / line width / opacity), editable via
+# View -> Per-type visuals...
+KIND_VISUALS = {}
+
+
+def kind_visuals(kind):
+    v = KIND_VISUALS.get(kind)
+    if v is None:
+        v = KIND_VISUALS[kind] = {"color": kind_color(kind),
+                                  "width": 1.1, "opacity": 1.0}
+    return v
+
+
 # ===========================================================================
 # 3. 场景对象
 # ===========================================================================
@@ -690,6 +703,21 @@ class IceGui(QMainWindow):
             "background:#1f4e79; color:#ffffff; font-weight:bold;")
         cv.addWidget(self._title_bar)
         cv.addWidget(main, 1)
+        # P19-2: 右下状态栏 4 段（选中对象 / 着色 / 单位 / 对象数）
+        seg = QWidget(self)
+        sl = QHBoxLayout(seg)
+        sl.setContentsMargins(4, 1, 4, 1)
+        sl.setSpacing(2)
+        self._status_segments = []
+        for text in ("Sel: -", "Shading: solid", "Units: SI",
+                     "Objects: 0"):
+            lab = QLabel(text, seg)
+            lab.setStyleSheet("background:#dfe8ef; color:#37474f; "
+                              "padding:1px 6px; border:1px solid #b0bec5;")
+            sl.addWidget(lab)
+            self._status_segments.append(lab)
+        sl.addStretch(1)
+        cv.addWidget(seg)
         self.setCentralWidget(central)
 
         self.statusBar().showMessage("No project")
@@ -777,6 +805,7 @@ class IceGui(QMainWindow):
         self._rebuild_macros_menu()
         self._rebuild_ecad_import_menu()
         self._rebuild_model_zoom_menu()
+        self._rebuild_view_visuals_menu()
 
     def _rebuild_macros_menu(self, macros=None):
         """P7: Macros menu from the three-level macro registry."""
@@ -928,7 +957,15 @@ class IceGui(QMainWindow):
             actors = make_display_actors(self.renderer, b)
             self._display_actors = actors
             for name, actor in actors.items():
-                actor.SetVisibility(bool(self._display_state.get(name, True)))
+                if name == "construction":
+                    on = bool(self._display_state.get(
+                        "Display construction lines", False))
+                elif name == "construction_points":
+                    on = bool(self._display_state.get(
+                        "Display construction points", False))
+                else:
+                    on = bool(self._display_state.get(name, True))
+                actor.SetVisibility(on)
             for name in ("title", "date"):
                 if name in actors:
                     actor.SetVisibility(bool(self._display_state.get(name, False)))
@@ -946,6 +983,12 @@ class IceGui(QMainWindow):
             self.log("Display mesh %s" % ("on" if on else "off"), "INFO")
         if name == "Mouse position":
             self._mouse_pos_label.setVisible(bool(on))
+        if name == "Display construction lines" and \
+                "construction" in self._display_actors:
+            self._display_actors["construction"].SetVisibility(bool(on))
+        if name == "Display construction points" and \
+                "construction_points" in self._display_actors:
+            self._display_actors["construction_points"].SetVisibility(bool(on))
         if name == "Depthcue" and self.renderer is not None:
             try:
                 self.renderer.SetFog(bool(on))
@@ -1193,6 +1236,32 @@ class IceGui(QMainWindow):
         act = m.addAction("Zoom-in modeling")
         act.triggered.connect(self._zoom_in_modeling)
         self._zoom_menu = act
+
+    def _rebuild_view_visuals_menu(self):
+        """View -> Per-type visuals... entry (P19-2 per-type decorators)."""
+        m = self._menus.get("View")
+        if m is None:
+            return
+        if getattr(self, "_kind_visuals_action", None) is not None:
+            m.removeAction(self._kind_visuals_action)
+            self._kind_visuals_action = None
+        act = m.addAction("Per-type visuals...")
+        act.triggered.connect(self._edit_kind_visuals)
+        self._kind_visuals_action = act
+
+    def _edit_kind_visuals(self):
+        """Edit per-type color/line-width/opacity; applies on scene rebuild."""
+        from ice_panes import KindVisualsDialog
+        kinds = list(dict.fromkeys(VISIBLE_KINDS))
+        dlg = KindVisualsDialog(self, kinds=kinds, visuals=KIND_VISUALS)
+        if dlg.exec_() == QDialog.Accepted:
+            vals = dlg.values()
+            for kind, v in vals.items():
+                KIND_VISUALS[kind] = v
+            if self._enable_3d:
+                self._rebuild_scene()
+                self._render()
+            self.log("Per-type visuals updated (%d kinds)" % len(vals))
 
     def _zoom_in_modeling(self):
         """Model -> Zoom-in modeling: pick objects for local mesh refinement."""
@@ -2249,6 +2318,22 @@ class IceGui(QMainWindow):
             self._rebuild_scene()
             if fit:
                 self._fit()
+        self._update_status_segments()
+
+    def _update_status_segments(self):
+        """P19-2: 右下状态栏 4 段 (selection / shading / units / object count)."""
+        labs = getattr(self, "_status_segments", None)
+        if not labs:
+            return
+        n = 0
+        if self.project is not None and self.project.model is not None:
+            n = len(list(self.project.model._all_objects()))
+        labels = ("Sel: %s" % (getattr(self, "selected", None) or "-"),
+                  "Shading: %s" % getattr(self, "_shading", "solid"),
+                  "Units: SI",
+                  "Objects: %d" % n)
+        for lab, text in zip(labs, labels):
+            lab.setText(text)
 
     def _apply_project(self, proj, log_msg=None):
         self.project = proj
@@ -3276,7 +3361,8 @@ class IceGui(QMainWindow):
         actor = vtk.vtkActor()
         actor.SetMapper(mapper)
         prop = actor.GetProperty()
-        prop.SetColor(*so.color)
+        visuals = kind_visuals(so.kind)
+        prop.SetColor(*visuals["color"])
         prop.SetAmbient(0.25)
         prop.SetDiffuse(0.85)
         prop.SetSpecular(0.25)
@@ -3285,7 +3371,7 @@ class IceGui(QMainWindow):
         selected = self.selected == so.name
         if mode == "wire":
             prop.SetRepresentationToWireframe()
-            prop.SetLineWidth(1.1)
+            prop.SetLineWidth(float(visuals.get("width", 1.1)))
             prop.LightingOff()
             prop.SetAmbient(1.0)
         elif mode == "solid":
@@ -3310,9 +3396,11 @@ class IceGui(QMainWindow):
                 prop.SetRepresentationToWireframe()
                 prop.LightingOff()
                 prop.SetAmbient(1.0)
-        # P19-2: per-object transparency from the scene object's opacity
+        # P19-2: per-object transparency x per-type opacity
         try:
-            prop.SetOpacity(float(getattr(so, "opacity", 1.0)))
+            op = float(getattr(so, "opacity", 1.0)) * \
+                float(visuals.get("opacity", 1.0))
+            prop.SetOpacity(op)
         except (TypeError, ValueError):
             prop.SetOpacity(1.0)
         if so.kind == "domain":

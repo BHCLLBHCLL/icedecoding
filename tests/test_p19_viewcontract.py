@@ -87,3 +87,70 @@ def test_set_background_solid_path(win):
     win._set_background("solid", c1="#123456")
     assert win._bg_style == "solid"
     assert win._bg_color1 == "#123456"
+
+
+def test_kind_visuals_defaults():
+    v = ice_gui.kind_visuals("block")
+    assert v["opacity"] == 1.0
+    assert v["width"] == 1.1
+    assert len(v["color"]) == 3
+
+
+def test_make_actor_uses_visuals(win):
+    import vtk
+    ice_gui.KIND_VISUALS["block"] = {"color": (1.0, 0.0, 0.0),
+                                     "width": 3.0, "opacity": 0.8}
+    so = SceneObject("blk.1", "block", (0.5, 0.5, 0.5), vtk.vtkPolyData(),
+                     ((0, 0, 0), (1, 1, 1)), opacity=1.0)
+    win._shading = "wire"
+    win.selected = None
+    actor = win._make_actor(so)
+    assert abs(actor.GetProperty().GetOpacity() - 0.8) < 1e-6
+    assert abs(actor.GetProperty().GetLineWidth() - 3.0) < 1e-6
+    col = actor.GetProperty().GetColor()
+    assert abs(col[0] - 1.0) < 1e-6 and abs(col[1]) < 1e-6
+    ice_gui.KIND_VISUALS.pop("block", None)
+
+
+def test_kind_visuals_dialog_values(qapp):
+    from ice_panes import KindVisualsDialog
+    dlg = KindVisualsDialog(parent=None, kinds=["block", "fan"],
+                            visuals={"block": {"color": (1, 0, 0),
+                                              "width": 2.5,
+                                              "opacity": 0.5}})
+    vals = dlg.values()
+    assert vals["block"]["width"] == 2.5
+    assert vals["block"]["opacity"] == 0.5
+    assert abs(vals["block"]["color"][0] - 1.0) < 1e-6
+    assert "fan" in vals  # default-filled row
+    # edit a cell -> reflected
+    dlg.table.item(1, 1).setText("2.0")
+    vals2 = dlg.values()
+    assert vals2["fan"]["width"] == 2.0
+    dlg.close()
+
+
+def test_construction_actors_present_and_hidden():
+    r = _Renderer()
+    actors = make_display_actors(r, ((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)))
+    assert "construction" in actors
+    assert "construction_points" in actors
+    assert actors["construction"].GetVisibility() == 0
+    assert actors["construction_points"].GetVisibility() == 0
+
+
+def test_status_segments_update(win):
+    win._new_project()
+    assert len(win._status_segments) == 4
+    win.selected = "blk.1"
+    win._update_status_segments()
+    assert win._status_segments[0].text() == "Sel: blk.1"
+    assert win._status_segments[1].text().startswith("Shading:")
+    assert win._status_segments[2].text() == "Units: SI"
+    assert win._status_segments[3].text().startswith("Objects:")
+
+
+def test_view_menu_per_type_visuals_present(win):
+    m = win._menus["View"]
+    texts = [a.text() for a in m.actions()]
+    assert "Per-type visuals..." in texts

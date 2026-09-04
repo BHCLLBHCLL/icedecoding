@@ -1151,9 +1151,71 @@ class SpreadsheetDialog(QDialog):
         self.accept()
 
 
-# ---------------------------------------------------------------------------
-# P3 — View->Lights dialog: tdv_lights_edit + background style
-# ---------------------------------------------------------------------------
+class KindVisualsDialog(QDialog):
+    """View -> Per-type visuals: color / line width / opacity per object kind."""
+
+    def __init__(self, parent=None, kinds=None, visuals=None):
+        super().__init__(parent)
+        self.setWindowTitle("Per-type visuals")
+        self.setMinimumSize(480, 420)
+        self._kinds = list(kinds or [])
+        v = QVBoxLayout(self)
+        v.setContentsMargins(8, 8, 8, 8)
+        self.table = QTableWidget(self)
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(
+            ["Color (hex)", "Line width", "Opacity"])
+        self.table.setRowCount(len(self._kinds))
+        for r, kind in enumerate(self._kinds):
+            d = (visuals or {}).get(kind, {})
+            color = d.get("color", (0.65, 0.65, 0.65))
+            try:
+                hexc = "#%02x%02x%02x" % tuple(
+                    min(255, max(0, int(255 * c))) for c in color)
+            except (TypeError, ValueError):
+                hexc = "#a6a6a6"
+            items = (QTableWidgetItem(hexc),
+                     QTableWidgetItem("%.2f" % d.get("width", 1.1)),
+                     QTableWidgetItem("%.2f" % d.get("opacity", 1.0)))
+            for c, it in enumerate(items):
+                self.table.setItem(r, c, it)
+            self.table.setVerticalHeaderItem(r, QTableWidgetItem(kind))
+        v.addWidget(self.table, 1)
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        ok = QPushButton("OK", self)
+        ok.setDefault(True)
+        ok.clicked.connect(self.accept)
+        cancel = QPushButton("Cancel", self)
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(ok)
+        btns.addWidget(cancel)
+        v.addLayout(btns)
+
+    def _hex_rgb(self, text):
+        s = str(text).strip().lstrip("#")
+        if len(s) != 6:
+            raise ValueError(s)
+        return tuple(int(s[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+    def values(self):
+        """{kind: {'color': (r,g,b), 'width': float, 'opacity': float}}."""
+        out = {}
+        for r, kind in enumerate(self._kinds):
+            try:
+                color = self._hex_rgb(self.table.item(r, 0).text())
+            except (ValueError, AttributeError):
+                color = (0.65, 0.65, 0.65)
+            try:
+                width = float(self.table.item(r, 1).text())
+            except (ValueError, AttributeError):
+                width = 1.1
+            try:
+                opacity = float(self.table.item(r, 2).text())
+            except (ValueError, AttributeError):
+                opacity = 1.0
+            out[kind] = {"color": color, "width": width, "opacity": opacity}
+        return out
 
 class ViewOptionsDialog(QDialog):
     """Edit viewer lights (ambient/light1-4) and background style."""
