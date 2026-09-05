@@ -38,7 +38,7 @@
 ### Phase F — UI 契约补漏（菜单/树/多命令）
 - **F1 Windows 动态菜单** ✅：`rebuild_windows_menu`——toplevel 注册表（Message/Project/Graphics/Geometry + 每个 PlotWindow 动态入表）实时生成可勾选显隐菜单（golden dynamic 注记语义）。
 - **F2 File Workbench 变体** ✅：`build_file_variant(gui, wb=True)`——golden 注记 WB 变体（Refresh Input Data 首项、Close Icepak 替 Quit、去 New/Open/Save-as/Unpack/JEDEC 导入导出），`ICE_WORKBENCH=1` 环境开关。
-- **F3 树图标/按键对齐 + 组右键全集**：golden 树命令逐项落地。
+- **F3 树图标/按键对齐 + 组右键全集** ✅：修复 Delete all 误接 bug（delete_all 语义）、Copy params 落地（原 NYI）、Show/Clear clipboard + Search library 入根菜单、golden 树热键绑定锁定。
 - **F4 多命令按钮**（icon 键 multi-command）。
   验收：golden UI 测试 1:1（菜单/工具栏/热键/树命令全对表）。
 

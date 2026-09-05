@@ -693,6 +693,14 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### F3 — 树右键全集 + 组操作补漏 完成
+
+- **修复真 bug**：「Delete all」此前误接 `_group_all(..., False)`（=Deactivate all）→ 改为 `_delete_group(name, delete_all=True)`：删除组内对象并入 Trash；`_delete_group` 实现 delete_all 语义。
+- **Copy params 落地**（原 NYI）：`_copy_group_params(name)` 收集成员 setvals 摘要写剪贴板。
+- **Show/Clear clipboard + Search library**（golden 树命令 tree_show/clear_clipboard、tree_search_library）：根菜单三项 + 处理器；`_search_library` 高亮库树匹配节点。
+- **树按键对齐核实**：golden 树热键（Toggle object active/visible、Open/close tree node、Open/close model subtree、Toggle shading type）已全部绑定（test 锁定 `_hotkey_actions`）。
+- **测试**：tests/test_p19_treefx.py（6 项：Delete all 删成员入 Trash、Delete group 保留对象、Copy params 写剪贴板、Show/Clear clipboard、Search library 无异常、树热键绑定）；tree/gui/golden/create 45 项通过无回归。
+
 ### F1 — Windows 动态菜单（toplevel 注册表→实时菜单）完成
 
 - **ice_menus_toolbars.rebuild_windows_menu(gui)**：Windows 菜单由 `gui._toplevels`（name→widget）实时生成——每项可勾选，触发即显示/置顶或隐藏对应 toplevel；`_build_dynamic_menus` 的静态 Message/Project 段替换为注册表重建。

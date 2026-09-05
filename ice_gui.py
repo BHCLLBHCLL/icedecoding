@@ -3017,11 +3017,12 @@ class IceGui(QMainWindow):
                 menu.addAction("Deactivate all",
                                lambda: self._group_all(role[1], False))
                 menu.addAction("Delete all",
-                               lambda: self._group_all(role[1], False))
+                               lambda: self._delete_group(role[1],
+                                                          delete_all=True))
                 menu.addAction("Create assembly",
                                lambda: self._group_to_assembly(role[1]))
-                menu.addAction("Copy params", lambda: self._nyi(
-                    "Copy params from group"))
+                menu.addAction("Copy params",
+                               lambda: self._copy_group_params(role[1]))
             elif tag == "trash":
                 menu.addAction("Restore from Trash",
                                lambda: self.restore_from_trash(
@@ -3029,8 +3030,12 @@ class IceGui(QMainWindow):
             elif (item.text(0) == "Model" or item.text(0) == "Project"
                   or tag == "root"):
                 menu.addAction("Find object", self._find_object)
+                menu.addAction("Search library", self._search_library)
                 menu.addAction("Expand all", self._expand_tree)
                 menu.addAction("Collapse all", self._collapse_tree)
+                menu.addSeparator()
+                menu.addAction("Show clipboard", self._show_clipboard)
+                menu.addAction("Clear clipboard", self._clear_clipboard)
                 menu.addSeparator()
                 ov = menu.addMenu("Object view")
                 for i, label in enumerate((
@@ -3126,10 +3131,69 @@ class IceGui(QMainWindow):
             self._refresh()
 
     def _delete_group(self, name, delete_all=False):
-        if name in self._groups:
-            self._groups.pop(name)
-            self._refresh()
-            self.log("Deleted group %s" % name)
+        if name not in self._groups:
+            return
+        if delete_all:
+            model = getattr(self.project, "model", None) \
+                if self.project else None
+            members = list(self._groups[name])
+            if model is not None:
+                for m in members:
+                    obj = model.object_by_name(m)
+                    if obj is not None and obj in model.objects:
+                        model.objects.remove(obj)
+            self._trash.extend(members)
+        self._groups.pop(name)
+        self._refresh()
+        self.log("Deleted group %s (%s)" %
+                 (name, "with members" if delete_all else "group only"))
+
+    def _copy_group_params(self, name):
+        """F3: Copy params - member setvals summary to the clipboard."""
+        from PyQt5.QtWidgets import QApplication
+        model = getattr(self.project, "model", None) if self.project else None
+        if model is None:
+            return
+        lines = []
+        for m in self._groups.get(name, []):
+            obj = model.object_by_name(m)
+            if obj is None:
+                continue
+            sv = getattr(obj, "setvals", None) or {}
+            brief = {k: (v[-1] if isinstance(v, list) and v else v)
+                     for k, v in list(sv.items())[:6]}
+            lines.append("%s: %s" % (m, brief))
+        QApplication.clipboard().setText(chr(10).join(lines))
+        self.log("Copied %d group params to clipboard" % len(lines))
+
+    def _show_clipboard(self):
+        from PyQt5.QtWidgets import QApplication
+        text = QApplication.clipboard().text()
+        self.log("Clipboard:%s%s" % (chr(10), text or "(empty)"))
+
+    def _clear_clipboard(self):
+        from PyQt5.QtWidgets import QApplication
+        QApplication.clipboard().clear()
+        self.log("Clipboard cleared")
+
+    def _search_library(self):
+        """F3: Search library - highlight matching library tree nodes."""
+        text, ok = QInputDialog.getText(self, "Search library", "Part name:")
+        if not ok or not str(text).strip():
+            return
+        needle = str(text).strip().lower()
+        hits = []
+        def walk(item):
+            if needle in item.text(0).lower():
+                hits.append(item)
+            for i in range(item.childCount()):
+                walk(item.child(i))
+        for i in range(self.library_tree.topLevelItemCount()):
+            walk(self.library_tree.topLevelItem(i))
+        if hits:
+            self.library_tree.setCurrentItem(hits[0])
+            self.library_tree.scrollToItem(hits[0])
+        self.log("Library search '%s': %d hit(s)" % (needle, len(hits)))
 
     def _group_all(self, name, active):
         model = getattr(self.project, "model", None) if self.project else None
