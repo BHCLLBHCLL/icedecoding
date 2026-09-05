@@ -495,6 +495,8 @@ class IceGui(QMainWindow):
         self._enable_3d = enable_3d
         # P19-F2: Workbench variant of the File menu (ICE_WORKBENCH=1)
         self._workbench = os.environ.get("ICE_WORKBENCH", "0") == "1"
+        # P19-F1: Windows menu toplevel registry (name -> widget)
+        self._toplevels = []
         self.setWindowTitle(ICEPAK_TITLE)
         self.resize(1600, 900)
 
@@ -723,6 +725,25 @@ class IceGui(QMainWindow):
         self.setCentralWidget(central)
 
         self.statusBar().showMessage("No project")
+        self._register_toplevels()
+
+    def register_toplevel(self, name, widget):
+        """F1: register a toplevel window in the Windows-menu registry."""
+        for i, (n, w) in enumerate(self._toplevels):
+            if n == name:
+                self._toplevels[i] = (name, widget)
+                break
+        else:
+            self._toplevels.append((name, widget))
+        from ice_menus_toolbars import rebuild_windows_menu
+        rebuild_windows_menu(self)
+
+    def _register_toplevels(self):
+        self._toplevels = []
+        self.register_toplevel("Message", getattr(self, "message_win", None))
+        self.register_toplevel("Project", getattr(self, "nav_tabs", None))
+        self.register_toplevel("Graphics", getattr(self, "graphics", None))
+        self.register_toplevel("Geometry", getattr(self, "geometry_win", None))
 
     def _act(self, menu, text, slot=None, shortcut=None, checkable=False,
              icon=None, checked=False):
@@ -1720,6 +1741,8 @@ class IceGui(QMainWindow):
                                trials_from_problem, synthetic_cell_temps)
         from ice_report import obj_temperature_for
         win = PlotWindow(self, title=kind)
+        # F1: each opened plot window joins the Windows-menu registry
+        self.register_toplevel("Plot: %s" % kind, win)
         result = getattr(self, "_mesh_result", None)
         if kind == "Convergence":
             rows = getattr(self, "_residual_rows", None)

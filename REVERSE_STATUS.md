@@ -693,6 +693,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### F1 — Windows 动态菜单（toplevel 注册表→实时菜单）完成
+
+- **ice_menus_toolbars.rebuild_windows_menu(gui)**：Windows 菜单由 `gui._toplevels`（name→widget）实时生成——每项可勾选，触发即显示/置顶或隐藏对应 toplevel；`_build_dynamic_menus` 的静态 Message/Project 段替换为注册表重建。
+- **ice_gui**：`_toplevels` 注册表 + `register_toplevel(name, widget)`（去重+重建菜单）+ `_register_toplevels()`（Message/Project/Graphics/Geometry 四个主窗）；**绘图窗动态注册**——`_open_plot` 每个新 PlotWindow 自动加入 Windows 菜单（golden dynamic 注记「toplevel registry」语义）。
+- **测试**：tests/test_p19_windows.py（4 项：注册表 4 主窗可勾选、register 去重、toggle 显隐双向、绘图窗自动入表）；golden/gui 32 项通过无回归。
+
 ### F2 — File Workbench 变体 完成（Phase F 启动）
 
 - **ice_menus_toolbars**：重构 `build_menus` 内部递归为可复用 `build_entries(gui, parent, entries, skip=(), replace=None)`；新增 `build_file_variant(gui, wb=True)`——WB 变体按 golden 注记（menus_icepak.tcl L170-211）：去 New/Open/Save-as/Unpack/Import JEDEC/Export JEDEC，首项 `Refresh Input Data`，`Quit`→`Close Icepak`（skip 递归进 Import/Export 级联）。

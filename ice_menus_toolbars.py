@@ -219,20 +219,50 @@ def _build_dynamic_menus(gui):
                   "Polygonal ducts", "Heat sink creation",
                   "Detailed heat sink creation", "Heat Pipe"):
             make_action(gui, t, m, icon_key=gui._registry.icon_key(t))
-    # Windows: dynamic toplevel registry
+    # Windows: dynamic toplevel registry (rebuilt live, F1)
     if "Windows" not in gui._menus:
         m = mb.addMenu("Windows")
         gui._menus["Windows"] = m
-        gui._act_show_msg = make_action(
-            gui, "Message", m, slot=gui._toggle_message,
-            checkable=True, checked=True)
-        gui._act_show_nav = make_action(
-            gui, "Project", m, slot=gui._toggle_nav,
-            checkable=True, checked=True)
+        rebuild_windows_menu(gui)
+    else:
+        rebuild_windows_menu(gui)
     # Orient trailing dynamic "User views" submenu (Icepak adds it at runtime)
     orient = gui._menus.get("Orient")
     if orient is not None and not hasattr(gui, "_user_views_menu"):
         gui._user_views_menu = orient.addMenu("User views")
+
+
+def _toggle_toplevel(gui, widget, action, on):
+    """Windows menu item: show/raise or hide a registered toplevel."""
+    if widget is None:
+        return
+    if on and hasattr(widget, "raise_"):
+        widget.raise_()
+    widget.setVisible(bool(on))
+    action.setChecked(bool(on))
+    render = getattr(gui, "_render", None)
+    if render is not None and on:
+        render()
+
+
+def rebuild_windows_menu(gui):
+    """F1: Windows menu generated from the live toplevel registry.
+
+    gui._toplevels = [(name, widget), ...] (message/project/graphics/
+    geometry + each opened plot window); every entry is a checkable action
+    that shows/raises or hides its toplevel."""
+    m = gui._menus.get("Windows")
+    if m is None:
+        return
+    m.clear()
+    for name, widget in getattr(gui, "_toplevels", []) or []:
+        a = QAction(name, gui)
+        a.setCheckable(True)
+        a.setChecked(bool(widget.isVisible()) if widget is not None else False)
+        a.triggered.connect(
+            lambda on=False, w=widget, act=a:
+            _toggle_toplevel(gui, w, act, on))
+        m.addAction(a)
 
 
 def apply_hotkeys(gui):
