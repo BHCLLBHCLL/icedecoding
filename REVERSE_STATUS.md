@@ -695,6 +695,8 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ### I1 — P19-1 参数拟合（全管线实证基线）完成（I 收官，目标待续）
 
+> **I1 续跑（P18j 邻域细扫）**：确认 (ring_pitch=0.10, ring_zfrac=0.5, stagger=0) 为全管线**局部最优**并稳定复现——x **−8.11% / y +4.56% / score 0.127 / ratio 1.062 / 1e-3 重合 9.2%**（nodes 136910）。邻近配置 (0.105,0.48)/(0.11,0.45) 发生**分岔**（y 暴增 95%+、ratio 0.52），参数空间尖锐非线性；±5% 的 x 目标距最优差 ~3% 且无连续插值路径——需机理级改进（如分岔边界稳定化或 per-column 相位调节）而非网格步长。研究终点：pipeline 最优已 golden 化于 final_fit.json。
+
 - **tools/hdm_final_fit.py**：58k 全管线（背景+锥壳）在 (curv_c, ring_zfrac, ring_lattice, ring_base_step) 小网格上运行 `position_match` 打分（distinct x/y 偏差%、ratio、1e-3 重合、|dx|+|dy|），写 `tools/probe_work/final_fit.json`。
 - **实证基线（4 配置）**：best = curv_c=0.165/zfrac=0.8/lattice=false → nodes 103862、**distinct x 1874 vs oracle 8190（−77.1%）、y 1722 vs 6777（−74.6%）**、ratio 1.088、1e-3 重合 8.0%、score 1.517——表明**单次默认 grid_size 的基网格过粗**，与 P18j 的 x −8.1%/y +4.6%（per-job grid_params + 深层八叉树 + 对象尺寸场路径）差一个数量级。
 - **结论**：±3~5% 目标需要 P18j 路径的 per-job grid_params 网格尺寸 + 更深八叉树 + 对象尺寸场，是多配置研究扩展（机制/比对/扫描工具链已全备）；本步交付**全管线实测基线**并 golden 化 final_fit.json。

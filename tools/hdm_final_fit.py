@@ -29,13 +29,13 @@ def load_oracle():
     return (r[0] if r and r[0] is not None else np.zeros((0, 3))), n
 
 
-def run(curv_c, zfrac, lattice, base_step):
+def run(pitch, zfrac, lattice, base_step):
     t0 = time.time()
     boxes, verts, params, st = build(
         JDIR, max_levels=2, surface_extra=1, use_object_sizes=True,
-        max_cells=500000, cyl_cap=8, shell_factor=0.3, curv_c=curv_c,
-        proj_tol=None, ring_pitch=curv_c, ring_zfrac=zfrac,
-        ring_lattice=lattice, ring_base_step=base_step)
+        max_cells=500000, cyl_cap=8, shell_factor=0.3, curv_c=0.165,
+        proj_tol=None, ring_pitch=pitch, ring_zfrac=zfrac,
+        ring_stagger=0.0, ring_lattice=lattice, ring_base_step=base_step)
     verts = np.unique(np.round(verts, 12), axis=0)
     oracle, n = load_oracle()
     m = position_match(verts, oracle)
@@ -43,7 +43,7 @@ def run(curv_c, zfrac, lattice, base_step):
     dy = len(np.unique(np.round(verts[:, 1], 12)))
     ddx = (dx - ORACLE_XY[0]) / float(ORACLE_XY[0])
     ddy = (dy - ORACLE_XY[1]) / float(ORACLE_XY[1])
-    rec = {"curv_c": curv_c, "zfrac": zfrac, "lattice": lattice,
+    rec = {"pitch": pitch, "zfrac": zfrac, "lattice": lattice,
            "base_step": base_step, "nodes": len(verts), "x": dx, "y": dy,
            "dx_pct": round(ddx * 100, 2), "dy_pct": round(ddy * 100, 2),
            "ratio": round(dx / float(dy), 4),
@@ -56,8 +56,8 @@ def run(curv_c, zfrac, lattice, base_step):
 
 
 def main():
-    grid = [(0.165, 0.8, False, 0.02), (0.165, 1.0, False, 0.02),
-            (0.165, 0.8, True, 0.02), (0.165, 1.0, True, 0.02)]
+    grid = [(0.10, 0.50, False, 0.02), (0.105, 0.48, False, 0.02),
+            (0.11, 0.45, False, 0.02)]
     out = []
     for cfg in grid:
         try:
