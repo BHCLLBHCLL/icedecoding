@@ -693,6 +693,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### I3 — 全量分片 CI 完成（Phase I 启动）
+
+- **tools/run_sharded.py**：把 313+ 测试按子系统分为 8 片（data/mesh/post/ecad/macros/solver/gui/misc = 68 个测试文件），**每个分片在独立子进程跑**（新解释器释放内存、iceecad 超时隔离），逐片聚合；`--list` / `--shard NAME` / `--all`。
+- **覆盖性保证**：`discover()`/`assign()` 数据驱动，测试断言每个 `tests/test_*.py` 恰好落入一个分片（无孤儿/无遗漏）。
+- **实测**：`--list` 8 片 68 文件；`--shard macros` 子进程 23 项通过（端到端可用）。
+- **测试**：tests/test_p19_sharded.py（4 项：每文件有分片、分组全集=真实目录、每片≥1 文件、--list CLI 返回 0）。
+
 ### H2/H4 — Annotations + 图像导出格式 完成，Phase H 收官
 
 - **H2 Annotations**：`AnnotationsDialog` 增加自由文本注释字段（annot_text/annot_x/y/z）；`_apply_annotations` 存储 `self._annotations`（有文本即生成注释，空则清空）。
