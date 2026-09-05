@@ -115,59 +115,95 @@ def _entries(entries):
 # menu generation
 # --------------------------------------------------------------------------- #
 
+def build_entries(gui, parent, entries, skip=(), replace=None):
+    """Recursively create menu actions for a golden entry list.
+
+    skip: scalar labels to omit everywhere; replace: {label: new_label}."""
+    reg = gui._registry
+    replace = replace or {}
+    skip = set(skip or ())
+    for kind, label, sub in _entries(entries):
+        if kind == "sep":
+            parent.addSeparator()
+            continue
+        if label in skip:
+            continue
+        label = replace.get(label, label)
+        if kind == "cascade":
+            if label == "Default shading":
+                m = parent.addMenu("Default shading")
+                gui._build_shading_menu(m)
+            elif label == "Object names":
+                m = parent.addMenu("Object names")
+                gui._build_names_menu(m)
+            elif label == "Visible":
+                m = parent.addMenu("Visible")
+                gui._build_visible_menu(m)
+            elif label == "Edit toolbars":
+                m = parent.addMenu("Edit toolbars")
+                gui._tb_menu = m
+            elif label == "User views" or "$visible_object_commands" in str(sub):
+                # dynamic submenu placeholders
+                if label == "User views":
+                    gui._user_views_menu = parent.addMenu("User views")
+                else:
+                    gui._build_visible_menu(parent)
+            else:
+                m = parent.addMenu(label)
+                build_entries(gui, m, sub, skip, replace)
+            continue
+        # plain command
+        if label in ("Edit toolbars",):
+            m = parent.addMenu("Edit toolbars")
+            gui._tb_menu = m
+            continue
+        if label == "Lights":
+            make_action(gui, label, parent, icon_key=reg.icon_key(label))
+            continue
+        if isinstance(label, list):
+            label = label[0] if label else ""
+        if label.startswith("$"):
+            continue
+        make_action(gui, label, parent, icon_key=reg.icon_key(label))
+
+
+def build_file_variant(gui, wb=True):
+    """File menu Workbench variant (menus_icepak.tcl L170-211):
+    no New/Open/Save-as/Unpack/Import JEDEC/Export JEDEC; 'Refresh Input
+    Data' first; 'Close Icepak' instead of Quit."""
+    m = gui._menus.get("File")
+    if m is None:
+        return
+    m.clear()
+    entries = None
+    for md in gui._registry.menus():
+        if md.get("name") == "File" and not md.get("dynamic"):
+            entries = md.get("entries", [])
+            break
+    if entries is None:
+        return
+    if not wb:
+        build_entries(gui, m, entries)
+        return
+    make_action(gui, "Refresh Input Data", m)
+    m.addSeparator()
+    skip = {"New project", "Open project", "Save project as",
+            "Unpack project", "Import JEDEC PTD/JEP30 file",
+            "Export JEDEC PTD/JEP30 file"}
+    build_entries(gui, m, entries, skip=skip,
+                  replace={"Quit": "Close Icepak"})
+
+
 def build_menus(gui):
     reg = gui._registry
     mb = gui.menuBar()
-
-    def build(parent, entries):
-        for kind, label, sub in _entries(entries):
-            if kind == "sep":
-                parent.addSeparator()
-                continue
-            if kind == "cascade":
-                if label == "Default shading":
-                    m = parent.addMenu("Default shading")
-                    gui._build_shading_menu(m)
-                elif label == "Object names":
-                    m = parent.addMenu("Object names")
-                    gui._build_names_menu(m)
-                elif label == "Visible":
-                    m = parent.addMenu("Visible")
-                    gui._build_visible_menu(m)
-                elif label == "Edit toolbars":
-                    m = parent.addMenu("Edit toolbars")
-                    gui._tb_menu = m
-                elif label == "User views" or "$visible_object_commands" in str(sub):
-                    # dynamic submenu placeholders
-                    if label == "User views":
-                        gui._user_views_menu = parent.addMenu("User views")
-                    else:
-                        gui._build_visible_menu(parent)
-                else:
-                    m = parent.addMenu(label)
-                    build(m, sub)
-                continue
-            # plain command
-            if label in ("Edit toolbars",):
-                m = parent.addMenu("Edit toolbars")
-                gui._tb_menu = m
-                continue
-            if label == "Lights":
-                make_action(gui, label, parent, icon_key=reg.icon_key(label))
-                continue
-            if isinstance(label, list):
-                label = label[0] if label else ""
-            if label.startswith("$"):
-                continue
-            make_action(gui, label, parent, icon_key=reg.icon_key(label))
-
     for menu_def in reg.menus():
         name = menu_def.get("name")
         if menu_def.get("dynamic"):
             continue
         m = mb.addMenu(name)
         gui._menus[name] = m
-        build(m, menu_def.get("entries", []))
+        build_entries(gui, m, menu_def.get("entries", []))
 
     # dynamic menus (golden placeholders, semantics from the plan)
     _build_dynamic_menus(gui)

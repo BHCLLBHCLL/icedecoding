@@ -493,6 +493,8 @@ class IceGui(QMainWindow):
                 "PyQt5 / vtk 未安装: python -m pip install PyQt5 vtk numpy")
         super().__init__()
         self._enable_3d = enable_3d
+        # P19-F2: Workbench variant of the File menu (ICE_WORKBENCH=1)
+        self._workbench = os.environ.get("ICE_WORKBENCH", "0") == "1"
         self.setWindowTitle(ICEPAK_TITLE)
         self.resize(1600, 900)
 
@@ -806,6 +808,9 @@ class IceGui(QMainWindow):
         self._rebuild_ecad_import_menu()
         self._rebuild_model_zoom_menu()
         self._rebuild_view_visuals_menu()
+        if getattr(self, "_workbench", False):
+            from ice_menus_toolbars import build_file_variant
+            build_file_variant(self, wb=True)
 
     def _rebuild_macros_menu(self, macros=None):
         """P7: Macros menu from the three-level macro registry."""
@@ -908,6 +913,27 @@ class IceGui(QMainWindow):
                  (obj.name, ', '.join('%s=%s' % (k, v[0] if isinstance(v, list) else v)
                                       for k, v in (obj.setvals or {}).items())))
         self._refresh()
+
+    def _refresh_input_data(self):
+        """Workbench File -> Refresh Input Data: re-parse the project."""
+        path = getattr(self.project, "path", None) if self.project else None
+        if not path or not os.path.exists(path):
+            self._nyi("Refresh Input Data")
+            return
+        from icepak_parser import model_parser
+        try:
+            with open(path, encoding="latin-1", errors="replace") as fh:
+                model = model_parser.parse(fh.read())
+        except Exception as err:
+            self.log("Refresh Input Data: %r" % err, "WARN")
+            return
+        self.project.model = model
+        self._mark_dirty("Refreshed input data")
+        self._refresh(fit=True)
+
+    def _close_icepak(self):
+        """Workbench File -> Close Icepak."""
+        self.close()
 
     def _open_edit_toolbars(self):
         """View -> Edit toolbars dialog (Icepak parity)."""

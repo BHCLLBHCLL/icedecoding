@@ -195,6 +195,8 @@ SLOT_MAP = {
     "Pack project": "_pack_project", "Print screen": "_print_screen",
     "Create image file": "_create_image", "Command prompt": "_command_prompt",
     "Quit": "close", "Export CSV/Excel": "_export_csv",
+    "Refresh Input Data": "_refresh_input_data",
+    "Close Icepak": "_close_icepak",
     # Edit
     "Undo": "_undo", "Redo": "_redo", "Find": "_find_object",
     # View

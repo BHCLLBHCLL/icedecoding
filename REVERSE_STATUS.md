@@ -693,6 +693,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### F2 — File Workbench 变体 完成（Phase F 启动）
+
+- **ice_menus_toolbars**：重构 `build_menus` 内部递归为可复用 `build_entries(gui, parent, entries, skip=(), replace=None)`；新增 `build_file_variant(gui, wb=True)`——WB 变体按 golden 注记（menus_icepak.tcl L170-211）：去 New/Open/Save-as/Unpack/Import JEDEC/Export JEDEC，首项 `Refresh Input Data`，`Quit`→`Close Icepak`（skip 递归进 Import/Export 级联）。
+- **ice_gui**：`_workbench` 由 `ICE_WORKBENCH=1` 环境开关；`_refresh_input_data`（重解析当前工程）、`_close_icepak`（close）；SLOT_MAP 两槽位。
+- **测试**：tests/test_p19_wbfile.py（4 项：槽位、独立版 File 菜单不变、WB 变体增删对表、环境开关构造变体）；golden/gui/shell 37 项通过无回归。
+
 ### E3 — fdat 全变量访问（压力/速度/多步前值）完成
 
 - **取证**：10-1transient `transient00.fdat` 含 **125 个 3300 字段节**，变量全集：SV_T/SV_P/SV_U/SV_V/SV_W/SV_DENSITY/SV_H/SV_MU_LAM/SV_HEAT_FLUX/SV_WALL_*/SV_RAD_HEAT_*/SV_FLUX + `_M1`（前一瞬态步）各变量；fdat 头 `(33 (58908 185451 62626))` 与 cas 边界 zone 面行数 185451 精确一致。
