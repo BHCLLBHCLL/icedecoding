@@ -693,6 +693,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### H3 — Command prompt 全命令 + Python console 等价 完成
+
+- **ice_gui._command_prompt**：从「启动系统 cmd.exe」改为**命令控制台对话框**（QPlainTextEdit 输出 + QLineEdit 输入）；`_dispatch_command_text(text)`——先经 `resolve_slot` 解析 golden 命令（命中即调用并日志「ran: ...」），否则作为 **Python console 等价**（表达式 eval / 语句 exec，`_console_loc` 持久命名空间跨调用共享）。
+- **ice_cli.command_cli(text)**：离屏 IceGui + `resolve_slot` 派发任意 golden 命令 / python 表达式（headless 等价 CLI）。
+- **测试**：tests/test_p19_cli.py（4 项：golden 命令派发（Scale to fit 命中 _fit）、未知落到 Python（NameError→ERR）、表达式 eval、语句 exec + 持久命名空间）；cli/batch/golden 15 项通过无回归。
+
 ### H1 — ~/.icepak_config 变量级兼容导入导出 完成（Phase H 启动）
 
 - **ice_prefs.PrefsStore**：`load_legacy` 修复——移除「仅已知 key 才入库」守卫，**未知变量也保留**（全量变量级兼容）；新增 `legacy_text()`（全部变量 → Tcl `set key value` 文本）；`save_legacy` 复用它。

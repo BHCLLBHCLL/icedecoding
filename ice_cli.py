@@ -51,6 +51,8 @@ def main(argv):
         for r in res:
             print(r)
         return 0
+    if mode == "command":
+        return command_cli(" ".join(args[1:]))
     if mode == "icbqs" and len(args) >= 3 and args[1] == "submit":
         from ice_batch import IcBQSClient
         jid, resp = IcBQSClient().submit(args[2])
@@ -58,6 +60,38 @@ def main(argv):
         return 0
     print("unknown mode", mode)
     return 2
+
+
+def command_cli(text):
+    """H3: run an arbitrary golden command (or python expr) headless.
+    Spins an offscreen IceGui, resolves the command text, invokes it."""
+    import os
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    try:
+        from ice_gui import IceGui
+        from ice_actions import resolve_slot
+        w = IceGui(enable_3d=False, show_welcome=False)
+        try:
+            slot = resolve_slot(w, text)
+            if slot is not None and not hasattr(slot, "cmd"):
+                slot()
+                print("ran: %s" % text)
+                return 0
+            # python console equivalent
+            loc = {"self": w}
+            if "=" in text or "\n" in text:
+                exec(text, loc)
+            else:
+                print(repr(eval(text, loc)))
+            return 0
+        except Exception as e:
+            print("ERR: %r" % e)
+            return 1
+        finally:
+            w.close()
+    except Exception as e:
+        print("ERR: %r" % e)
+        return 1
 
 
 if __name__ == "__main__":

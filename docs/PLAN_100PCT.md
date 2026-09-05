@@ -52,7 +52,7 @@
 ### Phase H — 配置/周边
 - **H1 ~/.icepak_config 变量级兼容导入导出** ✅：`PrefsStore.load_legacy` 保留全变量（含未知变量，花括号/布尔强转剥离）+ `legacy_text()` 往返。
 - **H2 Annotations**（注释对象创建/显示）。
-- **H3 Command prompt 全命令 + Python console 等价**（ice_cli 扩展全 golden 命令）。
+- **H3 Command prompt 全命令 + Python console 等价** ✅：`_dispatch_command_text`（golden 命令 resolve→执行，否则 Python eval/exec 带持久命名空间）+ 命令控制台对话框 + `ice_cli command_cli`（离屏派发）。
 - **H4 图像导出格式补全**（已有 Create image file 路径）。
   验收：H1 配置文件与 Icepak 同变量互读；H3 全命令经 CLI 回放。
 

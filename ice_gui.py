@@ -2677,15 +2677,61 @@ class IceGui(QMainWindow):
         self.log("Saved image %s" % path)
 
     def _command_prompt(self):
-        cwd = self.root_path or os.getcwd()
+        """H3: command prompt - golden-command dispatch + Python console."""
+        from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout,
+                                     QLineEdit, QPushButton, QPlainTextEdit)
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Command prompt")
+        dlg.setMinimumSize(520, 320)
+        v = QVBoxLayout(dlg)
+        self._console_out = QPlainTextEdit(dlg)
+        self._console_out.setReadOnly(True)
+        v.addWidget(self._console_out, 1)
+        row = QHBoxLayout()
+        entry = QLineEdit(dlg)
+        entry.setPlaceholderText("command name or python expr")
+        btn = QPushButton("Run", dlg)
+        btn.setDefault(True)
+        row.addWidget(entry, 1)
+        row.addWidget(btn)
+        v.addLayout(row)
+
+        def run():
+            text = entry.text()
+            entry.clear()
+            self._console_out.appendPlainText("> %s" % text)
+            self._console_out.appendPlainText(
+                self._dispatch_command_text(text))
+
+        btn.clicked.connect(run)
+        entry.returnPressed.connect(run)
+        dlg.exec_()
+
+    def _dispatch_command_text(self, text):
+        """H3: resolve a golden command, else evaluate as Python console."""
+        text = (text or "").strip()
+        if not text:
+            return "OK"
+        from ice_actions import resolve_slot
+        slot = resolve_slot(self, text)
+        if slot is not None and not hasattr(slot, "cmd"):
+            try:
+                slot()
+                return "ran: %s" % text
+            except Exception as e:
+                return "ERR: %r" % e
+        # Python console equivalent (eval for expressions, exec for statements)
         try:
-            if sys.platform == "win32":
-                os.startfile("cmd.exe")
-            else:
-                os.system("x-terminal-emulator &")
-            self.log("Opened command prompt (cwd hint: %s)" % cwd)
+            loc = getattr(self, "_console_loc", None)
+            if loc is None:
+                loc = self._console_loc = {"self": self}
+            if ("=" in text or "\n" in text or text.startswith(
+                    ("def ", "import ", "for ", "if ", "print("))):
+                exec(text, loc)
+                return "OK"
+            return repr(eval(text, loc))
         except Exception as e:
-            self.log("Command prompt failed: %r" % e, "ERROR")
+            return "ERR: %r" % e
 
     def _load_directory(self, root):
         from icepak_parser.cli import is_project_dir
