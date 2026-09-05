@@ -690,3 +690,9 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **机制指纹复现**（best depth=4/phase=(0,0.008)/band=1.0/snap_tol=0.4/stagger=0.7）：同列柱 **x 集部分重叠 0.2365 / 0.0386 / 0.1923**（oracle 27-41% 同区间、非 0/100%），每列 distinct x 854-1071（oracle 环带 ~653-1001 同量级），y 重叠 0.15-0.28。此前严格全量化 x 重叠恒 100%、零错开恒 0——部分重叠需要「共享晶格 + 部分吸附 + 逐柱相位」三要素同时成立（这正是 oracle 的晶格派生采样机制）。
 - **测试**：tests/test_p19_lattice.py（5 项：重叠严格在 0-60% 部分区间、每列 distinct x 400-2500（oracle 量级）、更细晶格→更细谱、确定性、空柱列返回 (0,3)）；lattice/positions/refine/replication/continuous/exact 70 项通过无回归。
 - **P19-1 收官 → P19-1~P19-10 全部完成**（P19 里程碑全线收官）。
+
+## P19 收官后的下一程：docs/PLAN_100PCT.md
+
+- 基线：91 提交 / 23 ice_* 模块 / 44 tools / 53 测试文件 313 测试函数。
+- 剩余真实差距（更新后的矩阵）：① grid_output **face/cell 区 32B 记录解码**（D5 唯一数据缺口）；② problem 数组字段 + fdat 全变量；③ File Workbench 变体 / Windows 动态菜单 / 多命令按钮 / 树图标与组右键全集；④ 真实 mesher 沙箱对接 + 质量统计/优先级/挖空面板 + heat_solver 深化 + ROM/优化 UI；⑤ ~/.icepak_config 兼容导入导出 / Annotations / Command prompt 全命令；⑥ P19-1 参数拟合级（x/y ±3~5%、1e-3 >10%）+ 教程截图视觉回归 + 全量分片 CI。
+- 新计划 Phase E（数据层）→ F（UI 契约）→ G（网格/求解）→ H（配置/周边）→ I（位置收官/回归），约 5-6 周，每项含验收口径。

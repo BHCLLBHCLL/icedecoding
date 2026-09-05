@@ -1,0 +1,72 @@
+# 对标 100% 新开发计划（PLAN_100PCT）
+
+> 生成时间：P19-1~P19-10 全部收官后。基线：91 次提交、23 个 ice_* 模块、
+> 44 个 tools 脚本、53 个测试文件 313 个测试函数、全套（分片）通过。
+
+## 一、现状总览（更新后的深度矩阵）
+
+| 子系统 | 深度 | 剩余差距（100% 对标口径） |
+| --- | --- | --- |
+| model 解码 / 编码 | D5 | model 编码已字节级往返（Phase B）✅ |
+| problem | D3 | **数组类字段**（gradient/transient 表）全解析 |
+| grid_params | D4 | ✅（oracle 交叉验证） |
+| grid_output 二进制 | D5 | **face/cell 区（32B 记录）完整解码**——D5 层唯一数据缺口 |
+| cas/fdat/resd | D3 | fdat 全变量（压力/速度/残差历史全字段）补全 |
+| 菜单/工具栏/热键 | D4 | Windows 动态菜单；**File Workbench 变体**；多命令按钮 |
+| 主窗口/树 | D3 | 树图标按键对齐；组右键全集 |
+| 3D 视区 | D3/D4 | P19-2 已收官 ✅（剩余仅教程截图级回归） |
+| 对象编辑器 | D3 | P19-3 已收官 ✅（剩余 spreadsheet 单元格类型化） |
+| 网格 | D4 | **真实 mesher 沙箱对接**；质量统计面板；优先级/挖空面板 |
+| 求解 | D3 | 自研 heat_solver 深化（对流/辐射）；**ROM/优化 UI + solution ID 管理** |
+| 后处理 | D3/D4 | P19-4 已收官 ✅ |
+| 报告 | D3 | P19-4j 已收官 ✅（剩余 5 导出已在 D6d ✅） |
+| 宏 | D4 | P19-5 已收官 ✅ |
+| ECAD | D4 | ✅（ECAD 收官） |
+| 偏好/语言 | D3 | **~/.icepak_config 变量级兼容导入导出**；**Annotations** |
+| 周边 | D3 | **Command prompt 全命令**；Python console 等价；图像导出格式补全 |
+| HDM 位置复刻 | D4 | P19-1 机制已复刻 ✅（剩余**参数拟合级**：x/y ±3~5%、1e-3 重合 >10%） |
+
+## 二、新开发计划（Phase E → I）
+
+### Phase E — 数据层收尾（D5 唯一缺口 + problem/fdat 补全）
+- **E1 grid_output face/cell 区（32B 记录）解码**：节点区 28B BE 已解；面/单元区按 32B BE 取证，与 nodemap/fmap/cas 区头三重交叉；golden 10-1/8-2。
+  验收：face/cell 记录数 == oracle fmap 行数 / cas 区头 cell 数。
+- **E2 problem 数组字段全解析**：gradient/transient 表、array set 复合值结构化。
+  验收：26 工程 problem 解析零未知键（字节级往返）。
+- **E3 fdat 全变量**：压力/速度/多瞬态步全字段（现仅 SV_T 为主）。
+  验收：12-1/10-1 全变量可加载；后处理按变量选择。
+
+### Phase F — UI 契约补漏（菜单/树/多命令）
+- **F1 Windows 动态菜单**：toplevel 注册表 → 实时菜单（golden dynamic 项）。
+- **F2 File Workbench 变体**：golden 注记的 WB 变体（Refresh Input Data/Close Icepak，无 New/Open/Save-as）。
+- **F3 树图标/按键对齐 + 组右键全集**：golden 树命令逐项落地。
+- **F4 多命令按钮**（icon 键 multi-command）。
+  验收：golden UI 测试 1:1（菜单/工具栏/热键/树命令全对表）。
+
+### Phase G — 网格/求解深水区
+- **G1 真实 mesher 沙箱对接**：mesher.exe 在 dev 沙箱跑样例 → 质量统计面板（正交性/长宽比/偏斜）数据源。
+- **G2 优先级/挖空面板**：Edit priorities / Edit cutouts 面板接线到 grid_params。
+- **G3 heat_solver 深化**：对流/辐射项 + oracle 温度比对（D2→D3）。
+- **G4 ROM/优化 UI + solution ID 管理**：ROM_FIELDS 已有，补优化面板与 solution id 切换。
+  验收：G1 质量指标与 mesher oracle 输出一致；G3 温度 vs oracle 偏差 <5%。
+
+### Phase H — 配置/周边
+- **H1 ~/.icepak_config 变量级兼容导入导出**（ice_prefs 全变量）。
+- **H2 Annotations**（注释对象创建/显示）。
+- **H3 Command prompt 全命令 + Python console 等价**（ice_cli 扩展全 golden 命令）。
+- **H4 图像导出格式补全**（已有 Create image file 路径）。
+  验收：H1 配置文件与 Icepak 同变量互读；H3 全命令经 CLI 回放。
+
+### Phase I — 位置复刻收官 + 视觉回归 + CI
+- **I1 P19-1 参数拟合**：在 lattice_surface_nodes 三要素上拟合 x/y ±3~5%、比值 1.15-1.25、1e-3 重合 >10%；golden 化 10-1 指标。
+- **I2 教程截图视觉回归**：_report/screenshots 对照（图 3-31/3-62/3-65 等）。
+- **I3 全量分片 CI**：把 20 分钟易中断的全量套件按模块分片（mesh/post/ecad/gui/…），每片独立可跑、内存友好。
+  验收：I1 双指标达标入 golden；I3 CI 分片全绿。
+
+## 三、排期估计
+- Phase E（数据层）：~1 周（E1 取证最硬）
+- Phase F（UI 契约）：~1 周
+- Phase G（网格/求解）：~1.5-2 周（G1/G3 深）
+- Phase H（配置/周边）：~0.5-1 周
+- Phase I（收官/回归）：~1 周（I1 参数拟合为研究项）
+- 合计 ~5-6 周
