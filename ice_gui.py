@@ -1283,6 +1283,23 @@ class IceGui(QMainWindow):
         act = m.addAction("Zoom-in modeling")
         act.triggered.connect(self._zoom_in_modeling)
         self._zoom_menu = act
+        qact = m.addAction("Mesh quality...")
+        qact.triggered.connect(self._show_mesh_quality)
+        self._mesh_quality_menu = qact
+
+    def _show_mesh_quality(self):
+        """G1: Model -> Mesh quality... statistics panel."""
+        if getattr(self, "_mesh_result", None) is None:
+            self.log("No mesh generated (run Model -> Generate mesh)", "WARN")
+            return
+        from ice_mesh import mesh_quality
+        from ice_panes import MeshQualityDialog
+        q = mesh_quality(self._mesh_result)
+        dlg = MeshQualityDialog(self, quality=q)
+        dlg.exec_()
+        self.log("Mesh quality: cells=%d aspect %.3f..%.3f (worst %s)" %
+                 (q["cells"], q["aspect_min"], q["aspect_max"],
+                  q["worst_cell"]))
 
     def _rebuild_view_visuals_menu(self):
         """View -> Per-type visuals... entry (P19-2 per-type decorators)."""

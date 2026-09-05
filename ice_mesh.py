@@ -315,3 +315,36 @@ def write_grid_output_ascii(path, result):
                         n0 + d2, n0 + d2 + 1, n0 + d2 + d1 + 1,
                         n0 + d2 + d1))
     return result
+
+
+def mesh_quality(result):
+    """G1: structured-mesh quality metrics (Icepak quality panel data).
+
+    For a structured hexa grid the cells are axis-aligned: orthogonality is
+    1.0 (perfect) and skewness 0; the meaningful metric is the aspect-ratio
+    distribution (dx/dy/dz per cell).  Returns a dict.
+    """
+    import numpy as np
+    a = result.axes
+    dx = np.diff(a[0]) if len(a[0]) > 1 else np.array([1.0])
+    dy = np.diff(a[1]) if len(a[1]) > 1 else np.array([1.0])
+    dz = np.diff(a[2]) if len(a[2]) > 1 else np.array([1.0])
+    dmax = np.maximum(np.maximum(dx[:, None, None], dy[None, :, None]),
+                      dz[None, None, :])
+    dmin = np.minimum(np.minimum(dx[:, None, None], dy[None, :, None]),
+                      dz[None, None, :])
+    aspect = dmax / np.maximum(dmin, 1e-300)
+    vol = float((dx.sum() * dy.sum() * dz.sum()))
+    worst = tuple(int(v) for v in
+                  np.unravel_index(np.argmax(aspect), aspect.shape))
+    return {
+        "cells": int(result.cell_count),
+        "nodes": int(result.node_count),
+        "orthogonality": 1.0,
+        "skewness": 0.0,
+        "aspect_min": float(aspect.min()),
+        "aspect_max": float(aspect.max()),
+        "aspect_mean": float(aspect.mean()),
+        "worst_cell": worst,
+        "volume": vol,
+    }

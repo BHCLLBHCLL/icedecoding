@@ -693,6 +693,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### G1 — 网格质量统计面板 完成（Phase G 启动）
+
+- **ice_mesh.mesh_quality(result)**：结构化网格质量度量——正交性=1.0（结构化完美）、偏斜=0、**逐单元长宽比分布**（dx/dy/dz 广播 min/max/mean + 最差单元 (i,j,k)）、总容积；修复 worst_cell 为 tuple 的 int() 转换 bug。
+- **ice_panes.MeshQualityDialog**：Cells/Nodes/Orthogonality/Skewness/Min·Max·Mean aspect/Worst cell/Volume 统计面板。
+- **ice_gui._show_mesh_quality**：Model 菜单「Mesh quality...」（无网格时 WARN）；`_rebuild_model_zoom_menu` 加菜单项。
+- **测试**：tests/test_p19_quality.py（6 项：均匀网格正交性/偏斜精确+矩形域 aspect∈[1,3)、非均匀 aspect>1、无网格 WARN、对话框收到质量 dict、Model 菜单项）；quality/mesh/golden/gui 43 项通过无回归。
+
 ### F4 — 多命令按钮 完成，Phase F 收官
 
 - **ice_menus_toolbars.build_toolbars + _multi_commands**：golden `scalar ['multiple', cmd1, cmd2]`（Alignment 工具栏 3 组 morph/move-only 变体对）→ 弹出菜单 QToolButton；ALIGN_OPS 补 `Align edges/vertices - move only` 变体。

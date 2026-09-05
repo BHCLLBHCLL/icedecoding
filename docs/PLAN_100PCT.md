@@ -43,7 +43,7 @@
   验收：golden UI 测试 1:1（菜单/工具栏/热键/树命令全对表）——**Phase F 收官**。
 
 ### Phase G — 网格/求解深水区
-- **G1 真实 mesher 沙箱对接**：mesher.exe 在 dev 沙箱跑样例 → 质量统计面板（正交性/长宽比/偏斜）数据源。
+- **G1 网格质量统计面板** ✅：`ice_mesh.mesh_quality`（正交性/偏斜/逐单元长宽比分布+最差单元/容积）+ `MeshQualityDialog` + Model 菜单「Mesh quality...」。真实 mesher 沙箱对接（mesher.exe 许可受限，rc=1）与质量 golden 比对留待后续。
 - **G2 优先级/挖空面板**：Edit priorities / Edit cutouts 面板接线到 grid_params。
 - **G3 heat_solver 深化**：对流/辐射项 + oracle 温度比对（D2→D3）。
 - **G4 ROM/优化 UI + solution ID 管理**：ROM_FIELDS 已有，补优化面板与 solution id 切换。

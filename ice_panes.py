@@ -1151,6 +1151,43 @@ class SpreadsheetDialog(QDialog):
         self.accept()
 
 
+class MeshQualityDialog(QDialog):
+    """G1: mesh quality statistics panel (cells/nodes/aspect/orthogonality)."""
+
+    def __init__(self, parent=None, quality=None):
+        super().__init__(parent)
+        self.setWindowTitle("Mesh quality")
+        self.setMinimumSize(380, 300)
+        v = QVBoxLayout(self)
+        v.setContentsMargins(10, 10, 10, 10)
+        page = FormPage(self)
+        f = page.section("Mesh statistics")
+        q = quality or {}
+        rows = [("cells", "Cells", q.get("cells", 0)),
+                ("nodes", "Nodes", q.get("nodes", 0)),
+                ("orthogonality", "Orthogonality",
+                 "%.4f" % q.get("orthogonality", 1.0)),
+                ("skewness", "Skewness", "%.4f" % q.get("skewness", 0.0)),
+                ("aspect_min", "Min aspect",
+                 "%.4f" % q.get("aspect_min", 1.0)),
+                ("aspect_max", "Max aspect",
+                 "%.4f" % q.get("aspect_max", 1.0)),
+                ("aspect_mean", "Mean aspect",
+                 "%.4f" % q.get("aspect_mean", 1.0)),
+                ("worst", "Worst cell", str(q.get("worst_cell", "-"))),
+                ("volume", "Volume (m^3)", "%.6g" % q.get("volume", 0.0))]
+        for key, label, val in rows:
+            page.add_row(f, key, label, "label", str(val))
+        v.addWidget(page, 1)
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        ok = QPushButton("OK", self)
+        ok.setDefault(True)
+        ok.clicked.connect(self.accept)
+        btns.addWidget(ok)
+        v.addLayout(btns)
+
+
 class KindVisualsDialog(QDialog):
     """View -> Per-type visuals: color / line width / opacity per object kind."""
 
