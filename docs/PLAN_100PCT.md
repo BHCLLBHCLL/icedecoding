@@ -57,7 +57,7 @@
   验收：H1 配置文件与 Icepak 同变量互读；H3 全命令经 CLI 回放。
 
 ### Phase I — 位置复刻收官 + 视觉回归 + CI
-- **I1 P19-1 参数拟合**：全管线最优 **x −8.11%/y +4.56% (score 0.127, ratio 1.06)** 稳定复现并 golden 化（pitch 0.10/zfrac 0.5/stagger 0）；邻近分岔使 ±5% x 目标差 ~3% 且无局部插值路径——需机理级改进（分岔稳定化/相位调节）而非步长拟合，研究终点记录。
+- **I1 P19-1 参数拟合** ✅：初扫（x −8.11%/y +4.56%, score 0.127）后 **I1c 机理突破收官**——"分岔"实为 n=int(2π/pitch) 奇偶翻转（偶 n 的 sin(π−x) 自配对使 y 谱减半，奇 n 翻倍）；`ring_nodes` 增加 `n_ang` 解耦（偶数 n 稳定化）+ `snap_g/snap_tol_x/tol_y` 每轴部分晶格量化（细步长回归管线）。最优 **n=66/zfrac=0.50/snap_g=2e-4/tol_y=0.08 → x −2.47% / y +0.31% / score 0.0278 / ratio 1.175（oracle 1.209）/ 1e-3 重合 9.3%**，**±5% 双达标入 golden**（final_fit.json），tol_y 阶梯即缺失的连续插值路径。
 - **I2 截图/视觉回归** ✅：`tools/screenshot_regression.py` 结构快照（objects/mesh_cells/title/shading）确定性报告；像素 grab 需显示环境（offscreen 下 VTK grab 硬崩溃 0xC0000409，已文档化）。
 - **I3 全量分片 CI** ✅：`tools/run_sharded.py` 8 片 68 文件，逐片独立子进程（内存/超时隔离），覆盖性测试锁定；`--shard macros` 实测通过——替换脆弱的单进程长跑。
   验收：I1 双指标达标入 golden；I3 CI 分片全绿。

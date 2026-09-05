@@ -349,7 +349,8 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
           surface_extra=0, use_object_sizes=True, model=None, cyl_cap=4,
           shell_factor=1.05, curv_c=None, proj_tol=None, base_phase=None,
           ring_pitch=None, ring_zfrac=1.0, ring_stagger=0.0,
-          ring_lattice=False, ring_base_step=0.02):
+          ring_lattice=False, ring_base_step=0.02, ring_n=None,
+          ring_snap_g=None, ring_snap_tol_x=0.0, ring_snap_tol_y=0.0):
     params = parse_grid_params(os.path.join(jdir, "grid_params"))
     dom = [r for r in params if r["type"] == "domain"]
     if dom:
@@ -433,7 +434,10 @@ def build(jdir, max_levels=3, grid_size=None, max_cells=150000,
                                    z_frac=ring_zfrac,
                                    stagger_strength=ring_stagger,
                                    lattice=ring_lattice,
-                                   base_step=ring_base_step)
+                                   base_step=ring_base_step,
+                                   n_ang=ring_n, snap_g=ring_snap_g,
+                                   snap_tol_x=ring_snap_tol_x,
+                                   snap_tol_y=ring_snap_tol_y)
                 verts = np.concatenate([verts, rings], axis=0)
             else:
                 verts = project_to_cylinders_local(verts, sizes, cyls)
@@ -611,7 +615,8 @@ def leaf_vertices_vec(boxes):
 
 
 def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
-               stagger_strength=1.0, lattice=False, base_step=0.02):
+               stagger_strength=1.0, lattice=False, base_step=0.02,
+               n_ang=None, snap_g=None, snap_tol_x=0.0, snap_tol_y=0.0):
     """Uniform angular-pitch surface ring nodes around each conical
     cylinder (the oracle's shell structure: near-uniform theta sampling
     with ~1/4 the node count of cube-corner projection).
@@ -620,7 +625,16 @@ def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
     axial step = pitch_c * r_local * z_frac.
     theta_stagger: per-cylinder theta phase offset (golden-ratio) — the
     oracle's octree leaves place each cylinder's angular grid at a
-    different phase, so same-column x-sets only overlap ~30-40%."""
+    different phase, so same-column x-sets only overlap ~30-40%.
+
+    n_ang: explicit angular sample count (decoupled from pitch_c —
+    I1c: the "bifurcation" is the parity of int(2*pi/pitch_c): even n
+    self-pairs sin(pi-x)=sin x so the y spectrum halves; odd n doubles
+    it.  Pinning even n stabilises the boundary).
+    snap_g/snap_tol_x/snap_tol_y: partial lattice quantisation of the
+    ring x/y (P19-1 mechanism, fine step): values within snap_tol*g of
+    the shared lattice snap onto it, the rest stay continuous — a
+    continuous merge-fraction knob per axis (0 = off)."""
     out = []
     for j, c in enumerate(cyls):
         p1, p2 = c["p1"], c["p2"]
@@ -632,7 +646,8 @@ def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
         h = float(np.sqrt(h2))
         z1, z2 = p1[2], p2[2]
         z = z1
-        n = max(3, int(2 * np.pi / max(pitch_c, 1e-4)))
+        n = max(3, int(2 * np.pi / max(pitch_c, 1e-4))) \
+            if n_ang is None else max(3, int(n_ang))
         phase = 0.0
         if theta_stagger:
             phase = ((0.6180339887498949 * (j + 1)) % 1.0) * \
@@ -653,6 +668,18 @@ def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
                     # part of their x values (oracle 27-41% overlap)
                     x = round(x / hc) * hc
                     y = round(y / hc) * hc
+                elif snap_g:
+                    # fine-step partial snap (per-axis merge fraction)
+                    if snap_tol_x > 0:
+                        xf = x / snap_g
+                        xr = round(xf)
+                        if abs(xf - xr) <= snap_tol_x:
+                            x = xr * snap_g
+                    if snap_tol_y > 0:
+                        yf = y / snap_g
+                        yr = round(yf)
+                        if abs(yf - yr) <= snap_tol_y:
+                            y = yr * snap_g
                 out.append((x, y, z))
             z += step_z
     return np.array(out, dtype=np.float64) if out else \

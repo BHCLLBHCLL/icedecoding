@@ -1,0 +1,113 @@
+[
+ {
+  "pitch": 0.1,
+  "zfrac": 0.5,
+  "n_ang": 62,
+  "n_parity": "even",
+  "distinct_cos": 32,
+  "distinct_sin": 31,
+  "nodes": 140046,
+  "rings": 42966,
+  "bg": 97080,
+  "rings_per_cyl": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "x_total": 7526,
+  "y_total": 7086,
+  "x_rings": 7392,
+  "y_rings": 6933,
+  "x_bg": 136,
+  "y_bg": 156,
+  "col_x_overlap_a_b": [
+   0,
+   0,
+   0
+  ],
+  "oracle_xy": [
+   8190,
+   6777
+  ]
+ },
+ {
+  "pitch": 0.105,
+  "zfrac": 0.48,
+  "n_ang": 59,
+  "n_parity": "odd",
+  "distinct_cos": 30,
+  "distinct_sin": 59,
+  "nodes": 137436,
+  "rings": 40356,
+  "bg": 97080,
+  "rings_per_cyl": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "x_total": 6975,
+  "y_total": 13380,
+  "x_rings": 6840,
+  "y_rings": 13227,
+  "x_bg": 136,
+  "y_bg": 156,
+  "col_x_overlap_a_b": [
+   0,
+   0,
+   0
+  ],
+  "oracle_xy": [
+   8190,
+   6777
+  ]
+ },
+ {
+  "pitch": 0.11,
+  "zfrac": 0.45,
+  "n_ang": 57,
+  "n_parity": "odd",
+  "distinct_cos": 29,
+  "distinct_sin": 57,
+  "nodes": 137094,
+  "rings": 40014,
+  "bg": 97080,
+  "rings_per_cyl": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "x_total": 6921,
+  "y_total": 13260,
+  "x_rings": 6786,
+  "y_rings": 13107,
+  "x_bg": 136,
+  "y_bg": 156,
+  "col_x_overlap_a_b": [
+   0,
+   0,
+   0
+  ],
+  "oracle_xy": [
+   8190,
+   6777
+  ]
+ }
+]
