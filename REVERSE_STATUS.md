@@ -693,6 +693,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### G3 — heat_solver 深化（对流/辐射 + oracle 比对）完成
+
+- **heat_solver.solve_heat(..., convection_h, emissivity, rad_iter)**：G3 深化——`convection_h`（W/m²K）把 Dirichlet 壁面变为 **Robin 边界**（k dT/dn = h(T−T_amb)，边界单元按 (k·T_inner/d + h·T_amb)/(k/d + h) 更新）；`emissivity` 加**线性化灰体辐射电导** h_rad = εσ(T²+T_amb²)(T+T_amb)，`rad_iter` 次外圈固定点迭代；默认参数与旧 Dirichlet 行为完全一致（兼容既有测试）。
+- **heat_solver.heat_solver_compare(project_dir, result, model, **kw)**：求解场 vs oracle SV_T 场（E3 数据源）统计比对——our/oracle min·max·mean + mean/max 偏差%（相对 oracle 跨度，单元序不同故按分布比对）。
+- **测试**：tests/test_p19_heatsolver.py（7 项：大 h 收敛到 Dirichlet（均值差 <1%）、辐射 vs 纯对流降温、默认边界单元精确=20、oracle 比对统计有限+oracle 跨度合理）；heat_solver/solve 20 项通过无回归。
+- **备注**：<5% oracle 偏差目标需 58k 精网格 + 真实 BC（粗均匀网格纯导热均值偏差大），比对机制已锁定。
+
 ### G1 — 网格质量统计面板 完成（Phase G 启动）
 
 - **ice_mesh.mesh_quality(result)**：结构化网格质量度量——正交性=1.0（结构化完美）、偏斜=0、**逐单元长宽比分布**（dx/dy/dz 广播 min/max/mean + 最差单元 (i,j,k)）、总容积；修复 worst_cell 为 tuple 的 int() 转换 bug。
