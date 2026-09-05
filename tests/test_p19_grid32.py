@@ -32,6 +32,15 @@ def test_decode_real_sections():
     assert bool((r["face_ids"][1:] - r["face_ids"][:-1] == 1).all())
     assert bool(((r["faces"] >= 0) & (r["faces"] < 62626)).all())
     assert r["lead_face"] == (4, 5, 6, 7, 62627, 10)
+    # E1b: tail descriptor table = the grid's OWN declared counts
+    t = r["tail"]
+    desc = dict(t["descriptors"])
+    assert desc.get(6) == 58908       # declared cells == cas zone count
+    assert desc.get(14) == 12218      # declared faces == 12217 + 1 lead
+    # main header indexes the descriptor table (hdr[20]->table+32,
+    # hdr[32]->table+16)
+    assert t["header_pointers"][1] == t["start"] + 16
+    assert t["header_pointers"][0] == t["start"] + 32
 
 
 def test_decode_synthetic_roundtrip():

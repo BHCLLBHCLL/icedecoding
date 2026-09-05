@@ -192,4 +192,31 @@ def decode_grid_output(path, n_nodes=None):
                      "faces": p - len(face_ids) * 24},
         "n_nodes": n_nodes, "n_cells": len(cell_ids),
         "n_faces": len(face_ids),
+        "tail": _tail_descriptors(data, p),
     }
+
+
+def _tail_descriptors(data, tail_start):
+    """E1b: parse the (tag, value) descriptor table at the grid tail.
+
+    After the face section the file holds a section descriptor block:
+    a 16-byte lead, then (tag, value) pairs, e.g. (6, cells) and
+    (14, faces) - the grid's OWN declared counts.  The main 64-byte header
+    points into this table (hdr[20] -> table+32, hdr[32] -> table+16).
+    Returns {'start', 'descriptors', 'header_pointers'}.
+    """
+    pairs = []
+    p = tail_start + 16
+    while p + 8 <= len(data):
+        tag = _be_int(data, p)
+        val = _be_int(data, p + 4)
+        if 0 < tag < 100 and 0 <= val < 10 ** 7:
+            pairs.append((tag, val))
+            p += 8
+        else:
+            break
+    return {"start": tail_start,
+            "descriptors": pairs,
+            "header_pointers": [_be_int(data, 20), _be_int(data, 32)],
+            "declared_cells": dict(pairs).get(6),
+            "declared_faces": dict(pairs).get(14)}

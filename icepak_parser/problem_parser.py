@@ -47,6 +47,45 @@ class ProblemFile:
     def array(self, name: str, default=None):
         return self.arrays.get(name, default if default is not None else {})
 
+    # ---------------------------------------------------- E2: structured tables
+    def table(self, name: str):
+        """Array value entries with multi-token values split into token lists.
+        {'key': ['tok', ...]}"""
+        return {k: v.split() for k, v in self.array(name).items()}
+
+    def trials(self):
+        """Optimization trials: {trial_id: {'name', 'vars': {param: value}}}
+        per-trial variables from expression_param_random (9-2Optimization)."""
+        names = self.array("expression_trial_name", {})
+        rnd_tbl = self.table("expression_param_random")
+        out = {}
+        for t in sorted(self.array("expression_param_trials", {})):
+            toks = rnd_tbl.get(t, [])
+            vars_ = {}
+            for k in range(0, len(toks) - 1, 2):
+                vars_[toks[k]] = toks[k + 1]
+            out[t] = {"name": names.get(t, t), "vars": vars_}
+        return out
+
+    def design_params(self):
+        """Design parameters: {param: {'value', 'range', 'choice'}} from the
+        expression_params / expression_param_range / expression_param_choices
+        arrays."""
+        vals = self.array("expression_params", {})
+        rng = self.array("expression_param_range", {})
+        chc = self.array("expression_param_choices", {})
+        out = {}
+        for k in sorted(set(vals) | set(rng) | set(chc)):
+            out[k] = {"value": vals.get(k),
+                      "range": (rng.get(k) or "").split(),
+                      "choice": chc.get(k)}
+        return out
+
+    def transient_tables(self):
+        """Transient parameter tables: arrays whose name mentions trans/ambient."""
+        return {k: v for k, v in self.arrays.items()
+                if "trans" in k or "ambient" in k}
+
 
 # ---------------------------------------------------------------- 词法
 

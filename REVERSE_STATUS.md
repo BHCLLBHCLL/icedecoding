@@ -693,6 +693,18 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### E1b — grid_output 尾表（节描述符）解码 完成
+
+- **取证**：面节之后（offset 4403104 起）为节描述符块——16B 前置 + `(tag, value)` 对：`(6, 58908)`=单元声明数（**与 cas 区头 58908 完全一致**，解了 E1 的 Δ1：grid 自身声明 58908 单元、落盘 58907 条）、`(14, 12218)`=面声明数（12217+1 前导面 ✓）、`(16,2)`/`(11,2)`/`(12,2)`/`(3,3)` 等；**主头 hdr[20]/hdr[32] 即指向描述符表内偏移（+32/+16）的指针**。描述符之后为嵌套邻接/区域表（含面 id 对、双精度区）——记为 E1c 后续。
+- **fluent_grid.decode_grid_output** 扩展：返回 `tail`（start/descriptors/header_pointers/declared_cells/declared_faces）。
+- **测试**：test_p19_grid32 断言 `(6,58908)`/`(14,12218)` + 头指针偏移；grid/oracle 10 项通过无回归。
+
+### E2 — problem 数组字段全解析 + 结构化访问器 完成
+
+- **现状核实**：`problem_parser` 已完整解析 `array set`（9-2=57、10-1=47 个数组，多 token 值折叠）；缺口=语义访问器。
+- **新增**：`ProblemFile.table(name)`（多 token 值拆成列表）、`trials()`（逐 trial 变量取自 `expression_param_random`，`{trial: {name, vars}}`——真实结构取证：`expression_param_range` 以参数名为键存 min/max/step/count，非 trial 键）、`design_params()`（`expression_params/range/choices` → `{param: {value, range, choice}}`）。
+- **测试**：tests/test_p19_problem.py（7 项：合成全解析/结构化 trials/瞬态表/table 拆分/design_params + 真实 9-2 trials（finCount=18）/10-1 瞬态表）；problem/solve 13 项通过无回归。
+
 ### E1 — grid_output face/cell 区解码 完成（Phase E 启动）
 
 - **fluent_grid.decode_grid_output(path, n_nodes)**：结构驱动全节解码——头 64B → 节点节 28B BE `[counter][x][y][z]`（计数 0..N-1）→ 前导面 24B `[4 节点 id][face id][zone]`（id=N+1）→ 单元节 40B `[8 节点 id][cell id][zone]`（id 自 N+2 连续）→ 面节 24B `[4 节点 id][face id][zone]`（id 自 N+n_cells+2 连续）。
