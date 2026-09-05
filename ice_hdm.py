@@ -659,6 +659,85 @@ def ring_nodes(cyls, pitch_c=0.165, z_frac=1.0, theta_stagger=True,
         np.zeros((0, 3), dtype=np.float64)
 
 
+def lattice_surface_nodes(cyls, base=0.02, depth=3, phase=(0.0, 0.008),
+                          pitch_c=0.165, z_frac=1.0, band=1.5,
+                          snap_tol=1.0, stagger=0.0):
+    """P19-1: oracle surface nodes as lattice-derived sampling.
+
+    A GLOBAL shared fine lattice (step = base / 2**depth, per-axis phase)
+    samples the conical surface neighbourhood (|rho - r(z)| <= band*g); the
+    samples are projected radially onto the cone, then snapped back onto the
+    lattice ONLY when within snap_tol*g of a lattice point (partial
+    snapping); otherwise the continuous projected position is kept.  The
+    snapped subset is shared across same-column cylinders, the continuous
+    rest is per-cylinder - reproducing the oracle's PARTIAL (27-41%) x-set
+    overlap rather than 0% or 100%.
+
+    Returns unique (N, 3) surface nodes.
+    """
+    if not cyls:
+        return np.zeros((0, 3), dtype=np.float64)
+    g = float(base) / float(2 ** depth)
+    px, py = float(phase[0]), float(phase[1])
+    lo = np.full(3, 1e18)
+    hi = np.full(3, -1e18)
+    for c in cyls:
+        rmax = max(c["r1"], c["r2"])
+        lo = np.minimum(lo, c["p1"] - rmax - 2 * g)
+        hi = np.maximum(hi, c["p2"] + rmax + 2 * g)
+    xs = np.arange(lo[0] - g, hi[0] + g, g) + px
+    ys = np.arange(lo[1] - g, hi[1] + g, g) + py
+    out = []
+    for j, c in enumerate(cyls):
+        p1, p2 = c["p1"], c["p2"]
+        axis = p2 - p1
+        h = float(np.linalg.norm(axis))
+        if h <= 0:
+            continue
+        rmax = max(c["r1"], c["r2"])
+        # per-cylinder lattice phase stagger (oracle: each cylinder's octree
+        # leaves sit at a different phase of the shared lattice)
+        sj = ((0.6180339887498949 * j) % 1.0) * float(stagger)
+        off_x = sj * g
+        off_y = (sj * 0.5) * g
+        z = float(p1[2])
+        while z <= float(p2[2]) + 1e-12:
+            f = (z - p1[2]) / h
+            r = c["r1"] + (c["r2"] - c["r1"]) * min(max(f, 0.0), 1.0)
+            wxs = (xs + off_x)[(xs >= p1[0] - rmax - g) &
+                                  (xs <= p1[0] + rmax + g)]
+            wys = (ys + off_y)[(ys >= p1[1] - rmax - g) &
+                                  (ys <= p1[1] + rmax + g)]
+            if len(wxs) == 0 or len(wys) == 0:
+                z += max(pitch_c * r * z_frac, 1e-6)
+                continue
+            gx, gy = np.meshgrid(wxs, wys)
+            dx = gx - p1[0]
+            dy = gy - p1[1]
+            rho = np.hypot(dx, dy)
+            m = np.abs(rho - r) <= band * g
+            if m.any():
+                th = np.arctan2(dy[m], dx[m])
+                xp = p1[0] + r * np.cos(th)
+                yp = p1[1] + r * np.sin(th)
+                # partial snap back to the shared lattice
+                xf = (xp - px) / g
+                yf = (yp - py) / g
+                xr = np.round(xf)
+                yr = np.round(yf)
+                sx = np.abs(xf - xr) <= snap_tol
+                sy = np.abs(yf - yr) <= snap_tol
+                xq = np.where(sx, xr * g + px, xp)
+                yq = np.where(sy, yr * g + py, yp)
+                zz = np.full(xq.shape, z)
+                out.append(np.stack([xq, yq, zz], axis=1))
+            z += max(pitch_c * r * z_frac, 1e-6)
+    if not out:
+        return np.zeros((0, 3), dtype=np.float64)
+    pts = np.concatenate(out, axis=0)
+    return np.unique(np.round(pts, 12), axis=0)
+
+
 def leaf_vertices_sized(boxes):
     """Corner vertices with their OWN leaf size (for local-tolerance
     snapping: only vertices of surface-adjacent cells project)."""

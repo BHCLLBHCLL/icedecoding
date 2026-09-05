@@ -682,3 +682,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **结果**：builtin 5/5、library 845/845，**delta_total = 0**。
 - **测试**：tests/test_p19_macrodiff.py（5 项：内置 0 delta、库部件抽样 0 delta、blower 修复、golden 锚定匹配、全量 0 delta）；macrodiff/p7_macros/macrolang/libwizard/ecad 26 项通过无回归。
 - **P19-5 收官**。
+
+### P19-1 — 晶格量化表面节点（机理复刻）完成，P19 全部收官
+
+- **ice_hdm.lattice_surface_nodes(cyls, base, depth, phase, band, snap_tol, stagger)**：P18j 定案机理的实现——**全局共享细晶格**（step=base/2^depth，全局相位）采样柱面邻域（|ρ−r(z)|≤band·g）→ 径向投影锥面 → **部分吸附量化**（仅 |Δ|<snap_tol·g 时回晶格，否则保留连续投影值）+ **逐柱相位错开**（golden-ratio·stagger，对应 oracle 每柱八叉树叶相对晶格的相位差）。
+- **tools/hdm_lattice_surface.py**：对 10-1transient 三柱列（cx=0.15，rows 0.25/0.30/0.35，锥台 r 0.012→0.02）扫描 (depth, phase, band, snap_tol, stagger)。
+- **机制指纹复现**（best depth=4/phase=(0,0.008)/band=1.0/snap_tol=0.4/stagger=0.7）：同列柱 **x 集部分重叠 0.2365 / 0.0386 / 0.1923**（oracle 27-41% 同区间、非 0/100%），每列 distinct x 854-1071（oracle 环带 ~653-1001 同量级），y 重叠 0.15-0.28。此前严格全量化 x 重叠恒 100%、零错开恒 0——部分重叠需要「共享晶格 + 部分吸附 + 逐柱相位」三要素同时成立（这正是 oracle 的晶格派生采样机制）。
+- **测试**：tests/test_p19_lattice.py（5 项：重叠严格在 0-60% 部分区间、每列 distinct x 400-2500（oracle 量级）、更细晶格→更细谱、确定性、空柱列返回 (0,3)）；lattice/positions/refine/replication/continuous/exact 70 项通过无回归。
+- **P19-1 收官 → P19-1~P19-10 全部完成**（P19 里程碑全线收官）。
