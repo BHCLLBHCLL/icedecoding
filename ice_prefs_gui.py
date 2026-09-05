@@ -104,6 +104,10 @@ class AnnotationsDialog(QDialog):
         page.add_row(form, "show_title", "Show title", "check", 0)
         page.add_row(form, "show_date", "Show current date", "check", 0)
         page.add_row(form, "show_logo", "Show ANSYS logo", "check", 0)
+        page.add_row(form, "annot_text", "Annotation text", "text", "")
+        page.add_row(form, "annot_x", "Annot X", "spin", 0.1)
+        page.add_row(form, "annot_y", "Annot Y", "spin", 0.1)
+        page.add_row(form, "annot_z", "Annot Z", "spin", 0.1)
         self.page = page
         v.addWidget(page, 1)
         btns = QHBoxLayout()

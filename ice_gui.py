@@ -2358,8 +2358,12 @@ class IceGui(QMainWindow):
         self._display_state["Display ANSYS logo"] = bool(
             vals.get("show_logo", False))
         self._project_title_text = str(vals.get("title", "Project"))
-        if "title" in getattr(self, "_display_actors", {}):
-            pass
+        # H2: free-form viewport annotation (text marker at a position)
+        annot = {"text": str(vals.get("annot_text", "")),
+                 "x": float(vals.get("annot_x", 0.1)),
+                 "y": float(vals.get("annot_y", 0.1)),
+                 "z": float(vals.get("annot_z", 0.1))}
+        self._annotations = [annot] if annot["text"] else []
         self.log("Annotations: %s" % vals, "DEBUG")
         self._render()
 
@@ -2653,18 +2657,26 @@ class IceGui(QMainWindow):
     def _create_image(self):
         path, _ = QFileDialog.getSaveFileName(
             self, "Create image file", "icepak_view.png",
-            "PNG (*.png);;JPEG (*.jpg)")
+            "PNG (*.png);;JPEG (*.jpg *.jpeg);;BMP (*.bmp);;"
+            "TIFF (*.tif *.tiff)")
         if path:
             self._grab_view(path)
 
     def _grab_view(self, path):
+        low = path.lower()
         if self._enable_3d and self.vtk_widget is not None:
             try:
                 w2i = vtk.vtkWindowToImageFilter()
                 w2i.SetInput(self.vtk_widget.GetRenderWindow())
                 w2i.Update()
-                w = vtk.vtkPNGWriter() if path.lower().endswith(".png") \
-                    else vtk.vtkJPEGWriter()
+                if low.endswith(".png"):
+                    w = vtk.vtkPNGWriter()
+                elif low.endswith((".bmp",)):
+                    w = vtk.vtkBMPWriter()
+                elif low.endswith((".tif", ".tiff")):
+                    w = vtk.vtkTIFFWriter()
+                else:
+                    w = vtk.vtkJPEGWriter()
                 w.SetFileName(path)
                 w.SetInputConnection(w2i.GetOutputPort())
                 w.Write()

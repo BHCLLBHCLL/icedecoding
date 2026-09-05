@@ -693,6 +693,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### H2/H4 — Annotations + 图像导出格式 完成，Phase H 收官
+
+- **H2 Annotations**：`AnnotationsDialog` 增加自由文本注释字段（annot_text/annot_x/y/z）；`_apply_annotations` 存储 `self._annotations`（有文本即生成注释，空则清空）。
+- **H4 图像导出**：`_create_image` 筛选扩展（PNG/JPEG/BMP/TIFF）；`_grab_view` vtk 分支按扩展名选写器（vtkBMPWriter/vtkTIFFWriter），非 vtk 走 `pix.save`（QImage 按扩展名自动辨格式）。
+- **测试**：tests/test_p19_annotimg.py（4 项：注释对话框字段、`_apply_annotations` 存储注释/空清空、`.bmp`/`.tiff` 实际写出文件）；annotimg 4 项通过。
+- **Phase H（配置/周边）H1/H2/H3/H4 全部完成**。
+
 ### H3 — Command prompt 全命令 + Python console 等价 完成
 
 - **ice_gui._command_prompt**：从「启动系统 cmd.exe」改为**命令控制台对话框**（QPlainTextEdit 输出 + QLineEdit 输入）；`_dispatch_command_text(text)`——先经 `resolve_slot` 解析 golden 命令（命中即调用并日志「ran: ...」），否则作为 **Python console 等价**（表达式 eval / 语句 exec，`_console_loc` 持久命名空间跨调用共享）。
