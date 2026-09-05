@@ -693,6 +693,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### G2 — 优先级/挖空面板 完成
+
+- **ice_panes.EditPrioritiesDialog / EditCutoutsDialog**：逐对象表格（Priority 0-999 spin / Cutout 复选框），`values()` 返回 name→值。
+- **ice_gui._edit_priorities / _edit_cutouts**：打开面板→写回 `setvals['grid_priority']`/`setvals['grid_cutout']`；SLOT_MAP「Edit priorities/Edit cutouts」（此前 NYI）。
+- **ice_mesh.write_grid_params**：每对象行末尾追加 `priority cutout` 两个令牌（既有 17 字段不变，前 11 字段解析兼容）。
+- **测试**：tests/test_p19_gridctl.py（5 项：槽位、优先级对话框值（含空默认 10）、挖空复选框、处理器写回 setvals、grid_params 令牌）；gridctl/mesh/golden 23 项通过无回归。
+
 ### G3 — heat_solver 深化（对流/辐射 + oracle 比对）完成
 
 - **heat_solver.solve_heat(..., convection_h, emissivity, rad_iter)**：G3 深化——`convection_h`（W/m²K）把 Dirichlet 壁面变为 **Robin 边界**（k dT/dn = h(T−T_amb)，边界单元按 (k·T_inner/d + h·T_amb)/(k/d + h) 更新）；`emissivity` 加**线性化灰体辐射电导** h_rad = εσ(T²+T_amb²)(T+T_amb)，`rad_iter` 次外圈固定点迭代；默认参数与旧 Dirichlet 行为完全一致（兼容既有测试）。

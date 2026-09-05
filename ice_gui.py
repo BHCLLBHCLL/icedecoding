@@ -1287,6 +1287,42 @@ class IceGui(QMainWindow):
         qact.triggered.connect(self._show_mesh_quality)
         self._mesh_quality_menu = qact
 
+    def _edit_priorities(self):
+        """G2: Model -> Edit priorities (per-object grid_params priority)."""
+        model = self.project.model if self.project else None
+        objs = list(model._all_objects()) if model is not None else []
+        if not objs:
+            self._nyi("Edit priorities")
+            return
+        from ice_panes import EditPrioritiesDialog
+        dlg = EditPrioritiesDialog(self, objects=objs)
+        if dlg.exec_() == QDialog.Accepted:
+            for name, prio in dlg.values().items():
+                o = model.object_by_name(name)
+                if o is not None:
+                    sv = getattr(o, "setvals", None) or {}
+                    sv["grid_priority"] = [str(prio)]
+                    o.setvals = sv
+            self._mark_dirty("Edit priorities applied")
+
+    def _edit_cutouts(self):
+        """G2: Model -> Edit cutouts (per-object mesh cutout flags)."""
+        model = self.project.model if self.project else None
+        objs = list(model._all_objects()) if model is not None else []
+        if not objs:
+            self._nyi("Edit cutouts")
+            return
+        from ice_panes import EditCutoutsDialog
+        dlg = EditCutoutsDialog(self, objects=objs)
+        if dlg.exec_() == QDialog.Accepted:
+            for name, val in dlg.values().items():
+                o = model.object_by_name(name)
+                if o is not None:
+                    sv = getattr(o, "setvals", None) or {}
+                    sv["grid_cutout"] = [val]
+                    o.setvals = sv
+            self._mark_dirty("Edit cutouts applied")
+
     def _show_mesh_quality(self):
         """G1: Model -> Mesh quality... statistics panel."""
         if getattr(self, "_mesh_result", None) is None:

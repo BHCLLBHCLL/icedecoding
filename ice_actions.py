@@ -215,6 +215,8 @@ SLOT_MAP = {
     # Model
     "Generate mesh": "_generate_mesh",
     "Check model": "_check_model",
+    "Edit priorities": "_edit_priorities",
+    "Edit cutouts": "_edit_cutouts",
     # Solve
     "Run solution": "_run_solution",
     "Solution monitor": "_open_solution_monitor",

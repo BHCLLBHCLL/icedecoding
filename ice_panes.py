@@ -1151,6 +1151,97 @@ class SpreadsheetDialog(QDialog):
         self.accept()
 
 
+class EditPrioritiesDialog(QDialog):
+    """G2: per-object mesh priority editor (0-999, Icepak grid_params)."""
+
+    def __init__(self, parent=None, objects=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit priorities")
+        self.setMinimumSize(420, 360)
+        self._objs = list(objects or [])
+        v = QVBoxLayout(self)
+        v.setContentsMargins(8, 8, 8, 8)
+        self.table = QTableWidget(self)
+        self.table.setColumnCount(2)
+        self.table.setHorizontalHeaderLabels(["Object", "Priority"])
+        self.table.setRowCount(len(self._objs))
+        for r, o in enumerate(self._objs):
+            name = QTableWidgetItem(getattr(o, "name", ""))
+            name.setFlags(name.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 0, name)
+            sv = getattr(o, "setvals", None) or {}
+            self.table.setItem(r, 1, QTableWidgetItem(
+                str((sv.get("grid_priority") or ["10"])[-1])))
+        v.addWidget(self.table, 1)
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        ok = QPushButton("OK", self)
+        ok.setDefault(True)
+        ok.clicked.connect(self.accept)
+        cancel = QPushButton("Cancel", self)
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(ok)
+        btns.addWidget(cancel)
+        v.addLayout(btns)
+
+    def values(self):
+        out = {}
+        for r, o in enumerate(self._objs):
+            txt = self.table.item(r, 1).text().strip()
+            try:
+                out[o.name] = max(0, min(999, int(float(txt))))
+            except ValueError:
+                out[o.name] = 10
+        return out
+
+
+class EditCutoutsDialog(QDialog):
+    """G2: per-object cutout flags (object region excluded from the mesh)."""
+
+    def __init__(self, parent=None, objects=None):
+        super().__init__(parent)
+        self.setWindowTitle("Edit cutouts")
+        self.setMinimumSize(420, 360)
+        self._objs = list(objects or [])
+        v = QVBoxLayout(self)
+        v.setContentsMargins(8, 8, 8, 8)
+        self.table = QTableWidget(self)
+        self.table.setColumnCount(2)
+        self.table.setHorizontalHeaderLabels(["Object", "Cutout"])
+        self.table.setRowCount(len(self._objs))
+        self._checks = []
+        for r, o in enumerate(self._objs):
+            name = QTableWidgetItem(getattr(o, "name", ""))
+            name.setFlags(name.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 0, name)
+            sv = getattr(o, "setvals", None) or {}
+            chk = QTableWidgetItem()
+            chk.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
+            chk.setCheckState(Qt.Checked if str(
+                (sv.get("grid_cutout") or ["0"])[-1]) == "1"
+                else Qt.Unchecked)
+            self.table.setItem(r, 1, chk)
+            self._checks.append(chk)
+        v.addWidget(self.table, 1)
+        btns = QHBoxLayout()
+        btns.addStretch(1)
+        ok = QPushButton("OK", self)
+        ok.setDefault(True)
+        ok.clicked.connect(self.accept)
+        cancel = QPushButton("Cancel", self)
+        cancel.clicked.connect(self.reject)
+        btns.addWidget(ok)
+        btns.addWidget(cancel)
+        v.addLayout(btns)
+
+    def values(self):
+        out = {}
+        for r, o in enumerate(self._objs):
+            out[o.name] = "1" if self._checks[r].checkState() == Qt.Checked \
+                else "0"
+        return out
+
+
 class MeshQualityDialog(QDialog):
     """G1: mesh quality statistics panel (cells/nodes/aspect/orthogonality)."""
 

@@ -260,10 +260,21 @@ def write_grid_params(path, model, params=None):
         dz = 1e37
         min_gap = params.get("min_elements_gap", 3)
         max_ratio = params.get("max_ratio", 2.0)
+        sv = getattr(o, "setvals", None) or {}
+        try:
+            prio = int(float((sv.get("grid_priority") or ["10"])[-1]))
+        except (TypeError, ValueError):
+            prio = 10
+        try:
+            cut = 1 if str((sv.get("grid_cutout") or ["0"])[-1]) == "1" \
+                else 0
+        except (TypeError, ValueError):
+            cut = 0
         line = "%s %d %.6g %.6g %.6g %.6g %.6g %.6g %.6g %.6g %.6g" \
-               " %.6g %d %.6g %d %.6g %d" % (
+               " %.6g %d %.6g %d %.6g %d %d %d" % (
                    t, idx, lo[0], lo[1], lo[2], hi[0], hi[1], hi[2],
-                   dx, dy, dz, 0.005, min_gap, 0.005, min_gap, max_ratio, 1)
+                   dx, dy, dz, 0.005, min_gap, 0.005, min_gap, max_ratio, 1,
+                   prio, cut)
         lines.append(line)
         idx += 1
     with open(path, "w", encoding="latin-1") as fh:
