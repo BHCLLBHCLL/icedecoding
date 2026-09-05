@@ -129,17 +129,20 @@ class PrefsStore(object):
                 elif val.startswith('"') and val.endswith('"'):
                     val = val[1:-1]
                 val = _coerce(val)
-                if key in self.values:
-                    self.values[key] = val
+                self.values[key] = val
         return True
 
     def save_legacy(self, path=None):
         """Write 'set key value' text (can be sourced by Tcl)."""
         path = path or default_legacy_path()
         with open(path, "w", encoding="latin-1") as fh:
-            for key, val in sorted(self.values.items()):
-                fh.write('set %s %s\n' % (key, _tcl(val)))
+            fh.write(self.legacy_text())
         return path
+
+    def legacy_text(self):
+        """H1: all stored variables as Tcl 'set key value' text (roundtrip)."""
+        return "".join('set %s %s\n' % (k, _tcl(v))
+                       for k, v in sorted(self.values.items()))
 
 
 def _coerce(val):

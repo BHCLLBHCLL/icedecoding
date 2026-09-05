@@ -50,7 +50,7 @@
   验收：G1 质量指标与 mesher oracle 输出一致；G3 温度 vs oracle 偏差 <5%。
 
 ### Phase H — 配置/周边
-- **H1 ~/.icepak_config 变量级兼容导入导出**（ice_prefs 全变量）。
+- **H1 ~/.icepak_config 变量级兼容导入导出** ✅：`PrefsStore.load_legacy` 保留全变量（含未知变量，花括号/布尔强转剥离）+ `legacy_text()` 往返。
 - **H2 Annotations**（注释对象创建/显示）。
 - **H3 Command prompt 全命令 + Python console 等价**（ice_cli 扩展全 golden 命令）。
 - **H4 图像导出格式补全**（已有 Create image file 路径）。

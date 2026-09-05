@@ -693,6 +693,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### H1 — ~/.icepak_config 变量级兼容导入导出 完成（Phase H 启动）
+
+- **ice_prefs.PrefsStore**：`load_legacy` 修复——移除「仅已知 key 才入库」守卫，**未知变量也保留**（全量变量级兼容）；新增 `legacy_text()`（全部变量 → Tcl `set key value` 文本）；`save_legacy` 复用它。
+- **测试**：tests/test_p19_config.py（3 项：未知变量保留（含 `{C:/ice/macros}` 花括号剥离、`on`→1 布尔强转）、legacy 文本重载往返一致、save_legacy 写全部含默认+自定义键）；config/prefs 11 项通过无回归。
+
 ### G4 — ROM/优化 + solution ID 管理 完成，Phase G 收官
 
 - **修复既有 bug**：`_run_solution` 的 `solve_id` 在 `(mesh_result)` 分支用到前未定义（NameError）——把赋值提前；`write_resd` 期望 `(it, [vals])` 残差格式。
