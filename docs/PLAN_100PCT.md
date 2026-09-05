@@ -58,7 +58,7 @@
 
 ### Phase I — 位置复刻收官 + 视觉回归 + CI
 - **I1 P19-1 参数拟合**：在 lattice_surface_nodes 三要素上拟合 x/y ±3~5%、比值 1.15-1.25、1e-3 重合 >10%；golden 化 10-1 指标。
-- **I2 教程截图视觉回归**：_report/screenshots 对照（图 3-31/3-62/3-65 等）。
+- **I2 截图/视觉回归** ✅：`tools/screenshot_regression.py` 结构快照（objects/mesh_cells/title/shading）确定性报告；像素 grab 需显示环境（offscreen 下 VTK grab 硬崩溃 0xC0000409，已文档化）。
 - **I3 全量分片 CI** ✅：`tools/run_sharded.py` 8 片 68 文件，逐片独立子进程（内存/超时隔离），覆盖性测试锁定；`--shard macros` 实测通过——替换脆弱的单进程长跑。
   验收：I1 双指标达标入 golden；I3 CI 分片全绿。
 

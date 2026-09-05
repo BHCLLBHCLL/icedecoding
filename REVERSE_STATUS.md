@@ -693,6 +693,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### I2 — 截图/视觉回归（结构快照）完成
+
+- **tools/screenshot_regression.py**：离屏场景（empty/objects/mesh）→ **结构快照**（objects/mesh_cells/title/shading/selected）确定性回归报告；`grab=True`（需真实显示）才实际抓得 PNG。
+- **取证（环境限制）**：`QWidget.grab()` 对含 VTK 控件的窗口在 offscreen 平台**硬崩溃**（0xC0000409，不可捕获；standalone 另缺 QApplication 需先建）——故 CI 安全路径用结构快照，像素级回归需显示环境（文档标注）。
+- **测试**：tests/test_p19_screenshot.py（3 项：objects 快照字段、mesh_cells=6·6·3、场景 builder）；screenshot/annotimg/sharded/golden 19 项通过无回归。
+
 ### I3 — 全量分片 CI 完成（Phase I 启动）
 
 - **tools/run_sharded.py**：把 313+ 测试按子系统分为 8 片（data/mesh/post/ecad/macros/solver/gui/misc = 68 个测试文件），**每个分片在独立子进程跑**（新解释器释放内存、iceecad 超时隔离），逐片聚合；`--list` / `--shard NAME` / `--all`。
