@@ -79,6 +79,53 @@ def fields_of(parsed, key):
     return None
 
 
+# ---- P19-E3: full-variable access (pressure/velocity/... + previous step) ----
+def fdat_variables(parsed):
+    """Base variable names available in the fdat (SV_T, SV_P, SV_U, ...)."""
+    out = set()
+    for name, args, vals in parsed["fields"]:
+        mm = re.match(r"(SV_[A-Z0-9_]+)", name)
+        if mm:
+            out.add(mm.group(1))
+    return sorted(out)
+
+
+def cell_zone_field(parsed, variable, clean=True):
+    """Values of a variable's CELL-zone section (interior field on cells),
+    e.g. 'SV_P' -> (name, args, values).  clean=True drops the sentinel
+    doubles (1e308-class) the writer leaves in unused zone slots, so the
+    returned count matches the zone's real 'N cells:' in the name.
+    None if absent."""
+    for name, args, vals in parsed["fields"]:
+        if variable in name and "cell zone" in name:
+            if clean:
+                # the section name declares the true populated count
+                # ('... cell zone 16, 47474 cells:'); the writer pads the
+                # remaining zone slots with sentinel doubles
+                m = re.search(r"(\d+) cells", name)
+                if m:
+                    vals = vals[:int(m.group(1))]
+                vals = [v for v in vals if abs(v) < 1e100]
+            return name, args, vals
+    return None
+
+
+def real_field_values(project_dir, variable):
+    """Cell-zone values of any SV_ variable from the project fdat.
+    Returns the value list (or None)."""
+    import glob as _glob
+    import os
+    if not project_dir or not os.path.isdir(project_dir):
+        return None
+    cands = sorted(_glob.glob(os.path.join(project_dir, "*.fdat")))
+    for path in cands:
+        parsed = parse_fdat(path)
+        got = cell_zone_field(parsed, variable)
+        if got is not None:
+            return got[2]
+    return None
+
+
 def stats(vals):
     if not vals:
         return {}

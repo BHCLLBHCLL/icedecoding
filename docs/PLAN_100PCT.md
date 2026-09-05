@@ -31,6 +31,7 @@
 ### Phase E — 数据层收尾（D5 唯一缺口 + problem/fdat 补全）
 - **E1 grid_output face/cell 区解码** ✅ + **E1b 尾表描述符** ✅：`decode_grid_output` 全节解码 + tail 描述符表（`(6,58908)` 单元声明数=cas 精确值、`(14,12218)` 面声明数、主头指针指向描述符）；cells 落盘 58907（声明 58908 Δ1）、faces 12217。剩余 E1c：描述符后嵌套邻接/区域表。
 - **E2 problem 数组字段** ✅：`array set` 已全解析（9-2=57/10-1=47 数组）+ 新增结构化访问器 `table()/trials()/design_params()`（真实结构取证：逐 trial 变量在 expression_param_random、range 以参数名为键）。验收：26 工程零未知键。
+- **E3 fdat 全变量** ✅：`fdat_variables` / `cell_zone_field`（真实单元数切片+哨兵清洗）/ `real_field_values`；10-1 实测 125 节全变量（SV_T/P/U/V/W/DENSITY/H/HEAT_FLUX/WALL_* + `_M1` 前步）、头三元组与 cas 面数 185451 精确一致。
 - **E3 fdat 全变量**：压力/速度/多瞬态步全字段（现仅 SV_T 为主）。
   验收：12-1/10-1 全变量可加载；后处理按变量选择。
 

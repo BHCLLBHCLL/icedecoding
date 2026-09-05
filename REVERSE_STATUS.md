@@ -693,6 +693,12 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### E3 — fdat 全变量访问（压力/速度/多步前值）完成
+
+- **取证**：10-1transient `transient00.fdat` 含 **125 个 3300 字段节**，变量全集：SV_T/SV_P/SV_U/SV_V/SV_W/SV_DENSITY/SV_H/SV_MU_LAM/SV_HEAT_FLUX/SV_WALL_*/SV_RAD_HEAT_*/SV_FLUX + `_M1`（前一瞬态步）各变量；fdat 头 `(33 (58908 185451 62626))` 与 cas 边界 zone 面行数 185451 精确一致。
+- **新增**：`fdat_variables(parsed)`（SV_* 变量表）、`cell_zone_field(parsed, variable, clean=True)`（按名称声明的真实单元数 `N cells` 切片 + 哨兵双精度清洗）、`real_field_values(project_dir, variable)`（任意变量单元区值）。
+- **测试**：tests/test_p19_fdatvars.py（3 项：合成变量表/cell-zone 判定、真实全变量 58908 值+压力范围+_M1 前步、real_field_values 访问器）；fdat/fdatvars 8 项通过。
+
 ### E1b — grid_output 尾表（节描述符）解码 完成
 
 - **取证**：面节之后（offset 4403104 起）为节描述符块——16B 前置 + `(tag, value)` 对：`(6, 58908)`=单元声明数（**与 cas 区头 58908 完全一致**，解了 E1 的 Δ1：grid 自身声明 58908 单元、落盘 58907 条）、`(14, 12218)`=面声明数（12217+1 前导面 ✓）、`(16,2)`/`(11,2)`/`(12,2)`/`(3,3)` 等；**主头 hdr[20]/hdr[32] 即指向描述符表内偏移（+32/+16）的指针**。描述符之后为嵌套邻接/区域表（含面 id 对、双精度区）——记为 E1c 后续。
