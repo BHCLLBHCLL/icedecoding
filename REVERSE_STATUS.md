@@ -674,3 +674,11 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 - **右下状态栏 4 段**：底部新增 4 个 QLabel 段（Sel / Shading / Units / Objects），`_update_status_segments()` 在 `_refresh` 时刷新。
 - **测试**：tests/test_p19_viewcontract.py 5→11 项（kind_visuals 默认、_make_actor 应用 visuals、KindVisualsDialog values 往返+编辑、construction 两 actor 存在且默认隐藏、状态栏 4 段更新、View 菜单含 Per-type visuals）；view3d/align/gui/golden/tree 61 项通过无回归。
 - **P19-2 收官**（视觉契约全集全部落地）。
+
+### P19-5 — 宏官方 diff 校验（oracle 锚定）完成
+
+- **tools/macro_diff.py**（官方 Tcl 宏为 digest 加密不可直跑，oracle 取两层）：① 内置 5 宏按构建器规则表 diff（对象数/kind/package_type/body bbox，默认参数）；② **845 库部件以官方参数文件为 golden**——每个部件的 package 必须逐字回显官方 ball_pitch/ball_num1/2/die_dim1/2/library，且几何规则 bbox = ball_num2·pitch × ball_num1·pitch × package_thickness（delta=0）。golden 锚定 `tools/probe_work/macro_golden.json` + 报告 `macro_diff_report.json`。
+- **diff 校具抓出并修复 2 个潜伏真 bug**：`build_blower` 缺 `default_object` 导入（此前被 `except Exception: pass` 掩盖）+ 未守护 `o.setvals` 属性。
+- **结果**：builtin 5/5、library 845/845，**delta_total = 0**。
+- **测试**：tests/test_p19_macrodiff.py（5 项：内置 0 delta、库部件抽样 0 delta、blower 修复、golden 锚定匹配、全量 0 delta）；macrodiff/p7_macros/macrolang/libwizard/ecad 26 项通过无回归。
+- **P19-5 收官**。

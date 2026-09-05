@@ -1,0 +1,20 @@
+{
+ "builtin": {
+  "angled_fin": {
+   "default_deltas": []
+  },
+  "bga": {
+   "default_deltas": []
+  },
+  "blower": {
+   "default_deltas": []
+  },
+  "sot": {
+   "default_deltas": []
+  },
+  "tec": {
+   "default_deltas": []
+  }
+ },
+ "library_total": 845
+}

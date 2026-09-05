@@ -286,6 +286,7 @@ def build_sot(model, p):
 
 
 def build_blower(model, p):
+    from ice_create import default_object
     dia = float(p.get("diameter", 0.08))
     depth = float(p.get("depth", 0.06))
     nm = _name(model, "blower")
@@ -293,7 +294,7 @@ def build_blower(model, p):
                        creation_order=model.count_all() + 1)
     o.shape.setvals["point1"] = ["0", "0", "0"]
     o.shape.setvals["point2"] = [str(dia), str(depth), str(depth)]
-    sv = o.setvals or {}
+    sv = getattr(o, "setvals", None) or {}
     sv["blower_type"] = ["centrifugal"]
     sv["power"] = [str(float(p.get("power", 8.0)))]
     sv["flow"] = [str(float(p.get("flow", 0.03)))]

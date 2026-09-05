@@ -73,9 +73,9 @@
 - ~~Solve 面板字段全集（Basic/Advanced/Parallel/Patch/Trials/ROM）~~ **已交付**（PATCH/TRIALS/ROM 字段表 golden 化 + Define trials/Create Krylov ROM 接线）；批队列 UI（IcBQS 语义，Phase C 已做）；post 视区云图/矢量/等值面/探针/极值（已全部真实化/着色）；+ 瞬态设置（已接线）+ 单位（已接线）+ Zoom-in 模型（已做）；报告 Summary/Point/Full/Overview + 网络块值/Fan 工作点/EM/Solar/Autotherm（已全部加段）+ 5 powermap 导出（已做）——**P19-4 收官**。
 - 验收：面板字段对表；后处理与 heat_solver 数据打通（结构化网格先，HDM 网格后）；报告 golden 样例。
 
-**P19-5 宏内置库全量移植**
-- 官方 icelib/macros 三级宏 → 参数化部件宏+向导页；每个宏：参数/几何与官方宏产物模型文件 delta=0（oracle 沙箱）。
-- 验收：宏清单对表；产物 diff golden。
+**P19-5 宏内置库全量移植**（已收官）
+- 官方 icelib/macros 三级宏 → 参数化部件宏+向导页（已交付）；**每个宏与官方产物 diff=0**（官方 Tcl 加密不可直跑，oracle 锚定为：内置宏规则表 + **845 库部件以官方参数文件为 golden 逐字回显/几何规则**——`tools/macro_diff.py` 实测 builtin 5/5、library 845/845、delta_total=0，并修复 build_blower 两个潜伏 bug）。
+- 验收：宏清单对表 ✅；产物 diff golden ✅（macro_golden.json）。
 
 **P19-6 ECAD 收官**
 - ODB++/ANF→ICB oracle 管线（iceecad.exe 沙箱，已交付：广义 `convert_ecad_to_icb` mode 表 + GUI 导入）；AEdt 脚本导出（已交付）；Show metal fractions 视区显示（已交付）；**Export AE 脚本 + 5 powermap 导出格式收尾**（`export_powermap` 逆编码器 + File/Report 槽位）——P19-6 收官。

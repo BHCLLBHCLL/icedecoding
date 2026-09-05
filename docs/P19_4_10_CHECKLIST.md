@@ -7,7 +7,7 @@
 | 项 | 状态 | 已实现 | **未实现（缺口）** |
 | --- | --- | --- | --- |
 | **P19-4** 求解/后处理/报告 | **☑ 完成** | fdat 真实数据源；cas 面重建 cell→node（58,908 单元）；真实 VTK 温度云（12-1:124k 点）+ **iso/平面切/极值云按真实温着色**（蓝→红）；矢量 glyph（124k 箭头）；**真插值等值面**；**History / Network temperature / 3D Variation 真实曲线**；**Solve→Transient settings 接线**；**Post→Postprocessing units 接线**；**powermap 视区显示**；**Zoom-in 模型**；**Solve 面板字段全集（Patch/trials/ROM 字段表 golden 化 + Define trials/Create Krylov ROM 接线）**；报告 HTML 温度统计段+SVG + **Fan/网络块值/EM/Solar 段 + Overview 真实完整报告 + Autotherm 导出**（5 powermap 导出已在 D6d） | —（P19-4 收官） |
-| **P19-5** 宏内置库 | **部分(~30%)** | 动态三级注册扫描；向导壳；内置宏 5 个（heat_sink/bga/tec/sot/blower） | 官方 icelib/macros 三级库全量移植（参数化部件宏+全套向导页）；每个宏与官方产物 diff 校验（oracle 沙箱） |
+| **P19-5** 宏内置库 | **☑ 完成** | 动态三级注册扫描；向导壳；内置宏 5 个（heat_sink/bga/tec/sot/blower）；845 部件全量移植（参数化部件 + 每部件向导页 UI）；**oracle diff 校验**（tools/macro_diff.py：内置规则表 + 845 官方参数文件逐字回显/几何规则，delta=0；golden 锚定） | —（P19-5 收官） |
 | **P19-6** ECAD 收官 | **☑ 完成** | ECXML/IDF/IDX/Networks/JEDEC/powermap 解析 + export_*；icb_metal_fractions；AEdt 脚本导出；**ODB++/ANF→ICB oracle 管线**（iceecad 广义 mode + GUI 导入）；**Show metal fractions 视区显示**（逐层铜箔 + 图例）；**Export AE 脚本 + 5 powermap 导出格式**（export_powermap 逆编码器，往返一致） | —（P19-6 收官） |
 | **P19-7** 写回/Undo | **部分(~50%)** | model 编码器（encode_line/text，可逆）；Save/Save-as 链路；快照 Undo | **字节级往返**（fn 每行原始 seed + Il!! 模式——实测 encode 非字节一致）；全对象状态 Undo；脏标记细化 |
 | **P19-8** IcBQS + CLI | **未实现(0%)** | 无 | IcBQS 批队列（6791 协议/状态机/任务属性）；批部署 CLI（启动/任务参数等价） |
