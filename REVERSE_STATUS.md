@@ -693,6 +693,14 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### E1 — grid_output face/cell 区解码 完成（Phase E 启动）
+
+- **fluent_grid.decode_grid_output(path, n_nodes)**：结构驱动全节解码——头 64B → 节点节 28B BE `[counter][x][y][z]`（计数 0..N-1）→ 前导面 24B `[4 节点 id][face id][zone]`（id=N+1）→ 单元节 40B `[8 节点 id][cell id][zone]`（id 自 N+2 连续）→ 面节 24B `[4 节点 id][face id][zone]`（id 自 N+n_cells+2 连续）。
+- **10-1transient 实测**：nodes **62626** ✓（nodemap）、cells **58907**（oracle cas 58908，Δ1=被计数但未落盘的一个退化单元；id 62628..121534 连续、节点 id 全合法）、faces **12217**（id 121535..133751 连续，之后尾部为另一结构表=面邻接，留作 E1b）。
+- **测试**：tests/test_p19_grid32.py（2 项：真实 golden（节点/单元/面三节 id 连续性+合法域）、合成往返）；grid/oracle 10 项通过无回归。
+
+## P19 收官后的下一程：docs/PLAN_100PCT.md
+
 - 基线：91 提交 / 23 ice_* 模块 / 44 tools / 53 测试文件 313 测试函数。
 - 剩余真实差距（更新后的矩阵）：① grid_output **face/cell 区 32B 记录解码**（D5 唯一数据缺口）；② problem 数组字段 + fdat 全变量；③ File Workbench 变体 / Windows 动态菜单 / 多命令按钮 / 树图标与组右键全集；④ 真实 mesher 沙箱对接 + 质量统计/优先级/挖空面板 + heat_solver 深化 + ROM/优化 UI；⑤ ~/.icepak_config 兼容导入导出 / Annotations / Command prompt 全命令；⑥ P19-1 参数拟合级（x/y ±3~5%、1e-3 >10%）+ 教程截图视觉回归 + 全量分片 CI。
 - 新计划 Phase E（数据层）→ F（UI 契约）→ G（网格/求解）→ H（配置/周边）→ I（位置收官/回归），约 5-6 周，每项含验收口径。

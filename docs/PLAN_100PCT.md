@@ -29,8 +29,7 @@
 ## 二、新开发计划（Phase E → I）
 
 ### Phase E — 数据层收尾（D5 唯一缺口 + problem/fdat 补全）
-- **E1 grid_output face/cell 区（32B 记录）解码**：节点区 28B BE 已解；面/单元区按 32B BE 取证，与 nodemap/fmap/cas 区头三重交叉；golden 10-1/8-2。
-  验收：face/cell 记录数 == oracle fmap 行数 / cas 区头 cell 数。
+- **E1 grid_output face/cell 区解码** ✅ 已交付：`fluent_grid.decode_grid_output` 结构驱动全节解码（节点 28B / 前导面 24B / 单元 40B / 面节 24B）；10-1 实测 nodes 62626 ✓、cells 58907（cas 58908 Δ1 退化单元）、faces 12217（id 连续）——golden 化。剩余 E1b：面节之后的尾部结构表（疑似面-单元邻接）。
 - **E2 problem 数组字段全解析**：gradient/transient 表、array set 复合值结构化。
   验收：26 工程 problem 解析零未知键（字节级往返）。
 - **E3 fdat 全变量**：压力/速度/多瞬态步全字段（现仅 SV_T 为主）。

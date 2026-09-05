@@ -96,3 +96,100 @@ def grid_counts(path):
     if not is_binary:
         return parse_ascii_grid(data.decode("latin-1", errors="ignore")), {}
     return {}, analyze_binary(data)
+
+
+# ---- P19-E1: full binary grid_output decode (nodes / cells / faces) ---------
+def decode_grid_output(path, n_nodes=None):
+    """E1: decode every section of the binary grid_output.
+
+    Layout (10-1transient verified; section boundaries driven by the id runs,
+    not fixed counts):
+      64-byte header
+      node section:  28-byte BE records [counter][x][y][z], counters 0..N-1
+      lead face:     24-byte record [face id][zone][n0][n1][n2][n3] with
+                     face id == N+1 (first global id after the nodes)
+      cell section:  40-byte records [8 node ids][cell id][zone], cell ids
+                     consecutive from N+2
+      face section:  24-byte records [face id][zone][4 node ids], face ids
+                     consecutive from N + n_cells + 2
+
+    Returns a dict {'nodes': (N,3), 'cells': (C,8) int, 'cell_ids',
+    'faces': (F,4) int node ids, 'face_ids', 'zones', 'offsets'} or None.
+    """
+    import numpy as np
+    with open(path, "rb") as fh:
+        data = fh.read()
+    # 1) node section: counter run 0,1,2 in the header tail
+    off = None
+    for o in range(56, 200, 4):
+        if o + 56 <= len(data) and _be_int(data, o) == 0 and \
+                _be_int(data, o + 28) == 1 and _be_int(data, o + 56) == 2:
+            off = o
+            break
+    if off is None:
+        return None
+    if not n_nodes:
+        k = 0
+        p = off
+        while p + 28 <= len(data) and _be_int(data, p) == k:
+            k += 1
+            p += 28
+        n_nodes = k
+    nodes = np.empty((n_nodes, 3), dtype=np.float64)
+    for i in range(n_nodes):
+        o = off + i * 28
+        if _be_int(data, o) != i:
+            return None
+        x, y, z = struct.unpack_from(">ddd", data, o + 4)
+        nodes[i] = (x, y, z)
+    p = off + n_nodes * 28
+    # 2) lead 24-byte record: [4 node ids][face id][zone], id == n_nodes + 1
+    lead = None
+    if p + 24 <= len(data):
+        rec = struct.unpack_from(">6i", data, p)
+        if rec[4] == n_nodes + 1:
+            lead = rec
+            p += 24
+    # 3) cell section: 40-byte records, ids consecutive from n_nodes + 2
+    cells = []
+    cell_ids = []
+    expect = n_nodes + 2
+    while p + 40 <= len(data):
+        ids = struct.unpack_from(">8i", data, p)
+        cid = _be_int(data, p + 32)
+        if cid != expect:
+            break
+        if any(v < 0 or v >= n_nodes for v in ids):
+            break
+        cells.append(ids)
+        cell_ids.append(cid)
+        expect += 1
+        p += 40
+    # 4) face section: 24-byte records [4 node ids][face id][zone],
+    #    face ids consecutive from n_nodes + n_cells + 2
+    faces = []
+    face_ids = []
+    expect_f = n_nodes + len(cell_ids) + 2
+    while p + 24 <= len(data):
+        rec = struct.unpack_from(">6i", data, p)
+        if rec[4] != expect_f:
+            break
+        faces.append(rec)
+        face_ids.append(rec[4])
+        expect_f += 1
+        p += 24
+    return {
+        "nodes": nodes,
+        "cells": np.array(cells, dtype=np.int64).reshape(-1, 8) if cells
+        else np.zeros((0, 8), dtype=np.int64),
+        "cell_ids": np.array(cell_ids, dtype=np.int64),
+        "faces": np.array([f[0:4] for f in faces], dtype=np.int64),
+        "face_ids": np.array(face_ids, dtype=np.int64),
+        "face_zones": np.array([f[5] for f in faces], dtype=np.int64),
+        "lead_face": lead,
+        "offsets": {"header": 64, "nodes": off,
+                     "cells": off + n_nodes * 28 + (24 if lead else 0),
+                     "faces": p - len(face_ids) * 24},
+        "n_nodes": n_nodes, "n_cells": len(cell_ids),
+        "n_faces": len(face_ids),
+    }
