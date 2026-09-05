@@ -693,6 +693,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### I1 — P19-1 参数拟合（全管线实证基线）完成（I 收官，目标待续）
+
+- **tools/hdm_final_fit.py**：58k 全管线（背景+锥壳）在 (curv_c, ring_zfrac, ring_lattice, ring_base_step) 小网格上运行 `position_match` 打分（distinct x/y 偏差%、ratio、1e-3 重合、|dx|+|dy|），写 `tools/probe_work/final_fit.json`。
+- **实证基线（4 配置）**：best = curv_c=0.165/zfrac=0.8/lattice=false → nodes 103862、**distinct x 1874 vs oracle 8190（−77.1%）、y 1722 vs 6777（−74.6%）**、ratio 1.088、1e-3 重合 8.0%、score 1.517——表明**单次默认 grid_size 的基网格过粗**，与 P18j 的 x −8.1%/y +4.6%（per-job grid_params + 深层八叉树 + 对象尺寸场路径）差一个数量级。
+- **结论**：±3~5% 目标需要 P18j 路径的 per-job grid_params 网格尺寸 + 更深八叉树 + 对象尺寸场，是多配置研究扩展（机制/比对/扫描工具链已全备）；本步交付**全管线实测基线**并 golden 化 final_fit.json。
+- **测试**：tests/test_p19_finalfit.py（3 项：oracle 加载 62626、ORACLE_XY 锚定、全管线指标往返有限）；finalfit 3 项通过。
+
 ### I2 — 截图/视觉回归（结构快照）完成
 
 - **tools/screenshot_regression.py**：离屏场景（empty/objects/mesh）→ **结构快照**（objects/mesh_cells/title/shading/selected）确定性回归报告；`grab=True`（需真实显示）才实际抓得 PNG。

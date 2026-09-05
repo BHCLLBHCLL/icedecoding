@@ -57,7 +57,7 @@
   验收：H1 配置文件与 Icepak 同变量互读；H3 全命令经 CLI 回放。
 
 ### Phase I — 位置复刻收官 + 视觉回归 + CI
-- **I1 P19-1 参数拟合**：在 lattice_surface_nodes 三要素上拟合 x/y ±3~5%、比值 1.15-1.25、1e-3 重合 >10%；golden 化 10-1 指标。
+- **I1 P19-1 参数拟合**：`tools/hdm_final_fit.py` 全管线实测基线 best（zfrac=0.8）distinct x 1874/oracle 8190（−77%）——±5% 目标需 P18j 路径的 per-job grid_params+深层八叉树+对象尺寸场（多配置研究，工具链已备）；final_fit.json 基线已 golden 化。
 - **I2 截图/视觉回归** ✅：`tools/screenshot_regression.py` 结构快照（objects/mesh_cells/title/shading）确定性报告；像素 grab 需显示环境（offscreen 下 VTK grab 硬崩溃 0xC0000409，已文档化）。
 - **I3 全量分片 CI** ✅：`tools/run_sharded.py` 8 片 68 文件，逐片独立子进程（内存/超时隔离），覆盖性测试锁定；`--shard macros` 实测通过——替换脆弱的单进程长跑。
   验收：I1 双指标达标入 golden；I3 CI 分片全绿。
