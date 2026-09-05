@@ -219,6 +219,7 @@ SLOT_MAP = {
     "Edit cutouts": "_edit_cutouts",
     # Solve
     "Run solution": "_run_solution",
+    "Run optimization": "_run_optimization",
     "Solution monitor": "_open_solution_monitor",
     "Patch temperatures": "_patch_temperatures",
     "Define trials": "_define_trials",

@@ -46,7 +46,7 @@
 - **G1 网格质量统计面板** ✅：`ice_mesh.mesh_quality`（正交性/偏斜/逐单元长宽比分布+最差单元/容积）+ `MeshQualityDialog` + Model 菜单「Mesh quality...」。真实 mesher 沙箱对接（mesher.exe 许可受限，rc=1）与质量 golden 比对留待后续。
 - **G2 优先级/挖空面板** ✅：EditPrioritiesDialog/EditCutoutsDialog（Priority spin / Cutout 复选框）→ setvals grid_priority/grid_cutout；write_grid_params 行尾追加 priority cutout 令牌；SLOT_MAP 接线（原 NYI）。
 - **G3 heat_solver 深化** ✅：Robin 对流边界（convection_h）+ 线性化灰体辐射（emissivity/rad_iter 固定点）+ `heat_solver_compare` oracle SV_T 统计比对；大 h 收敛 Dirichlet、辐射降温、默认兼容均已锁定（<5% 目标需精网格+真实 BC，机制已备）。
-- **G4 ROM/优化 UI + solution ID 管理**：ROM_FIELDS 已有，补优化面板与 solution id 切换。
+- **G4 ROM/优化 UI + solution ID 管理** ✅：`_run_optimization`（trials 循环求解，golden 命令原 NYI）+ `_set_solution_id`（Solve 菜单写回 problem.solve_id）+ `_solve_with_id`（按 id 求解+写 resd）；修复 `_run_solution` solve_id NameError 与 write_resd 残差格式 bug——**Phase G 收官**。
   验收：G1 质量指标与 mesher oracle 输出一致；G3 温度 vs oracle 偏差 <5%。
 
 ### Phase H — 配置/周边

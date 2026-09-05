@@ -829,6 +829,7 @@ class IceGui(QMainWindow):
         self._rebuild_ecad_import_menu()
         self._rebuild_model_zoom_menu()
         self._rebuild_view_visuals_menu()
+        self._rebuild_solve_menu()
         if getattr(self, "_workbench", False):
             from ice_menus_toolbars import build_file_variant
             build_file_variant(self, wb=True)
@@ -1349,6 +1350,18 @@ class IceGui(QMainWindow):
         act.triggered.connect(self._edit_kind_visuals)
         self._kind_visuals_action = act
 
+    def _rebuild_solve_menu(self):
+        """G4: Solve -> Solution id... entry."""
+        m = self._menus.get("Solve")
+        if m is None:
+            return
+        if getattr(self, "_solution_id_action", None) is not None:
+            m.removeAction(self._solution_id_action)
+            self._solution_id_action = None
+        act = m.addAction("Solution id...")
+        act.triggered.connect(self._set_solution_id)
+        self._solution_id_action = act
+
     def _edit_kind_visuals(self):
         """Edit per-type color/line-width/opacity; applies on scene rebuild."""
         from ice_panes import KindVisualsDialog
@@ -1501,6 +1514,7 @@ class IceGui(QMainWindow):
             return
         params = dlg.params()
         iters = int(params.get("iters", 100))
+        solve_id = str(params.get("solve_id", "transient00"))
         if getattr(self, "_mesh_result", None) is not None:
             from heat_solver import solve_heat
             temps, rows = solve_heat(self._mesh_result, self.project.model,
@@ -1519,7 +1533,6 @@ class IceGui(QMainWindow):
             if params.get("solve_startmon", True):
                 self._open_solution_monitor()
             return
-        solve_id = str(params.get("solve_id", "transient00"))
         from ice_solve import simulate_residuals, write_resd
         rows = simulate_residuals(iters)
         base = self._job_base()
@@ -1532,6 +1545,60 @@ class IceGui(QMainWindow):
         self._mark_dirty("Run solution %s" % solve_id)
         if params.get("solve_startmon", True):
             self._open_solution_monitor()
+
+    def _solve_with_id(self, solve_id, iters=80):
+        """G4: run the heat solver for a given solution id + write resd."""
+        if self.project is None or not hasattr(self, "_mesh_result") or \
+                self._mesh_result is None:
+            self.log("Solve %s: no mesh" % solve_id, "WARN")
+            return None
+        from heat_solver import solve_heat
+        from ice_solve import write_resd
+        temps, rows = solve_heat(self._mesh_result, self.project.model,
+                                 max_iter=iters)
+        self._field_temps = temps
+        self._residual_rows = rows
+        self._solution_id = solve_id
+        base = self._job_base()
+        if base:
+            resd = [(it, [v1, v2, v3, v4])
+                    for (it, v1, v2, v3, v4) in rows]
+            write_resd(os.path.join(base, "%s.resd" % solve_id), solve_id,
+                       resd)
+        self.log("Solve %s: %d iters, max T = %.2f C" %
+                 (solve_id, len(rows), max(temps.values())))
+        return temps
+
+    def _run_optimization(self):
+        """G4: Solve -> Run optimization - loop the trials, solve each."""
+        from ice_solve import trials_from_problem
+        tr = trials_from_problem(
+            getattr(self.project, "problem", None) if self.project else None \
+            or [])
+        if not tr:
+            self._nyi("Run optimization")
+            return
+        self.log("Optimization: %d trial(s)" % len(tr), "INFO")
+        sn = 0
+        for (k, v) in tr:
+            self._solution_id = str(k)
+            self._solve_with_id(str(k))
+            sn += 1
+        self._mark_dirty("Run optimization: %d trial(s)" % sn)
+
+    def _set_solution_id(self):
+        """G4: Solve -> Solution id... - set the active solution id."""
+        cur = getattr(self, "_solution_id", None) or "transient00"
+        new, ok = QInputDialog.getText(self, "Solution id", "Solution id:",
+                                       text=str(cur))
+        if not ok or not str(new).strip():
+            return
+        self._solution_id = str(new).strip()
+        problem = getattr(self.project, "problem", None) if self.project else None
+        if problem is not None and getattr(problem, "setters", None) is not None:
+            problem.setters["solve_id"] = self._solution_id
+        self._refresh()
+        self.log("Solution id set to %s" % self._solution_id)
 
     def _job_base(self):
         base = None

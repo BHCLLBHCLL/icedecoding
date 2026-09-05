@@ -693,6 +693,13 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### G4 — ROM/优化 + solution ID 管理 完成，Phase G 收官
+
+- **修复既有 bug**：`_run_solution` 的 `solve_id` 在 `(mesh_result)` 分支用到前未定义（NameError）——把赋值提前；`write_resd` 期望 `(it, [vals])` 残差格式。
+- **G4 新增**：`_solve_with_id(solve_id, iters)`（按指定 solution id 跑求解器+写 resd，残差转 `(it,[4 值])`）；`_run_optimization`（golden 命令，此前 NYI：循环 trials 逐个求解并记录）；`_set_solution_id`（Solve 菜单「Solution id...」：设置 `_solution_id` 并写回 problem.setters['solve_id']）。SLOT_MAP「Run optimization」。
+- **测试**：tests/test_p19_g4.py（5 项：槽位、_solve_with_id 求解+写 resd+_solution_id、无 trials→NYI、设置 solution id 写回 problem、Solve 菜单项）；g4/solve/heatsolver/golden 33 项通过无回归。
+- **Phase G（网格/求解深水区）G1/G2/G3/G4 全部完成**。
+
 ### G2 — 优先级/挖空面板 完成
 
 - **ice_panes.EditPrioritiesDialog / EditCutoutsDialog**：逐对象表格（Priority 0-999 spin / Cutout 复选框），`values()` 返回 name→值。
