@@ -2275,6 +2275,37 @@ class IceGui(QMainWindow):
         self._created_by_command[text] = a
         return a
 
+    def _tb_multi(self, tb, cmds):
+        """F4: multi-command toolbar button (Alignment morph/move pairs).
+
+        golden scalar ['multiple', cmd1, cmd2] -> QToolButton whose default
+        action runs cmd1 and whose popup menu lists every variant."""
+        from PyQt5.QtWidgets import QMenu, QToolButton
+        from ice_menus_toolbars import ALIGN_OPS, resolve_slot, SLOT_MAP
+        btn = QToolButton(self)
+        menu = QMenu(self)
+        first = None
+        for cmd in cmds:
+            a = menu.addAction(cmd)
+            if first is None:
+                first = a
+            slot = None
+            if cmd in ALIGN_OPS and hasattr(self, "_start_align"):
+                slot = (lambda _=False, op=ALIGN_OPS[cmd]:
+                        self._start_align(op))
+            elif cmd in SLOT_MAP:
+                slot = resolve_slot(self, cmd)
+            if slot is not None:
+                a.triggered.connect(slot)
+            self._created_by_command[cmd] = a
+        if first is not None:
+            btn.setDefaultAction(first)
+        btn.setText(cmds[0] if cmds else "")
+        btn.setMenu(menu)
+        btn.setPopupMode(QToolButton.MenuButtonPopup)
+        tb.addWidget(btn)
+        return btn
+
     def _build_toolbars(self):
         """P0: toolbars are generated from the golden command registry."""
         build_toolbars(self)

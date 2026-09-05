@@ -21,7 +21,9 @@ ALIGN_OPS = {
     "Align and morph faces": "align_face_stretch",
     "Align faces - move only": "align_face_move",
     "Align and morph edges": "match_edge",
+    "Align edges - move only": "match_edge",
     "Align and morph vertices": "align_centers",
+    "Align vertices - move only": "align_centers",
     "Align object centers": "align_centers",
     "Align face centers": "align_face_centers",
     "Morph faces": "match_face",
@@ -340,4 +342,21 @@ def build_toolbars(gui):
                 slot = (lambda _=False, op=ALIGN_OPS[label]:
                         gui._start_align(op))
             gui._tb_act(tb, label, slot, icon=icon_for_command(icon_key))
+        # F4: multi-command buttons (golden scalar ['multiple', cmd1, cmd2])
+        for cmds in _multi_commands(tb_def["entries"]):
+            gui._tb_multi(tb, cmds)
         seq += 1
+
+
+def _multi_commands(entries):
+    """Golden scalar lists ['multiple', cmd1, cmd2, ...] -> command lists."""
+    for e in entries:
+        if not isinstance(e, dict):
+            continue
+        if "list" in e:
+            for sub in _multi_commands(e["list"]):
+                yield sub
+        elif "scalar" in e and isinstance(e["scalar"], list):
+            words = [w for w in e["scalar"] if isinstance(w, str)]
+            if words and words[0] == "multiple":
+                yield words[1:]

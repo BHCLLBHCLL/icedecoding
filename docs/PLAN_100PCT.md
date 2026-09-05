@@ -39,8 +39,8 @@
 - **F1 Windows 动态菜单** ✅：`rebuild_windows_menu`——toplevel 注册表（Message/Project/Graphics/Geometry + 每个 PlotWindow 动态入表）实时生成可勾选显隐菜单（golden dynamic 注记语义）。
 - **F2 File Workbench 变体** ✅：`build_file_variant(gui, wb=True)`——golden 注记 WB 变体（Refresh Input Data 首项、Close Icepak 替 Quit、去 New/Open/Save-as/Unpack/JEDEC 导入导出），`ICE_WORKBENCH=1` 环境开关。
 - **F3 树图标/按键对齐 + 组右键全集** ✅：修复 Delete all 误接 bug（delete_all 语义）、Copy params 落地（原 NYI）、Show/Clear clipboard + Search library 入根菜单、golden 树热键绑定锁定。
-- **F4 多命令按钮**（icon 键 multi-command）。
-  验收：golden UI 测试 1:1（菜单/工具栏/热键/树命令全对表）。
+- **F4 多命令按钮** ✅：golden `['multiple', A, B]` → MenuButtonPopup QToolButton（默认 A、弹出全变体），ALIGN_OPS 补全变体。
+  验收：golden UI 测试 1:1（菜单/工具栏/热键/树命令全对表）——**Phase F 收官**。
 
 ### Phase G — 网格/求解深水区
 - **G1 真实 mesher 沙箱对接**：mesher.exe 在 dev 沙箱跑样例 → 质量统计面板（正交性/长宽比/偏斜）数据源。

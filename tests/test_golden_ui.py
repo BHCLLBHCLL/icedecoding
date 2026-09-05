@@ -124,7 +124,10 @@ def test_toolbar_groups_match_golden(win):
     assert list(win._toolbars.keys()) == expected
     for name in expected:
         tb_def = reg.toolbar(name)
-        actions = [a.text() for a in win._toolbars[name].actions()]
+        # F4: multi-command buttons are QToolButton widgets, not golden
+        # scalars; their (empty-text) host actions are filtered out here
+        actions = [a.text() for a in win._toolbars[name].actions()
+                   if a.text()]
         wanted = [e["scalar"] for e in tb_def["entries"]
                   if isinstance(e.get("scalar"), str)]
         assert actions == wanted, (name, actions, wanted)

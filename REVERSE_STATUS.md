@@ -693,6 +693,14 @@ P1 壳层：右下当前所选对象几何信息窗口、项目标题条、Welco
 
 ## P19 收官后的下一程：docs/PLAN_100PCT.md
 
+### F4 — 多命令按钮 完成，Phase F 收官
+
+- **ice_menus_toolbars.build_toolbars + _multi_commands**：golden `scalar ['multiple', cmd1, cmd2]`（Alignment 工具栏 3 组 morph/move-only 变体对）→ 弹出菜单 QToolButton；ALIGN_OPS 补 `Align edges/vertices - move only` 变体。
+- **ice_gui._tb_multi**：默认 action=第一变体、MenuButtonPopup 列出全部变体、各变体按 ALIGN_OPS/SLOT_MAP 解析槽位。
+- **golden 测试**：`test_toolbar_groups_match_golden` 过滤空文本宿主 action（多命令按钮是 widget 非 golden scalar，另在 test_p19_multibtn 锁定）。
+- **测试**：tests/test_p19_multibtn.py（2 项：Alignment 3 个弹出按钮及菜单变体对、golden 工具栏 action 列表不含 multiple）；multibtn/golden/gui 30 项通过无回归。
+- **Phase F（UI 契约补漏）F1/F2/F3/F4 全部完成**。
+
 ### F3 — 树右键全集 + 组操作补漏 完成
 
 - **修复真 bug**：「Delete all」此前误接 `_group_all(..., False)`（=Deactivate all）→ 改为 `_delete_group(name, delete_all=True)`：删除组内对象并入 Trash；`_delete_group` 实现 delete_all 语义。
