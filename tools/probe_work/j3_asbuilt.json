@@ -1,0 +1,1068 @@
+{
+ "nodes_total": 62626,
+ "exact_nodes": 62626,
+ "exact_levels": 150,
+ "n_levels": 150,
+ "residual_total": 21280,
+ "matched_nodes": 41346,
+ "residual_per_class": {
+  "artifact": 1,
+  "coarse": 0,
+  "cluster": 10998,
+  "mid": 596,
+  "main": 8832,
+  "special": 853
+ },
+ "per_level": {
+  "0.0": {
+   "type": "artifact",
+   "oracle": 1,
+   "matched": 0,
+   "residual": 1,
+   "exact": true
+  },
+  "0.05": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.055": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.065": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.085": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.105": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.115": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.12": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.120521785093": {
+   "type": "cluster",
+   "oracle": 161,
+   "matched": 0,
+   "residual": 161,
+   "exact": true
+  },
+  "0.120561279036": {
+   "type": "cluster",
+   "oracle": 56,
+   "matched": 0,
+   "residual": 56,
+   "exact": true
+  },
+  "0.120660271655": {
+   "type": "cluster",
+   "oracle": 49,
+   "matched": 0,
+   "residual": 49,
+   "exact": true
+  },
+  "0.120782677639": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.120990407483": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.121040684233": {
+   "type": "cluster",
+   "oracle": 56,
+   "matched": 0,
+   "residual": 56,
+   "exact": true
+  },
+  "0.121122558073": {
+   "type": "cluster",
+   "oracle": 48,
+   "matched": 2,
+   "residual": 46,
+   "exact": true
+  },
+  "0.121228349878": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.121282359805": {
+   "type": "cluster",
+   "oracle": 64,
+   "matched": 0,
+   "residual": 64,
+   "exact": true
+  },
+  "0.121554365233": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.121565355278": {
+   "type": "cluster",
+   "oracle": 161,
+   "matched": 0,
+   "residual": 161,
+   "exact": true
+  },
+  "0.121980814965": {
+   "type": "cluster",
+   "oracle": 49,
+   "matched": 0,
+   "residual": 49,
+   "exact": true
+  },
+  "0.12256471961": {
+   "type": "cluster",
+   "oracle": 168,
+   "matched": 0,
+   "residual": 168,
+   "exact": true
+  },
+  "0.122645147744": {
+   "type": "cluster",
+   "oracle": 203,
+   "matched": 0,
+   "residual": 203,
+   "exact": true
+  },
+  "0.123326737299": {
+   "type": "cluster",
+   "oracle": 168,
+   "matched": 0,
+   "residual": 168,
+   "exact": true
+  },
+  "0.123347194281": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 0,
+   "residual": 91,
+   "exact": true
+  },
+  "0.123353546676": {
+   "type": "cluster",
+   "oracle": 203,
+   "matched": 0,
+   "residual": 203,
+   "exact": true
+  },
+  "0.123707746143": {
+   "type": "cluster",
+   "oracle": 371,
+   "matched": 7,
+   "residual": 364,
+   "exact": true
+  },
+  "0.124243608806": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 0,
+   "residual": 91,
+   "exact": true
+  },
+  "0.124336971529": {
+   "type": "cluster",
+   "oracle": 371,
+   "matched": 1,
+   "residual": 370,
+   "exact": true
+  },
+  "0.124691816068": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 1,
+   "residual": 90,
+   "exact": true
+  },
+  "0.124966196914": {
+   "type": "cluster",
+   "oracle": 371,
+   "matched": 51,
+   "residual": 320,
+   "exact": true
+  },
+  "0.125": {
+   "type": "mid",
+   "oracle": 1470,
+   "matched": 1172,
+   "residual": 298,
+   "exact": true
+  },
+  "0.125222634461": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 1,
+   "residual": 90,
+   "exact": true
+  },
+  "0.125260892546": {
+   "type": "cluster",
+   "oracle": 76,
+   "matched": 0,
+   "residual": 76,
+   "exact": true
+  },
+  "0.125280639518": {
+   "type": "cluster",
+   "oracle": 26,
+   "matched": 0,
+   "residual": 26,
+   "exact": true
+  },
+  "0.125330135828": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.12539133882": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.125495203741": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.125520342116": {
+   "type": "cluster",
+   "oracle": 26,
+   "matched": 0,
+   "residual": 26,
+   "exact": true
+  },
+  "0.125561279036": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.125614174939": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.125641179902": {
+   "type": "cluster",
+   "oracle": 28,
+   "matched": 0,
+   "residual": 28,
+   "exact": true
+  },
+  "0.125753452854": {
+   "type": "cluster",
+   "oracle": 90,
+   "matched": 16,
+   "residual": 74,
+   "exact": true
+  },
+  "0.125777182616": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.125782677639": {
+   "type": "cluster",
+   "oracle": 76,
+   "matched": 0,
+   "residual": 76,
+   "exact": true
+  },
+  "0.125990407483": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.126282359805": {
+   "type": "cluster",
+   "oracle": 78,
+   "matched": 0,
+   "residual": 78,
+   "exact": true
+  },
+  "0.126322573872": {
+   "type": "cluster",
+   "oracle": 98,
+   "matched": 0,
+   "residual": 98,
+   "exact": true
+  },
+  "0.126663368649": {
+   "type": "cluster",
+   "oracle": 78,
+   "matched": 0,
+   "residual": 78,
+   "exact": true
+  },
+  "0.126673597141": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.126676773338": {
+   "type": "cluster",
+   "oracle": 98,
+   "matched": 0,
+   "residual": 98,
+   "exact": true
+  },
+  "0.126853873071": {
+   "type": "cluster",
+   "oracle": 176,
+   "matched": 0,
+   "residual": 176,
+   "exact": true
+  },
+  "0.127121804403": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.127168485764": {
+   "type": "cluster",
+   "oracle": 176,
+   "matched": 0,
+   "residual": 176,
+   "exact": true
+  },
+  "0.127345908034": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.127483098457": {
+   "type": "cluster",
+   "oracle": 371,
+   "matched": 51,
+   "residual": 320,
+   "exact": true
+  },
+  "0.127611317231": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.127876726427": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 17,
+   "residual": 74,
+   "exact": true
+  },
+  "0.13": {
+   "type": "main",
+   "oracle": 3212,
+   "matched": 1950,
+   "residual": 1262,
+   "exact": true
+  },
+  "0.135": {
+   "type": "main",
+   "oracle": 3212,
+   "matched": 1950,
+   "residual": 1262,
+   "exact": true
+  },
+  "0.145": {
+   "type": "main",
+   "oracle": 3212,
+   "matched": 1950,
+   "residual": 1262,
+   "exact": true
+  },
+  "0.16": {
+   "type": "main",
+   "oracle": 3212,
+   "matched": 1950,
+   "residual": 1262,
+   "exact": true
+  },
+  "0.175": {
+   "type": "main",
+   "oracle": 3212,
+   "matched": 1950,
+   "residual": 1262,
+   "exact": true
+  },
+  "0.185": {
+   "type": "main",
+   "oracle": 3212,
+   "matched": 1950,
+   "residual": 1262,
+   "exact": true
+  },
+  "0.19": {
+   "type": "main",
+   "oracle": 3212,
+   "matched": 1952,
+   "residual": 1260,
+   "exact": true
+  },
+  "0.192123273573": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 17,
+   "residual": 74,
+   "exact": true
+  },
+  "0.192388682769": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.192516901543": {
+   "type": "cluster",
+   "oracle": 371,
+   "matched": 51,
+   "residual": 320,
+   "exact": true
+  },
+  "0.192654091966": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.192831514236": {
+   "type": "cluster",
+   "oracle": 176,
+   "matched": 0,
+   "residual": 176,
+   "exact": true
+  },
+  "0.192878195597": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.193146126929": {
+   "type": "cluster",
+   "oracle": 176,
+   "matched": 0,
+   "residual": 176,
+   "exact": true
+  },
+  "0.193323226662": {
+   "type": "cluster",
+   "oracle": 98,
+   "matched": 0,
+   "residual": 98,
+   "exact": true
+  },
+  "0.193326402859": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.193336631351": {
+   "type": "cluster",
+   "oracle": 78,
+   "matched": 0,
+   "residual": 78,
+   "exact": true
+  },
+  "0.19360331474": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 17,
+   "residual": 74,
+   "exact": true
+  },
+  "0.193677426128": {
+   "type": "cluster",
+   "oracle": 98,
+   "matched": 0,
+   "residual": 98,
+   "exact": true
+  },
+  "0.193717640195": {
+   "type": "cluster",
+   "oracle": 78,
+   "matched": 0,
+   "residual": 78,
+   "exact": true
+  },
+  "0.194009592517": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.194053729083": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.194217322361": {
+   "type": "cluster",
+   "oracle": 76,
+   "matched": 0,
+   "residual": 76,
+   "exact": true
+  },
+  "0.194222817384": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.194271323557": {
+   "type": "cluster",
+   "oracle": 371,
+   "matched": 51,
+   "residual": 320,
+   "exact": true
+  },
+  "0.194358820098": {
+   "type": "cluster",
+   "oracle": 28,
+   "matched": 0,
+   "residual": 28,
+   "exact": true
+  },
+  "0.194385825061": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.194438720964": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 2,
+   "residual": 22,
+   "exact": true
+  },
+  "0.194479657884": {
+   "type": "cluster",
+   "oracle": 26,
+   "matched": 0,
+   "residual": 26,
+   "exact": true
+  },
+  "0.194504143425": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.194504796259": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.19460866118": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.194669864172": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.194719360482": {
+   "type": "cluster",
+   "oracle": 26,
+   "matched": 0,
+   "residual": 26,
+   "exact": true
+  },
+  "0.194739107454": {
+   "type": "cluster",
+   "oracle": 76,
+   "matched": 0,
+   "residual": 76,
+   "exact": true
+  },
+  "0.194805239001": {
+   "type": "cluster",
+   "oracle": 176,
+   "matched": 0,
+   "residual": 176,
+   "exact": true
+  },
+  "0.194884459898": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.195": {
+   "type": "mid",
+   "oracle": 1470,
+   "matched": 1172,
+   "residual": 298,
+   "exact": true
+  },
+  "0.195339154446": {
+   "type": "cluster",
+   "oracle": 176,
+   "matched": 0,
+   "residual": 176,
+   "exact": true
+  },
+  "0.195639702659": {
+   "type": "cluster",
+   "oracle": 98,
+   "matched": 0,
+   "residual": 98,
+   "exact": true
+  },
+  "0.195645092845": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.195662451171": {
+   "type": "cluster",
+   "oracle": 78,
+   "matched": 0,
+   "residual": 78,
+   "exact": true
+  },
+  "0.195726588313": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 17,
+   "residual": 74,
+   "exact": true
+  },
+  "0.196240799086": {
+   "type": "cluster",
+   "oracle": 98,
+   "matched": 0,
+   "residual": 98,
+   "exact": true
+  },
+  "0.196309044621": {
+   "type": "cluster",
+   "oracle": 78,
+   "matched": 0,
+   "residual": 78,
+   "exact": true
+  },
+  "0.196442411852": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.196788225099": {
+   "type": "cluster",
+   "oracle": 462,
+   "matched": 68,
+   "residual": 394,
+   "exact": true
+  },
+  "0.196804504141": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.197157033375": {
+   "type": "cluster",
+   "oracle": 76,
+   "matched": 0,
+   "residual": 76,
+   "exact": true
+  },
+  "0.197158235391": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.197166358738": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.197397162997": {
+   "type": "cluster",
+   "oracle": 28,
+   "matched": 0,
+   "residual": 28,
+   "exact": true
+  },
+  "0.19744299194": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.197532759264": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 2,
+   "residual": 22,
+   "exact": true
+  },
+  "0.19760223152": {
+   "type": "cluster",
+   "oracle": 26,
+   "matched": 0,
+   "residual": 26,
+   "exact": true
+  },
+  "0.197636753237": {
+   "type": "cluster",
+   "oracle": 462,
+   "matched": 2,
+   "residual": 460,
+   "exact": true
+  },
+  "0.197644892758": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.197762655496": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.197821157375": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.197925022297": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.198009020319": {
+   "type": "cluster",
+   "oracle": 26,
+   "matched": 0,
+   "residual": 26,
+   "exact": true
+  },
+  "0.198042532041": {
+   "type": "cluster",
+   "oracle": 76,
+   "matched": 0,
+   "residual": 76,
+   "exact": true
+  },
+  "0.198485281374": {
+   "type": "special",
+   "oracle": 1932,
+   "matched": 1180,
+   "residual": 752,
+   "exact": true
+  },
+  "0.198962929321": {
+   "type": "cluster",
+   "oracle": 203,
+   "matched": 0,
+   "residual": 203,
+   "exact": true
+  },
+  "0.198971495704": {
+   "type": "cluster",
+   "oracle": 46,
+   "matched": 0,
+   "residual": 46,
+   "exact": true
+  },
+  "0.198999082521": {
+   "type": "cluster",
+   "oracle": 168,
+   "matched": 0,
+   "residual": 168,
+   "exact": true
+  },
+  "0.199201753294": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 0,
+   "residual": 91,
+   "exact": true
+  },
+  "0.199918225214": {
+   "type": "cluster",
+   "oracle": 203,
+   "matched": 0,
+   "residual": 203,
+   "exact": true
+  },
+  "0.200026684816": {
+   "type": "cluster",
+   "oracle": 168,
+   "matched": 0,
+   "residual": 168,
+   "exact": true
+  },
+  "0.200634697134": {
+   "type": "cluster",
+   "oracle": 91,
+   "matched": 0,
+   "residual": 91,
+   "exact": true
+  },
+  "0.200814096658": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.201374355736": {
+   "type": "cluster",
+   "oracle": 161,
+   "matched": 0,
+   "residual": 161,
+   "exact": true
+  },
+  "0.201389176122": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.201755983095": {
+   "type": "cluster",
+   "oracle": 64,
+   "matched": 0,
+   "residual": 64,
+   "exact": true
+  },
+  "0.201828817001": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.201971480227": {
+   "type": "cluster",
+   "oracle": 48,
+   "matched": 2,
+   "residual": 46,
+   "exact": true
+  },
+  "0.202081889404": {
+   "type": "cluster",
+   "oracle": 56,
+   "matched": 0,
+   "residual": 56,
+   "exact": true
+  },
+  "0.202149689016": {
+   "type": "cluster",
+   "oracle": 22,
+   "matched": 0,
+   "residual": 22,
+   "exact": true
+  },
+  "0.202429818555": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.202594886469": {
+   "type": "cluster",
+   "oracle": 24,
+   "matched": 0,
+   "residual": 24,
+   "exact": true
+  },
+  "0.202728380801": {
+   "type": "cluster",
+   "oracle": 56,
+   "matched": 0,
+   "residual": 56,
+   "exact": true
+  },
+  "0.202781639495": {
+   "type": "cluster",
+   "oracle": 161,
+   "matched": 0,
+   "residual": 161,
+   "exact": true
+  },
+  "0.202818892917": {
+   "type": "cluster",
+   "oracle": 49,
+   "matched": 0,
+   "residual": 49,
+   "exact": true
+  },
+  "0.203485281374": {
+   "type": "special",
+   "oracle": 1665,
+   "matched": 1564,
+   "residual": 101,
+   "exact": true
+  },
+  "0.203500584814": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.204402087146": {
+   "type": "cluster",
+   "oracle": 42,
+   "matched": 0,
+   "residual": 42,
+   "exact": true
+  },
+  "0.204929818555": {
+   "type": "cluster",
+   "oracle": 49,
+   "matched": 0,
+   "residual": 49,
+   "exact": true
+  },
+  "0.205985281374": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.210985281374": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.220985281374": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.235": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.245": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  },
+  "0.25": {
+   "type": "coarse",
+   "oracle": 1710,
+   "matched": 1710,
+   "residual": 0,
+   "exact": true
+  }
+ }
+}
