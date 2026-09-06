@@ -24,37 +24,55 @@ def graded_chain(lo, hi, g0, ratio=2.0, cap=None):
     remainder is split into ceil(rem/cap) equal middle cells.  Returns
     the interior line positions (lo/hi excluded, deduplicated).
     """
-    L = float(hi) - float(lo)
+    return chain_asym(lo, hi, g0, g0, ratio=ratio,
+                      cap=(hi - lo) if cap is None else cap)
+
+
+def chain_asym(lo, hi, g0L, g0R, ratio=2.0, cap=None):
+    """Two-sided chain with per-side g0 (J1b meta-rule: cylinder
+    base-extent faces act as internal anchors and the sub-segments use
+    asymmetric start cells).
+
+    The side with the smaller next cell takes it while the remaining
+    span >= both next cells; the remainder is split into
+    ceil(rem/cap) equal middle cells.  Returns interior line positions.
+    """
+    lo = float(lo)
+    hi = float(hi)
+    L = hi - lo
     if L <= 0:
         return np.zeros(0)
     cap = L if cap is None else float(cap)
-    chain = []
-    cell = float(g0)
     rem = L
-    while rem >= 2.0 * cell - 1e-15:
-        chain.append(cell)
-        rem -= 2.0 * cell
-        cell = min(cell * ratio, cap)
-    mid = []
+    cl, cr = float(g0L), float(g0R)
+    left, right = [], []
+    while rem >= cl + cr - 1e-15:
+        if cl == cr:
+            left.append(cl)
+            right.append(cr)
+            rem -= cl + cr
+            cl = cr = min(cl * ratio, cap)
+        elif cl < cr:
+            left.append(cl)
+            rem -= cl
+            cl = min(cl * ratio, cap)
+        else:
+            right.append(cr)
+            rem -= cr
+            cr = min(cr * ratio, cap)
+    base = lo + sum(left)
+    mids = []
     if rem > 1e-15:
         k = max(1, int(np.ceil(rem / cap - 1e-12)))
-        mid = [rem / k] * k
-    left = []
-    c = float(lo)
-    for w in chain:
+        c = base
+        for w in ([rem / k] * k)[:-1]:
+            c += w
+            mids.append(c)
+    c = lo
+    lpos = []
+    for w in left:
         c += w
-        left.append(c)
-    right = []
-    c = float(hi)
-    for w in chain:
-        c -= w
-        right.append(c)
-    base = float(lo) + sum(chain)
-    stop = float(hi) - sum(chain)
-    mids = []
-    c = base
-    for w in mid[:-1] if mid else []:
-        c += w
-        mids.append(c)
-    pos = left + mids + right
-    return np.unique(np.round(np.array(pos), 12))
+        lpos.append(c)
+    rlines = [hi - sum(right[:i + 1]) for i in range(len(right) - 1, -1, -1)]
+    lines = lpos + mids + rlines
+    return np.unique(np.round(np.array(lines), 12))

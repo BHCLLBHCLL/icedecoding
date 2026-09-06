@@ -10,7 +10,7 @@ import pytest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ice_hdm_layers import graded_chain
+from ice_hdm_layers import graded_chain, chain_asym
 
 JDIR = os.path.join("D:", os.sep, "training", "icepak", "10-1transient")
 HAS_ORACLE = os.path.isdir(JDIR) and os.path.exists(
@@ -25,6 +25,37 @@ def test_graded_chain_three_confirmed_segments():
     assert np.allclose(b, [0.135, 0.145, 0.16, 0.175, 0.185], atol=1e-12)
     c = graded_chain(0.05, 0.1, 5e-3, 2.0, 2e-2)
     assert np.allclose(c, [0.055, 0.065, 0.085, 0.095], atol=1e-12)
+
+
+def test_chain_asym_pair_growth():
+    """Equal per-side g0 grows in synchronised pairs (J1b pair fix)."""
+    got = chain_asym(0.18, 0.22, 5e-3, 5e-3, cap=2e-2)
+    assert np.allclose(got, [0.185, 0.195, 0.205, 0.215], atol=1e-12)
+
+
+def test_chain_asym_fitted_decompositions():
+    """The four quad-adjacent skeleton segments (fitted internal anchors,
+    per-side g0) reproduce the oracle lines exactly."""
+    cases = [
+        (0.12, 0.18, [(0.12, 0.17, 2.5e-3, 1e-2), (0.17, 0.18, 5e-3, 5e-3)],
+         [0.1225, 0.1275, 0.1375, 0.14875, 0.16, 0.17, 0.175]),
+        (0.22, 0.28, [(0.22, 0.23, 5e-3, 5e-3), (0.23, 0.28, 1e-2, 2.5e-3)],
+         [0.225, 0.23, 0.24, 0.25125, 0.2625, 0.2725, 0.2775]),
+        (0.22, 0.28, [(0.22, 0.27, 2.5e-3, 1e-2), (0.27, 0.28, 5e-3, 5e-3)],
+         [0.2225, 0.2275, 0.2375, 0.24875, 0.26, 0.27, 0.275]),
+        (0.32, 0.38, [(0.32, 0.325, 2.5e-3, 5e-3),
+                      (0.325, 0.3516666666666667, 5e-3, 2e-2),
+                      (0.3516666666666667, 0.38, 2e-2, 5e-3)],
+         [0.325, 0.33, 0.3408333333333333, 0.3516666666666667,
+          0.36333333333333334, 0.375]),
+    ]
+    for lo, hi, subs, expect in cases:
+        got = [lo, hi]
+        for sa, sb, g0l, g0r in subs:
+            got.extend([sa, sb])
+            got.extend(chain_asym(sa, sb, g0l, g0r, cap=2e-2).tolist())
+        got = np.unique(np.round(np.array(got), 12))
+        assert np.allclose(got, [lo] + expect + [hi], atol=1e-12), (lo, got)
 
 
 def test_graded_chain_properties():
@@ -64,6 +95,26 @@ def test_oracle_graded_law_on_z_segments():
     for lo, hi in ((0.05, 0.12), (0.13, 0.19)):
         for v in graded_chain(lo, hi, 5e-3, 2.0, 2e-2):
             assert round(float(v), 12) in z
+
+
+@pytest.mark.skipif(not HAS_ORACLE, reason="oracle project not available")
+def test_oracle_skeleton_regeneration():
+    """J1b milestone: the 38x45 coarse grid regenerates exactly from the
+    law (both axes and the cartesian product)."""
+    from tools.hdm_j1b_regenerate import (X_ANCHORS, X_OVERRIDES,
+                                          Y_ANCHORS, Y_OVERRIDES, skeleton)
+    from tools.hdm_graded_lattice import load_oracle
+    nodes = load_oracle()
+    z = np.round(nodes[:, 2], 12)
+    sub = nodes[np.abs(z - 0.25) < 1e-9]
+    gx = skeleton(X_ANCHORS, X_OVERRIDES)
+    gy = skeleton(Y_ANCHORS, Y_OVERRIDES)
+    assert np.array_equal(gx, np.unique(np.round(sub[:, 0], 12)))
+    assert np.array_equal(gy, np.unique(np.round(sub[:, 1], 12)))
+    prod = set(map(tuple, np.round(
+        np.array([(x, y) for x in gx for y in gy]), 12)))
+    assert prod == set(map(tuple, np.round(sub[:, :2], 12)))
+    assert len(prod) == 1710
 
 
 @pytest.mark.skipif(not HAS_ORACLE, reason="oracle project not available")

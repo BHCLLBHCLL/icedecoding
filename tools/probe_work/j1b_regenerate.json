@@ -1,0 +1,21 @@
+{
+ "x": {
+  "generated": 38,
+  "oracle": 38,
+  "exact": true,
+  "missing": [],
+  "extra": []
+ },
+ "y": {
+  "generated": 45,
+  "oracle": 45,
+  "exact": true,
+  "missing": [],
+  "extra": []
+ },
+ "coarse_grid_product": {
+  "generated_nodes": 1710,
+  "oracle_nodes": 1710,
+  "exact": true
+ }
+}
