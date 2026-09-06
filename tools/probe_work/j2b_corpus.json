@@ -1,0 +1,412 @@
+{
+ "10-1transient": {
+  "dir": "D:\\training\\icepak\\10-1transient",
+  "cyls": 9,
+  "cones": 9,
+  "z": {
+   "levels": 150,
+   "nodes": 62626,
+   "tail": 5
+  },
+  "hist": [
+   [
+    16,
+    46
+   ],
+   [
+    14,
+    22
+   ],
+   [
+    13,
+    1710
+   ],
+   [
+    11,
+    24
+   ],
+   [
+    10,
+    91
+   ]
+  ]
+ },
+ "11-1compact-package": {
+  "dir": "D:\\training\\icepak\\11-1compact-package",
+  "cyls": -1,
+  "cones": 0,
+  "z": null
+ },
+ "11-2BGA-package": {
+  "dir": "D:\\training\\icepak\\11-2BGA-package",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 31,
+   "nodes": 162053,
+   "tail": 0
+  },
+  "hist": [
+   [
+    18,
+    5475
+   ],
+   [
+    4,
+    2872
+   ],
+   [
+    3,
+    10371
+   ],
+   [
+    2,
+    80
+   ],
+   [
+    1,
+    5051
+   ]
+  ]
+ },
+ "11-3joule-heating": {
+  "dir": "D:\\training\\icepak\\11-3joule-heating",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 41,
+   "nodes": 245016,
+   "tail": 0
+  },
+  "hist": [
+   [
+    39,
+    5976
+   ],
+   [
+    1,
+    5977
+   ],
+   [
+    1,
+    5975
+   ]
+  ]
+ },
+ "12-1datacenter": {
+  "dir": "D:\\training\\icepak\\12-1datacenter",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 168,
+   "nodes": 154101,
+   "tail": 0
+  },
+  "hist": [
+   [
+    53,
+    80
+   ],
+   [
+    50,
+    56
+   ],
+   [
+    48,
+    2254
+   ],
+   [
+    13,
+    2278
+   ],
+   [
+    2,
+    2334
+   ]
+  ]
+ },
+ "12-2avonics": {
+  "dir": "D:\\training\\icepak\\12-2avonics",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 129,
+   "nodes": 155255,
+   "tail": 0
+  },
+  "hist": [
+   [
+    75,
+    1820
+   ],
+   [
+    32,
+    24
+   ],
+   [
+    13,
+    48
+   ],
+   [
+    4,
+    2036
+   ],
+   [
+    4,
+    1796
+   ]
+  ]
+ },
+ "12-3TEC Tutorial": {
+  "dir": "D:\\training\\icepak\\12-3TEC Tutorial",
+  "cyls": 0,
+  "cones": 0,
+  "z": null
+ },
+ "5-1fin": {
+  "dir": "D:\\training\\icepak\\5-1fin",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 121,
+   "nodes": 94755,
+   "tail": 0
+  },
+  "hist": [
+   [
+    24,
+    252
+   ],
+   [
+    22,
+    2112
+   ],
+   [
+    15,
+    88
+   ],
+   [
+    12,
+    80
+   ],
+   [
+    12,
+    1449
+   ]
+  ]
+ },
+ "5-2rf_amp": {
+  "dir": "D:\\training\\icepak\\5-2rf_amp",
+  "cyls": 0,
+  "cones": 0,
+  "z": null
+ },
+ "7-1hsink-rad": {
+  "dir": "D:\\training\\icepak\\7-1hsink-rad",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 29,
+   "nodes": 36482,
+   "tail": 0
+  },
+  "hist": [
+   [
+    27,
+    1258
+   ],
+   [
+    1,
+    1259
+   ],
+   [
+    1,
+    1257
+   ]
+  ]
+ },
+ "7-2Heat-pipe": {
+  "dir": "D:\\training\\icepak\\7-2Heat-pipe",
+  "cyls": 33,
+  "cones": 30,
+  "z": {
+   "levels": 836,
+   "nodes": 140028,
+   "tail": 1
+  },
+  "hist": [
+   [
+    119,
+    100
+   ],
+   [
+    104,
+    2
+   ],
+   [
+    96,
+    104
+   ],
+   [
+    94,
+    68
+   ],
+   [
+    88,
+    1
+   ]
+  ]
+ },
+ "8-1cold-plate": {
+  "dir": "D:\\training\\icepak\\8-1cold-plate",
+  "cyls": 4,
+  "cones": 0,
+  "z": {
+   "levels": 302,
+   "nodes": 15479,
+   "tail": 2
+  },
+  "hist": [
+   [
+    124,
+    2
+   ],
+   [
+    120,
+    4
+   ],
+   [
+    23,
+    20
+   ],
+   [
+    12,
+    648
+   ],
+   [
+    10,
+    24
+   ]
+  ]
+ },
+ "8-2yyhh": {
+  "dir": "D:\\training\\icepak\\8-2yyhh",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 32,
+   "nodes": 5022,
+   "tail": 0
+  },
+  "hist": [
+   [
+    30,
+    162
+   ],
+   [
+    1,
+    1
+   ],
+   [
+    1,
+    161
+   ]
+  ]
+ },
+ "9-1FAN_Location": {
+  "dir": "D:\\training\\icepak\\9-1FAN_Location",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 120,
+   "nodes": 25349,
+   "tail": 0
+  },
+  "hist": [
+   [
+    38,
+    1
+   ],
+   [
+    21,
+    378
+   ],
+   [
+    18,
+    74
+   ],
+   [
+    12,
+    2
+   ],
+   [
+    11,
+    700
+   ]
+  ]
+ },
+ "9-2Optimization": {
+  "dir": "D:\\training\\icepak\\9-2Optimization",
+  "cyls": 5,
+  "cones": 0,
+  "z": {
+   "levels": 1307,
+   "nodes": 36920,
+   "tail": 0
+  },
+  "hist": [
+   [
+    936,
+    1
+   ],
+   [
+    241,
+    16
+   ],
+   [
+    22,
+    40
+   ],
+   [
+    18,
+    42
+   ],
+   [
+    12,
+    43
+   ]
+  ]
+ },
+ "9-3Loss_coefficient": {
+  "dir": "D:\\training\\icepak\\9-3Loss_coefficient",
+  "cyls": 0,
+  "cones": 0,
+  "z": {
+   "levels": 158,
+   "nodes": 31763,
+   "tail": 0
+  },
+  "hist": [
+   [
+    83,
+    6
+   ],
+   [
+    32,
+    2
+   ],
+   [
+    14,
+    1056
+   ],
+   [
+    8,
+    12
+   ],
+   [
+    5,
+    4
+   ]
+  ]
+ }
+}
