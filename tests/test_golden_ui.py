@@ -163,11 +163,18 @@ def test_hotkeys_match_golden(win):
 
 
 def test_nyi_lands_in_message(win):
+    # bugfix: toolbar commands resolve to their real handlers (they were
+    # all bound to _nyi before), so Run solution now reports its guard
     action = win._toolbars["Model and solve"].actions()[4]  # Run solution
     assert action.text() == "Run solution"
     action.trigger()
     text = win.message_win.text.toPlainText()
     assert "Run solution" in text
+    # the NYI channel still covers commands without mapped handlers
+    nyi = win._created_by_command.get("Merge project")
+    assert nyi is not None
+    nyi.trigger()
+    text = win.message_win.text.toPlainText()
     assert "not yet mapped" in text
 
 

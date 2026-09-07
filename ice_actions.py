@@ -348,7 +348,13 @@ class NyiHandler(object):
 
 
 def resolve_slot(gui, cmd):
-    """Return a callable for command label (or None if state-only)."""
+    """Return a zero-arg callable for command label (or None if
+    state-only).
+
+    Zero-arg matters: PyQt5 feeds the triggered(bool) checked flag into
+    a slot's first positional-or-keyword parameter; a lambda like
+    ``lambda fn=fn, arg=arg: fn(arg)`` would receive False as ``fn``
+    and hard-crash the interpreter when the body raises."""
     if cmd in SLOT_MAP and SLOT_MAP[cmd]:
         spec = SLOT_MAP[cmd]
         if ":" in spec:
@@ -358,20 +364,19 @@ def resolve_slot(gui, cmd):
         fn = getattr(gui, method, None)
         if fn is not None and callable(fn):
             if arg is not None:
-                return (lambda fn=fn, arg=arg: fn(arg))
+                def _call():
+                    return fn(arg)
+                return _call
             return fn
-    if cmd in set(_create_kind(table_name) for table_name in (
-            "Create blocks", "Create blowers", "Create enclosures",
-            "Create fans", "Create heat exchangers", "Create heat sinks",
-            "Create materials", "Create networks", "Create openings",
-            "Create packages", "Create assemblies",
-            "Create printed circuit boards", "Create periodic boundaries",
-            "Create plates", "Create resistances", "Create sources",
-            "Create grille", "Create walls")):
-        kind = _create_kind(cmd)
+    kind = _create_kind(cmd)
+    if kind:
         fn = getattr(gui, "_create_object", None)
-        if fn is not None and kind:
-            return (lambda fn=fn, kind=kind: fn(kind))
+        if fn is not None and callable(fn):
+            def _create():
+                return fn(kind)
+            return _create
     if cmd in STATE_ONLY:
         return None
-    return NyiHandler(cmd)
+    h = NyiHandler(cmd)
+    h._gui = gui
+    return h

@@ -341,6 +341,8 @@ def build_toolbars(gui):
             if label in ALIGN_OPS and hasattr(gui, "_start_align"):
                 slot = (lambda _=False, op=ALIGN_OPS[label]:
                         gui._start_align(op))
+            if slot is None:
+                slot = resolve_slot(gui, label)
             gui._tb_act(tb, label, slot, icon=icon_for_command(icon_key))
         # F4: multi-command buttons (golden scalar ['multiple', cmd1, cmd2])
         for cmds in _multi_commands(tb_def["entries"]):
